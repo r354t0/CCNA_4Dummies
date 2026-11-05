@@ -26,11 +26,11 @@ import Topologia from '../../components/Topologia.astro';
 
 <Topologia
   ancho={560}
-  alto={360}
+  alto={280}
   nodos={[
-    { id: 'R1', tipo: 'router', x: 330, y: 60, detalle: 'G0/0/1 192.168.1.1' },
-    { id: 'S1', tipo: 'switch', x: 330, y: 185, detalle: 'VLAN 1 192.168.1.2' },
-    { id: 'PC1', tipo: 'pc', x: 150, y: 290, detalle: '192.168.1.10' },
+    { id: 'R1', tipo: 'router', x: 330, y: 75, detalle: 'G0/0/1 192.168.1.1' },
+    { id: 'S1', tipo: 'switch', x: 330, y: 205, detalle: 'VLAN 1 192.168.1.2' },
+    { id: 'PC1', tipo: 'pc', x: 110, y: 205, detalle: '192.168.1.10' },
   ]}
   enlaces={[
     { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1' },
@@ -39,8 +39,8 @@ import Topologia from '../../components/Topologia.astro';
   ]}
 />
 
-La línea punteada celeste es el cable de consola: lo usarás para la configuración inicial del router, antes de que
-tenga red.
+El cable de consola (línea punteada) es el que usarás para la configuración inicial del router, antes de que tenga
+red.
 
 ## Tabla de direccionamiento
 
