@@ -31,4 +31,3 @@ en Packet Tracer y GNS3, y práctica de examen. El contenido cubre las dos versi
 ## Pendiente del instructor
 
 - Construir y subir los archivos `.pkt` de los laboratorios de los niveles 1 y 2 (ver `docs/CREAR-LABS.md`).
-- Activar GitHub Pages con origen GitHub Actions.
