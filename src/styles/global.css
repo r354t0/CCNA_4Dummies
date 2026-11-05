@@ -39,28 +39,28 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12181f;
-    --surface: #1a222c;
-    --ink: #e4e9ee;
-    --muted: #9aa7b4;
-    --line: #2c3845;
-    --line-strong: #435263;
-    --focus: #7fb0f0;
-    --n1: #f08a33;
-    --n2: #3fae73;
-    --n3: #5b8fdc;
-    --n4: #b0805c;
-    --n5: #5bb8e3;
-    --led-off: #3a4653;
-    --ok: #5cc98b;
-    --ok-bg: #173225;
-    --bad: #f08a80;
-    --bad-bg: #3a1d1b;
-    --console-bg: #0d1319;
-    color-scheme: dark;
-  }
+/* Tema oscuro: se activa con el botón de la cabecera (data-tema en <html>).
+   El tema claro es el predeterminado. */
+:root[data-tema='oscuro'] {
+  --bg: #12181f;
+  --surface: #1a222c;
+  --ink: #e4e9ee;
+  --muted: #9aa7b4;
+  --line: #2c3845;
+  --line-strong: #435263;
+  --focus: #7fb0f0;
+  --n1: #f08a33;
+  --n2: #3fae73;
+  --n3: #5b8fdc;
+  --n4: #b0805c;
+  --n5: #5bb8e3;
+  --led-off: #3a4653;
+  --ok: #5cc98b;
+  --ok-bg: #173225;
+  --bad: #f08a80;
+  --bad-bg: #3a1d1b;
+  --console-bg: #0d1319;
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
