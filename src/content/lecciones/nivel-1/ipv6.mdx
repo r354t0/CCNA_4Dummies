@@ -1,0 +1,142 @@
+---
+titulo: Direccionamiento IPv6
+descripcion: Formato y abreviación de direcciones IPv6, tipos de dirección, EUI-64, SLAAC y la configuración básica en un router Cisco.
+nivel: 1
+orden: 6
+duracion: 45
+examen:
+  v1.1: 1
+  v2.0: 1
+labs: [l1-03-ipv6-dual-stack]
+quiz:
+  - p: "¿Cuál es la forma abreviada correcta de 2001:0db8:0000:0000:0000:00a0:0000:0001?"
+    opciones:
+      - "2001:db8::a0:0:1"
+      - "2001:db8::a0::1"
+      - "2001:db8:0:0:0:a:0:1"
+      - "2001:db8::a00:1"
+    correcta: 0
+    explicacion: "Se quitan los ceros a la izquierda de cada grupo y se reemplaza una sola secuencia de grupos en cero por ::. No se puede usar :: dos veces."
+  - p: "¿Qué tipo de dirección empieza por FE80?"
+    opciones: [Global unicast, Unique local, Link-local, Multicast]
+    correcta: 2
+    explicacion: "Las direcciones link-local están en FE80::/10 y solo son válidas en el enlace. Toda interfaz con IPv6 tiene una."
+  - p: "Un router tiene direcciones IPv6 en sus interfaces, pero las PC no obtienen dirección por SLAAC. ¿Qué comando falta probablemente?"
+    opciones: [ipv6 enable, ipv6 unicast-routing, ipv6 address autoconfig, ipv6 nd prefix]
+    correcta: 1
+    explicacion: "Sin ipv6 unicast-routing el router no actúa como router IPv6 y no envía Router Advertisements, que son los que permiten SLAAC."
+  - p: "Aplicando EUI-64 a la MAC 00:1A:2B:3C:4D:5E, ¿cuál es el identificador de interfaz?"
+    opciones:
+      - "001A:2BFF:FE3C:4D5E"
+      - "021A:2BFF:FE3C:4D5E"
+      - "021A:2B3C:4D5E:FFFE"
+      - "FFFE:001A:2B3C:4D5E"
+    correcta: 1
+    explicacion: "Se inserta FFFE en el medio y se invierte el séptimo bit del primer byte. 00 en binario es 00000000 y pasa a 00000010, es decir 02."
+  - p: "¿Qué protocolo reemplaza a ARP en IPv6?"
+    opciones: [ICMPv6 Neighbor Discovery, DHCPv6, RARP, IGMP]
+    correcta: 0
+    explicacion: "NDP usa mensajes ICMPv6 Neighbor Solicitation y Neighbor Advertisement para resolver direcciones MAC."
+---
+
+IPv4 tiene unos 4 300 millones de direcciones y se agotaron hace años; NAT ha alargado su vida, pero IPv6 es el
+reemplazo. Tiene 128 bits, no necesita NAT y simplifica la configuración de los hosts.
+
+## Formato
+
+Ocho grupos de 16 bits en hexadecimal, separados por dos puntos:
+
+```text
+2001:0db8:acad:0001:0000:0000:0000:0001
+```
+
+Dos reglas para abreviar:
+
+1. **Quitar ceros a la izquierda** en cada grupo: `0db8` pasa a `db8`, `0001` a `1`, `0000` a `0`.
+2. **Reemplazar una sola secuencia** de grupos consecutivos en cero por `::`. Solo se puede usar **una vez** por
+   dirección; si no, sería imposible saber cuántos ceros representa cada una.
+
+```text
+2001:0db8:acad:0001:0000:0000:0000:0001
+2001:db8:acad:1:0:0:0:1        regla 1
+2001:db8:acad:1::1             regla 2
+```
+
+## Prefijo e identificador de interfaz
+
+En IPv6 casi todas las LAN usan **/64**: los primeros 64 bits identifican la red y los últimos 64 identifican la
+interfaz. Un proveedor suele entregar un /48 a un sitio, lo que deja 16 bits (65 536 subredes /64) para dividir.
+
+```text
+2001:db8:acad: 0010 : 0000:0000:0000:0001
+|-- /48 del sitio --|subred|--- ID de interfaz (64 bits) ---|
+```
+
+## Tipos de dirección
+
+| Tipo | Prefijo | Para qué sirve |
+|---|---|---|
+| Global unicast (GUA) | 2000::/3 | Direcciones públicas enrutables en Internet |
+| Unique local (ULA) | FC00::/7 (en la práctica FD00::/8) | Uso interno, equivalente a las privadas de IPv4 |
+| Link-local | FE80::/10 | Solo dentro del enlace. Obligatoria en toda interfaz IPv6 |
+| Multicast | FF00::/8 | Un origen, varios receptores. Reemplaza al broadcast |
+| Loopback | ::1/128 | El propio equipo |
+| No especificada | ::/128 | Origen cuando aún no hay dirección |
+
+Grupos multicast que aparecen seguido: **FF02::1** (todos los nodos del enlace) y **FF02::2** (todos los routers).
+IPv6 también tiene **anycast**: la misma dirección configurada en varios equipos; el tráfico llega al más cercano.
+**No existe broadcast** en IPv6.
+
+## Cómo obtiene dirección un host
+
+- **Estática**: configurada a mano.
+- **SLAAC**: el router envía **Router Advertisements** (RA) con el prefijo de la red. El host arma su propia
+  dirección con ese prefijo y un ID de interfaz generado por él mismo (EUI-64 o aleatorio). El gateway es la
+  link-local del router.
+- **DHCPv6 sin estado**: SLAAC para la dirección, y DHCPv6 solo para datos extra como DNS.
+- **DHCPv6 con estado**: el servidor DHCPv6 asigna la dirección, como en IPv4.
+
+El **Neighbor Discovery Protocol** (NDP), basado en ICMPv6, hace lo que en IPv4 hacían ARP y parte de DHCP:
+Router Solicitation (RS), Router Advertisement (RA), Neighbor Solicitation (NS) y Neighbor Advertisement (NA).
+
+## EUI-64 paso a paso
+
+Convierte una MAC de 48 bits en un ID de interfaz de 64 bits. Con la MAC `00:1A:2B:3C:4D:5E`:
+
+1. Partir la MAC por la mitad: `001A2B` y `3C4D5E`.
+2. Insertar `FFFE` en el medio: `001A2B FFFE 3C4D5E`.
+3. Invertir el **séptimo bit** del primer byte: `00` es `00000000` y pasa a `00000010`, es decir `02`.
+4. Resultado: `021A:2BFF:FE3C:4D5E`.
+
+## Configuración en un router Cisco
+
+```text
+R1(config)# ipv6 unicast-routing
+R1(config)# interface gigabitethernet0/0/0
+R1(config-if)# ipv6 address 2001:db8:acad:10::1/64
+R1(config-if)# ipv6 address fe80::1 link-local
+R1(config-if)# no shutdown
+```
+
+- `ipv6 unicast-routing` habilita el reenvío de IPv6 **y** el envío de RA. Sin él, los hosts no pueden usar SLAAC.
+- Fijar la link-local en `fe80::1` es opcional, pero hace que el gateway de los hosts sea fácil de reconocer. Puede
+  repetirse en otras interfaces del mismo router porque solo vale dentro de cada enlace.
+- Para que IOS calcule el ID con EUI-64: `ipv6 address 2001:db8:acad:10::/64 eui-64`.
+
+Verificación:
+
+```text
+R1# show ipv6 interface brief
+GigabitEthernet0/0/0   [up/up]
+    FE80::1
+    2001:DB8:ACAD:10::1
+R1# show ipv6 route
+R1# show ipv6 neighbors
+```
+
+<aside class="examen">
+
+Es frecuente que te pidan abreviar o expandir una dirección, identificar el tipo por su prefijo o calcular un ID
+EUI-64. Recuerda también que una interfaz IPv6 siempre tiene al menos dos direcciones: la link-local y la global.
+
+</aside>

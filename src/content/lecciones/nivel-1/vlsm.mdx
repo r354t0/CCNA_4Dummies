@@ -1,0 +1,95 @@
+---
+titulo: Diseño de direccionamiento con VLSM
+descripcion: Cómo repartir un bloque de direcciones entre redes de tamaños distintos sin desperdiciar espacio ni solapar subredes.
+nivel: 1
+orden: 5
+duracion: 40
+examen:
+  v1.1: 1
+  v2.0: 1
+labs: [l1-02-vlsm]
+quiz:
+  - p: "Necesitas una subred para 50 hosts. ¿Cuál es el prefijo más largo que sirve?"
+    opciones: [/25, /26, /27, /28]
+    correcta: 1
+    explicacion: "/26 ofrece 62 hosts. /27 solo ofrece 30, que no alcanza."
+  - p: "¿Por qué en VLSM se asignan primero las subredes más grandes?"
+    opciones:
+      - "Porque el router las procesa en ese orden"
+      - "Para que cada bloque empiece en un múltiplo de su tamaño y no queden huecos ni solapamientos"
+      - "Porque las subredes pequeñas no admiten máscaras largas"
+      - "No importa el orden"
+    correcta: 1
+    explicacion: "Un bloque de tamaño N debe empezar en un múltiplo de N. Si empiezas por los grandes, los pequeños siempre encajan después sin dejar huecos."
+  - p: "¿Qué prefijo usarías para un enlace punto a punto entre dos routers si quieres seguir la práctica clásica del examen?"
+    opciones: [/24, /28, /30, /32]
+    correcta: 2
+    explicacion: "Un /30 ofrece exactamente dos hosts utilizables. También existe /31 para enlaces punto a punto, pero el examen suele mostrar /30."
+  - p: "Asignaste 192.168.1.0/26 a una LAN. ¿Cuál es la siguiente dirección libre para empezar otra subred?"
+    opciones: [192.168.1.62, 192.168.1.63, 192.168.1.64, 192.168.1.65]
+    correcta: 2
+    explicacion: "Un /26 ocupa 64 direcciones (de .0 a .63). La siguiente subred empieza en .64."
+---
+
+import SubnetTrainer from '../../../components/SubnetTrainer.tsx';
+
+Con una sola máscara para todo (FLSM), cada subred tiene el mismo tamaño: si la LAN más grande necesita 100 hosts,
+el enlace entre dos routers también recibe 126 direcciones aunque solo use 2. **VLSM** (máscaras de longitud
+variable) permite dar a cada red el tamaño que necesita.
+
+## El procedimiento
+
+1. **Lista los segmentos** con la cantidad de hosts que necesita cada uno. Incluye los enlaces entre routers.
+2. **Ordénalos de mayor a menor.**
+3. **Elige el prefijo** de cada uno: el más largo cuya cantidad de hosts utilizables alcance (2<sup>n</sup> − 2 mayor
+   o igual a lo pedido).
+4. **Asigna en orden** desde el inicio del bloque. Cada subred empieza donde terminó la anterior.
+5. **Anota todo** en una tabla: red, prefijo, rango utilizable y broadcast.
+
+¿Por qué de mayor a menor? Un bloque de 64 direcciones tiene que empezar en un múltiplo de 64. Si colocas primero
+un bloque de 16 en .0, el de 64 ya no puede empezar en .16: tendría que saltar a .64 y dejarías un hueco.
+
+## Ejemplo resuelto
+
+Bloque disponible: **192.168.50.0/24**. Requisitos:
+
+| Segmento | Hosts |
+|---|---|
+| LAN Ventas | 60 |
+| LAN Bodega | 25 |
+| LAN Gerencia | 12 |
+| Enlace R1–R2 | 2 |
+
+Elección de prefijos:
+
+- 60 hosts: /26 (62). /27 no alcanza (30).
+- 25 hosts: /27 (30).
+- 12 hosts: /28 (14).
+- 2 hosts: /30 (2).
+
+Asignación desde el inicio del bloque:
+
+| Segmento | Red | Rango utilizable | Broadcast |
+|---|---|---|---|
+| LAN Ventas | 192.168.50.0/26 | .1 a .62 | .63 |
+| LAN Bodega | 192.168.50.64/27 | .65 a .94 | .95 |
+| LAN Gerencia | 192.168.50.96/28 | .97 a .110 | .111 |
+| Enlace R1–R2 | 192.168.50.112/30 | .113 a .114 | .115 |
+
+Queda libre todo desde **192.168.50.116** en adelante, que sirve para crecer.
+
+Convenciones habituales para asignar dentro de cada subred:
+
+- El **gateway** (la interfaz del router) toma la primera dirección utilizable.
+- Los servidores e impresoras usan direcciones fijas bajas o altas; los clientes, un rango para DHCP.
+
+<aside class="examen">
+
+Las preguntas de VLSM suelen dar una tabla a medio llenar o pedirte la «siguiente subred disponible». Revisa
+siempre que la subred que propones empiece en un múltiplo de su tamaño de bloque.
+
+</aside>
+
+## Practica aquí
+
+<SubnetTrainer client:only="react" modo="vlsm" />

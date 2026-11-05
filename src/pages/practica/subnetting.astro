@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import SubnetTrainer from '../../components/SubnetTrainer.tsx';
+---
+<Base titulo="Entrenador de subnetting" descripcion="Ejercicios ilimitados de subnetting, máscaras y VLSM para el CCNA.">
+  <div class="wrap">
+    <h1>Entrenador de subnetting</h1>
+    <p class="bajada">
+      Ejercicios generados al azar, sin límite. En el examen no hay calculadora: apunta a resolver cada subred en
+      menos de un minuto.
+    </p>
+    <SubnetTrainer client:only="react" pestanas />
+    <noscript><p>El entrenador necesita JavaScript activado.</p></noscript>
+  </div>
+</Base>
+
+<style>
+  .bajada { font-size: 1.15rem; max-width: 60ch; }
+</style>

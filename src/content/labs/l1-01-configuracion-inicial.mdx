@@ -1,0 +1,214 @@
+---
+titulo: Configuración inicial segura de un router y un switch
+descripcion: Deja un router y un switch nuevos con nombre, contraseñas, banner, direccionamiento y acceso remoto por SSH, y comprueba todo desde una PC.
+nivel: 1
+orden: 1
+duracion: 45
+dificultad: Básica
+herramienta: Packet Tracer
+tipo: Configuración
+examen:
+  v1.1: 4
+  v2.0: 4
+dispositivos: [Router ISR 4331, Switch Catalyst 2960, 1 PC]
+---
+
+import Topologia from '../../components/Topologia.astro';
+
+## Objetivos
+
+- Navegar por los modos de IOS y aplicar la configuración básica de seguridad.
+- Configurar la dirección IP de un router y la SVI de administración de un switch.
+- Habilitar SSH versión 2 con usuario local y deshabilitar Telnet.
+- Guardar la configuración y verificarla desde una PC.
+
+## Topología
+
+<Topologia
+  ancho={560}
+  alto={360}
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 330, y: 60, detalle: 'G0/0/1 192.168.1.1' },
+    { id: 'S1', tipo: 'switch', x: 330, y: 185, detalle: 'VLAN 1 192.168.1.2' },
+    { id: 'PC1', tipo: 'pc', x: 150, y: 290, detalle: '192.168.1.10' },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1' },
+    { a: 'S1', b: 'PC1', ia: 'F0/1', ib: 'NIC' },
+    { a: 'PC1', b: 'R1', tipo: 'consola', ia: 'RS-232', ib: 'Console' },
+  ]}
+/>
+
+La línea punteada celeste es el cable de consola: lo usarás para la configuración inicial del router, antes de que
+tenga red.
+
+## Tabla de direccionamiento
+
+| Equipo | Interfaz | Dirección IP | Máscara | Gateway |
+|---|---|---|---|---|
+| R1 | G0/0/1 | 192.168.1.1 | 255.255.255.0 | No aplica |
+| S1 | VLAN 1 | 192.168.1.2 | 255.255.255.0 | 192.168.1.1 |
+| PC1 | NIC | 192.168.1.10 | 255.255.255.0 | 192.168.1.1 |
+
+## Credenciales del laboratorio
+
+| Uso | Valor |
+|---|---|
+| Contraseña de consola | `Consola#2026` |
+| enable secret | `Clase#2026` |
+| Usuario SSH | `admin` con secret `Admin#2026` |
+| Dominio | `ccna.lab` |
+
+En una red real cada equipo tendría credenciales propias y robustas, guardadas en un gestor de contraseñas.
+
+## Parte 1: Armar la topología
+
+1. Coloca un router **ISR4331**, un switch **2960-24TT** y una PC.
+2. Conecta R1 G0/0/1 con S1 G0/1 y S1 F0/1 con la PC usando **cable directo de cobre**.
+3. Conecta el puerto RS-232 de la PC con el puerto Console de R1 usando el **cable de consola**.
+4. Configura en PC1 la IP, máscara y gateway de la tabla (**Desktop > IP Configuration**).
+
+## Parte 2: Configuración básica de R1
+
+Abre la terminal de PC1 (**Desktop > Terminal**) para entrar a R1 por consola. Si aparece el diálogo de configuración
+inicial, responde `no`.
+
+1. Asigna el nombre **R1** y desactiva la búsqueda DNS de comandos mal escritos.
+2. Configura el **enable secret**.
+3. Protege la **consola** con contraseña, activa `logging synchronous` y cierra la sesión tras 10 minutos sin
+   actividad.
+4. Cifra las contraseñas en texto plano y configura un **banner MOTD** de advertencia.
+5. Configura la interfaz **G0/0/1** con la IP de la tabla, una descripción y enciéndela.
+
+## Parte 3: Configuración básica de S1
+
+Puedes entrar a S1 conectando el cable de consola a su puerto Console, o directamente con la pestaña **CLI**.
+
+1. Aplica a S1 los mismos pasos 1 a 4 de la Parte 2.
+2. Configura la interfaz **VLAN 1** con la IP de la tabla y enciéndela.
+3. Configura el **default gateway** del switch.
+
+## Parte 4: Acceso por SSH en ambos equipos
+
+1. Configura el dominio `ccna.lab`.
+2. Genera llaves RSA de **2048 bits**.
+3. Fuerza **SSH versión 2**.
+4. Crea el usuario local `admin` con privilegio 15.
+5. En las líneas VTY (0 a 4 en R1, 0 a 15 en S1), exige usuario local y permite **solo SSH**.
+
+## Parte 5: Guardar y verificar
+
+1. Guarda la configuración en ambos equipos.
+2. Desde PC1, haz ping a 192.168.1.1 y a 192.168.1.2. El primer ping puede perder un paquete mientras se resuelve ARP.
+3. Desde el **Command Prompt** de PC1, entra por SSH: `ssh -l admin 192.168.1.1` y `ssh -l admin 192.168.1.2`.
+4. Comprueba que **Telnet está bloqueado**: `telnet 192.168.1.1` debe fallar.
+
+## Verificación
+
+Compara tus salidas con estas. Lo importante es lo resaltado en la explicación, no los valores exactos de tiempo.
+
+```text
+R1# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0/0   unassigned      YES unset  administratively down down
+GigabitEthernet0/0/1   192.168.1.1     YES manual up                    up
+GigabitEthernet0/0/2   unassigned      YES unset  administratively down down
+```
+
+G0/0/1 debe estar **up/up** con su IP. Las demás interfaces quedan apagadas, que es lo correcto. Según la versión
+de Packet Tracer puede aparecer también una interfaz Vlan1 apagada; no la necesitas en el router.
+
+```text
+R1# show ip ssh
+SSH Enabled - version 2.0
+Authentication timeout: 120 secs; Authentication retries: 3
+```
+
+```text
+S1# show ip interface brief | include Vlan1
+Vlan1                  192.168.1.2     YES manual up                    up
+```
+
+En `show running-config` las contraseñas de consola deben aparecer como `password 7 ...` y el enable secret como
+`secret 5 ...` (o 8 o 9, según la versión).
+
+## Solución
+
+<details class="solucion">
+<summary>Ver la configuración completa de R1</summary>
+
+```text
+enable
+configure terminal
+hostname R1
+no ip domain-lookup
+enable secret Clase#2026
+service password-encryption
+banner motd #Acceso solo para personal autorizado#
+line console 0
+ password Consola#2026
+ login
+ logging synchronous
+ exec-timeout 10 0
+ exit
+interface gigabitethernet0/0/1
+ description Enlace a S1
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+ exit
+ip domain-name ccna.lab
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+username admin privilege 15 secret Admin#2026
+line vty 0 4
+ login local
+ transport input ssh
+ end
+copy running-config startup-config
+```
+
+</details>
+
+<details class="solucion">
+<summary>Ver la configuración completa de S1</summary>
+
+```text
+enable
+configure terminal
+hostname S1
+no ip domain-lookup
+enable secret Clase#2026
+service password-encryption
+banner motd #Acceso solo para personal autorizado#
+line console 0
+ password Consola#2026
+ login
+ logging synchronous
+ exec-timeout 10 0
+ exit
+interface vlan 1
+ ip address 192.168.1.2 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 192.168.1.1
+ip domain-name ccna.lab
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+username admin privilege 15 secret Admin#2026
+line vty 0 15
+ login local
+ transport input ssh
+ end
+copy running-config startup-config
+```
+
+</details>
+
+## Reto adicional
+
+Sin mirar la solución, responde y compruébalo en el simulador:
+
+1. Quita `ip default-gateway` de S1. ¿Puedes seguir entrando por SSH a S1 desde PC1? ¿Por qué? ¿Qué cambiaría si
+   PC1 estuviera en otra red?
+2. Borra el usuario `admin` de R1 (`no username admin`) y prueba entrar por SSH. ¿Qué pasa y por qué?
+3. Ejecuta `reload` en R1 sin guardar después de un cambio. ¿Qué configuración tiene al volver a arrancar?

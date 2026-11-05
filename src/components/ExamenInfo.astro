@@ -1,0 +1,32 @@
+---
+// Muestra a qué dominio pertenece un tema según la versión del examen elegida.
+import { dominio, type Version } from '../data/blueprints';
+
+interface Props {
+  examen: Partial<Record<Version, number>>;
+  compacto?: boolean;
+}
+const { examen, compacto = false } = Astro.props;
+
+const filas = (['v1.1', 'v2.0'] as Version[]).map((v) => {
+  const n = examen[v];
+  const d = n ? dominio(v, n) : undefined;
+  return { v, d, clase: v === 'v1.1' ? 'solo-v11' : 'solo-v20' };
+});
+---
+{filas.map(({ v, d, clase }) =>
+  d ? (
+    <span class={`examen-info ${clase}`}>
+      {compacto ? `D${d.numero} ${v}` : <>Dominio {d.numero} en {v}: {d.nombre} ({d.peso}% del examen)</>}
+    </span>
+  ) : (
+    <span class={`examen-info examen-fuera ${clase}`}>
+      {compacto ? `Solo ${v === 'v1.1' ? 'v2.0' : 'v1.1'}` : <>No figura en el temario {v}</>}
+    </span>
+  )
+)}
+
+<style>
+  .examen-info { color: var(--muted); }
+  .examen-fuera { font-style: italic; }
+</style>

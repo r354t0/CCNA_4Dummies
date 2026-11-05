@@ -1,0 +1,187 @@
+---
+titulo: Cableado, interfaces y PoE
+descripcion: Tipos de cable y estándares Ethernet, velocidad y dúplex, cómo leer el estado y los errores de una interfaz, y qué es Power over Ethernet.
+nivel: 1
+orden: 2
+duracion: 35
+examen:
+  v1.1: 1
+  v2.0: 1
+labs: [l1-04-troubleshooting-capa-1]
+quiz:
+  - p: "Una interfaz aparece como \"administratively down / down\". ¿Cuál es la causa más probable?"
+    opciones:
+      - "El cable está desconectado"
+      - "Alguien la apagó con el comando shutdown"
+      - "Hay un desajuste de dúplex"
+      - "Falta la dirección IP"
+    correcta: 1
+    explicacion: "El estado administratively down solo aparece cuando la interfaz tiene shutdown. Se corrige con no shutdown."
+  - p: "En una interfaz de switch ves que aumentan las late collisions. ¿Qué sospechas primero?"
+    opciones:
+      - "Un desajuste de dúplex entre los dos extremos"
+      - "Un error de VLAN"
+      - "La máscara de subred está mal"
+      - "El puerto tiene demasiadas direcciones MAC"
+    correcta: 0
+    explicacion: "Las colisiones tardías en un enlace de switch casi siempre indican que un extremo está en half duplex y el otro en full."
+  - p: "Un extremo del enlace está fijo en 100 Mb/s full duplex y el otro en autonegociación. ¿Qué ocurre?"
+    opciones:
+      - "Ambos quedan en 100 full"
+      - "El lado automático detecta 100 Mb/s pero cae a half duplex, y se produce un desajuste"
+      - "El enlace no levanta"
+      - "Ambos negocian 1 Gb/s"
+    correcta: 1
+    explicacion: "Sin autonegociación del otro lado, el extremo automático detecta la velocidad por la señal, pero a 100 Mb/s asume half duplex. Por eso conviene dejar ambos en auto o fijar ambos."
+  - p: "¿Qué distancia máxima admite un enlace de cobre UTP Cat 6 para 1000BASE-T?"
+    opciones: [55 m, 100 m, 185 m, 550 m]
+    correcta: 1
+    explicacion: "El cableado UTP para Ethernet está especificado hasta 100 metros por segmento."
+  - p: "En PoE, ¿cómo se llama el equipo que recibe energía, como un teléfono IP o un punto de acceso?"
+    opciones: [PSE, PD, PDU, PoE injector]
+    correcta: 1
+    explicacion: "PD (powered device) es quien recibe energía. El switch que la entrega es el PSE (power sourcing equipment)."
+---
+
+La mayoría de las fallas que verás en tu vida profesional son de capa 1: un cable dañado, un conector mal crimpado
+o dos interfaces que no se pusieron de acuerdo en el dúplex. Esta lección te da el vocabulario y los comandos para
+encontrarlas rápido.
+
+## Cobre y fibra
+
+**Cobre UTP.** Cuatro pares trenzados, conector RJ-45, hasta **100 metros** por segmento. Las categorías más
+comunes:
+
+| Categoría | Uso típico |
+|---|---|
+| Cat 5e | 1 Gb/s |
+| Cat 6 | 1 Gb/s, y 10 Gb/s en tramos cortos (hasta 55 m) |
+| Cat 6a | 10 Gb/s a 100 m |
+
+El orden de colores lo definen las normas **T568A** y **T568B**. Si ambos extremos usan la misma norma tienes un
+cable **directo**; si usan normas distintas, un cable **cruzado**. Tradicionalmente se usaba cruzado entre equipos del
+mismo tipo (switch con switch, PC con router) y directo entre tipos distintos (PC con switch). Hoy casi todos los
+puertos tienen **Auto-MDIX** y aceptan cualquiera de los dos, pero el examen todavía puede preguntarlo.
+
+**Fibra óptica.** Transmite luz, no le afecta la interferencia electromagnética y llega mucho más lejos.
+
+| Tipo | Núcleo | Fuente de luz | Distancia | Uso |
+|---|---|---|---|---|
+| Multimodo (MMF) | 50 o 62.5 µm | LED o VCSEL | Cientos de metros | Dentro de un edificio o campus |
+| Monomodo (SMF) | 9 µm | Láser | Kilómetros | Entre edificios, WAN, proveedores |
+
+Los módulos **SFP/SFP+** permiten elegir el tipo de fibra o cobre según el puerto. Conectores frecuentes: LC
+(pequeño, el más común), SC y ST.
+
+## Estándares Ethernet
+
+| Estándar | Velocidad | Medio |
+|---|---|---|
+| 100BASE-TX | 100 Mb/s | UTP Cat 5 o superior |
+| 1000BASE-T | 1 Gb/s | UTP Cat 5e o superior |
+| 1000BASE-SX | 1 Gb/s | Fibra multimodo |
+| 1000BASE-LX | 1 Gb/s | Fibra monomodo (también multimodo en tramos cortos) |
+| 10GBASE-T | 10 Gb/s | UTP Cat 6a |
+
+## Velocidad y dúplex
+
+**Half duplex**: se envía o se recibe, no ambas cosas a la vez, y puede haber colisiones (CSMA/CD).
+**Full duplex**: se envía y recibe a la vez, sin colisiones. Todo enlace entre switches modernos debería estar en full.
+
+Los puertos negocian velocidad y dúplex con **autonegociación**. El problema típico aparece cuando un extremo se
+configura a mano y el otro se deja en automático: el automático detecta la velocidad, pero si es 10 o 100 Mb/s
+asume **half duplex**. Resultado: **desajuste de dúplex**, enlace lento y colisiones tardías.
+
+```text
+Switch(config)# interface gigabitethernet0/1
+Switch(config-if)# speed 100
+Switch(config-if)# duplex full
+```
+
+Regla práctica: deja ambos extremos en `auto`, o fija velocidad y dúplex en **los dos**.
+
+## Leer el estado de una interfaz
+
+`show ip interface brief` muestra dos columnas: **Status** (capa 1) y **Protocol** (capa 2).
+
+```text
+R1# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0/0   192.168.1.1     YES manual up                    up
+GigabitEthernet0/0/1   unassigned      YES unset  administratively down down
+GigabitEthernet0/0/2   10.0.0.1        YES manual down                  down
+```
+
+| Status / Protocol | Significado | Qué revisar |
+|---|---|---|
+| up / up | Funciona | Nada |
+| administratively down / down | Tiene `shutdown` | Aplicar `no shutdown` |
+| down / down | No hay señal física | Cable, conector, puerto del otro lado, velocidad |
+| up / down | Hay señal pero falla la capa 2 | Encapsulación, keepalives, dúplex, err-disabled del otro lado |
+
+## Contadores de errores
+
+`show interfaces` muestra contadores acumulados. Los que más importan:
+
+| Contador | Qué indica | Causa típica |
+|---|---|---|
+| CRC | Tramas que llegaron corruptas | Cable dañado, interferencia, desajuste de dúplex |
+| Input errors | Suma de errores de entrada (incluye CRC, runts, giants) | Problemas físicos |
+| Runts | Tramas menores de 64 bytes | Colisiones, desajuste de dúplex |
+| Giants | Tramas mayores que el máximo | MTU mal configurado |
+| Collisions | Colisiones normales | Normal solo en half duplex |
+| Late collisions | Colisión después de los primeros 64 bytes | Desajuste de dúplex o cable demasiado largo |
+
+```text
+S1# show interfaces gigabitethernet0/1
+GigabitEthernet0/1 is up, line protocol is up (connected)
+  ...
+  Half-duplex, 100Mb/s, media type is 10/100/1000BaseTX
+  ...
+     152 input errors, 141 CRC, 0 frame, 0 overrun, 0 ignored
+     ...
+     0 output errors, 37 collisions, 0 interface resets
+     0 babbles, 29 late collision, 0 deferred
+```
+
+En esa salida hay tres pistas juntas: el puerto quedó en **half duplex**, aumentan los **CRC** y aparecen
+**late collisions**. Es un desajuste de dúplex de manual.
+
+<aside class="examen">
+
+Te pueden mostrar una salida de `show interfaces` y pedir la causa. Busca primero la línea de dúplex y velocidad,
+luego los contadores de CRC y de colisiones tardías.
+
+</aside>
+
+## Power over Ethernet
+
+PoE entrega energía eléctrica por el mismo cable UTP que lleva los datos. Así un teléfono IP, una cámara o un punto
+de acceso no necesitan enchufe propio.
+
+- **PSE** (power sourcing equipment): quien entrega energía, normalmente el switch.
+- **PD** (powered device): quien la recibe.
+
+| Estándar | Nombre común | Potencia en el PSE |
+|---|---|---|
+| 802.3af | PoE | 15.4 W |
+| 802.3at | PoE+ | 30 W |
+| 802.3bt Tipo 3 | PoE++ | 60 W |
+| 802.3bt Tipo 4 | PoE++ | 90 W |
+
+El switch tiene un **presupuesto de energía** total. Si conectas más dispositivos de los que puede alimentar, los
+últimos no encienden aunque el enlace de datos funcione. Para revisarlo:
+
+```text
+Switch# show power inline
+```
+
+Elegir el puerto adecuado es parte del diseño: un punto de acceso Wi-Fi 6 suele necesitar PoE+ o más, mientras que
+un teléfono IP básico funciona con PoE.
+
+<aside class="nota">
+
+**Nuevo en la v2.0.** El temario v2.0 pide relacionar PoE y las funciones del switch con el tipo de dispositivo
+final. En la v1.1 basta con conocer los tipos de cable e interfaz.
+
+</aside>

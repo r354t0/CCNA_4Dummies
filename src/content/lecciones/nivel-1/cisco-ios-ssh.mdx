@@ -1,0 +1,171 @@
+---
+titulo: Primeros pasos con Cisco IOS y acceso SSH
+descripcion: Modos de la CLI, configuración en ejecución y de arranque, contraseñas, y cómo dejar un router o switch administrable por SSH.
+nivel: 1
+orden: 3
+duracion: 40
+examen:
+  v1.1: 4
+  v2.0: 4
+labs: [l1-01-configuracion-inicial]
+quiz:
+  - p: "¿Qué comando guarda la configuración actual para que sobreviva a un reinicio?"
+    opciones:
+      - "copy startup-config running-config"
+      - "copy running-config startup-config"
+      - "write erase"
+      - "show running-config"
+    correcta: 1
+    explicacion: "copy running-config startup-config (o write memory) copia la configuración en RAM a la NVRAM."
+  - p: "¿Por qué se prefiere enable secret sobre enable password?"
+    opciones:
+      - "Porque enable secret se guarda con un hash fuerte; enable password queda en texto plano o con cifrado tipo 7, que es reversible"
+      - "Porque enable password solo sirve en switches"
+      - "Porque enable secret no distingue mayúsculas"
+      - "No hay diferencia; son sinónimos"
+    correcta: 0
+    explicacion: "enable secret usa un hash (tipo 5, 8 o 9 según la versión). service password-encryption solo aplica el tipo 7, que se revierte fácilmente."
+  - p: "¿Cuál de estos pasos NO es necesario para generar las llaves RSA de SSH?"
+    opciones:
+      - "Configurar un hostname distinto del predeterminado"
+      - "Configurar un nombre de dominio con ip domain-name"
+      - "Configurar una dirección IP en la interfaz de consola"
+      - "Ejecutar crypto key generate rsa"
+    correcta: 2
+    explicacion: "La consola no tiene dirección IP. Las llaves RSA se nombran con hostname más dominio, por eso ambos son requisito."
+  - p: "Un switch de capa 2 ya tiene IP en la interfaz VLAN 1, pero no se puede administrar desde otra red. ¿Qué falta?"
+    opciones:
+      - "ip routing"
+      - "ip default-gateway"
+      - "Una ruta estática hacia la PC"
+      - "transport input ssh"
+    correcta: 1
+    explicacion: "Un switch de capa 2 no enruta. Para responder a equipos de otras redes necesita ip default-gateway con la IP del router."
+---
+
+Los routers y switches de Cisco se configuran desde la línea de comandos de **IOS** (o IOS XE en equipos recientes;
+para el CCNA se manejan igual). Vas a pasar mucho tiempo aquí, así que vale la pena moverse con soltura.
+
+## Cómo se accede
+
+- **Consola**: cable de consola (RJ-45 o USB) directo al equipo. Es el acceso de primer día y de emergencia: funciona
+  aunque la red esté caída.
+- **Remoto por red**: SSH (cifrado) o Telnet (todo en texto plano; solo para laboratorio). Requiere que el equipo
+  tenga IP y que las líneas VTY lo permitan.
+
+## Modos de la CLI
+
+```text
+Router>                          modo EXEC de usuario: comandos de consulta limitados
+Router> enable
+Router#                          modo EXEC privilegiado: show, copy, reload, debug
+Router# configure terminal
+Router(config)#                  configuración global
+Router(config)# interface g0/0/0
+Router(config-if)#               configuración de una interfaz
+Router(config-if)# exit          sube un nivel
+Router(config-if)# end           vuelve directo a Router# (también Ctrl+Z)
+```
+
+Ayudas que usarás todo el tiempo:
+
+- `?` lista los comandos posibles en ese punto. `sh?` lista lo que empieza por «sh».
+- **Tab** completa el comando. Puedes abreviar: `sh ip int br` equivale a `show ip interface brief`.
+- `do` ejecuta un comando de EXEC desde el modo de configuración: `do show ip interface brief`.
+- `no` delante de un comando lo deshace: `no shutdown`, `no ip address`.
+
+## Dos configuraciones
+
+| | running-config | startup-config |
+|---|---|---|
+| Dónde vive | RAM | NVRAM |
+| Cuándo cambia | Al instante, con cada comando | Solo cuando la guardas |
+| Al reiniciar | Se pierde | Se carga como la nueva running-config |
+
+```text
+Router# copy running-config startup-config
+Router# show running-config
+Router# show startup-config
+```
+
+## Configuración básica de un equipo
+
+```text
+Router(config)# hostname R1
+R1(config)# no ip domain-lookup
+R1(config)# enable secret Clase#2026
+R1(config)# service password-encryption
+R1(config)# banner motd #Acceso solo para personal autorizado#
+R1(config)# line console 0
+R1(config-line)# password Consola#2026
+R1(config-line)# login
+R1(config-line)# logging synchronous
+R1(config-line)# exec-timeout 10 0
+```
+
+Qué hace cada línea que no es obvia:
+
+- `no ip domain-lookup` evita que IOS intente resolver por DNS cada palabra que escribes mal.
+- `enable secret` protege el modo privilegiado con un **hash**. Si existe, tiene prioridad sobre `enable password`.
+- `service password-encryption` oculta las contraseñas que quedan en texto plano con un cifrado **tipo 7**. Solo
+  evita que alguien las lea por encima del hombro: el tipo 7 se revierte en segundos.
+- `logging synchronous` evita que los mensajes del sistema corten lo que estás escribiendo.
+
+## Dirección IP en routers y switches
+
+Un **router** lleva IP en cada interfaz que conecta a una red. Las interfaces del router vienen apagadas:
+
+```text
+R1(config)# interface gigabitethernet0/0/1
+R1(config-if)# description Enlace a S1
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+R1(config-if)# no shutdown
+```
+
+Un **switch de capa 2** no enruta: sus puertos no llevan IP. Para administrarlo se crea una interfaz virtual (SVI)
+y se le indica a qué router enviar el tráfico hacia otras redes:
+
+```text
+S1(config)# interface vlan 1
+S1(config-if)# ip address 192.168.1.2 255.255.255.0
+S1(config-if)# no shutdown
+S1(config-if)# exit
+S1(config)# ip default-gateway 192.168.1.1
+```
+
+## Acceso remoto con SSH
+
+SSH cifra toda la sesión, incluidas las credenciales. Los pasos siempre son los mismos:
+
+```text
+R1(config)# ip domain-name ccna.lab
+R1(config)# crypto key generate rsa general-keys modulus 2048
+R1(config)# ip ssh version 2
+R1(config)# username admin privilege 15 secret Admin#2026
+R1(config)# line vty 0 4
+R1(config-line)# login local
+R1(config-line)# transport input ssh
+```
+
+1. **Hostname y dominio**: las llaves RSA se nombran con ellos, así que deben existir antes.
+2. **Llaves RSA** de 2048 bits. Con menos de 768 bits no se puede usar SSH versión 2.
+3. **Usuario local**: `login local` hace que las líneas VTY pidan usuario y contraseña de la base local.
+4. **`transport input ssh`** rechaza Telnet en esas líneas.
+
+En un switch las líneas VTY suelen ir de 0 a 15 (`line vty 0 15`). Para verificar:
+
+```text
+R1# show ip ssh
+SSH Enabled - version 2.0
+Authentication timeout: 120 secs; Authentication retries: 3
+R1# show ssh
+```
+
+Desde una PC de Packet Tracer, en el **Command Prompt**: `ssh -l admin 192.168.1.1`.
+
+<aside class="examen">
+
+Memoriza el orden de los pasos de SSH y para qué sirve cada uno. Son frecuentes las preguntas de «¿qué falta en
+esta configuración?», por ejemplo `login local` sin ningún `username` creado, o un switch sin `ip default-gateway`.
+
+</aside>

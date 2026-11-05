@@ -1,0 +1,129 @@
+---
+titulo: Modelos OSI y TCP/IP
+descripcion: Las capas que usarás para razonar cualquier problema de red, cómo se encapsulan los datos y en qué se diferencian TCP y UDP.
+nivel: 1
+orden: 1
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+labs: []
+quiz:
+  - p: "¿Qué nombre recibe la unidad de datos (PDU) en la capa 3 del modelo OSI?"
+    opciones: [Trama, Segmento, Paquete, Bit]
+    correcta: 2
+    explicacion: "En la capa de red la PDU se llama paquete. La trama es de capa 2 y el segmento de capa 4."
+  - p: "Un switch toma sus decisiones de reenvío leyendo..."
+    opciones: [La dirección IP de destino, La dirección MAC de destino, El puerto TCP de destino, El nombre DNS del equipo]
+    correcta: 1
+    explicacion: "Un switch de capa 2 consulta su tabla de direcciones MAC. Las direcciones IP las usa el router (capa 3)."
+  - p: "¿Cuál de estas aplicaciones suele usar UDP?"
+    opciones: [Navegación web con HTTPS, Transferencia de archivos con SFTP, Consultas DNS, Sesiones SSH]
+    correcta: 2
+    explicacion: "Las consultas DNS normales usan UDP 53 porque son pequeñas y rápidas. HTTPS, SFTP y SSH usan TCP."
+  - p: "¿Qué mecanismo usa TCP para establecer una conexión?"
+    opciones:
+      - "Saludo de tres vías: SYN, SYN-ACK, ACK"
+      - "Difusión ARP"
+      - "Solicitud DHCP Discover"
+      - "Ninguno: TCP no establece conexiones"
+    correcta: 0
+    explicacion: "TCP es orientado a conexión y la abre con el saludo de tres vías antes de enviar datos."
+---
+
+Cuando una red falla, la pregunta que más ayuda es «¿en qué capa está el problema?». Los modelos de referencia
+dividen la comunicación en capas con responsabilidades separadas. Así puedes revisar un cable sin pensar en
+HTTP, o una dirección IP sin pensar en el tipo de fibra.
+
+## El modelo OSI
+
+OSI tiene siete capas. Se cuentan de abajo hacia arriba: la capa 1 es la física y la 7 la de aplicación.
+
+| Capa | Nombre | Qué resuelve | PDU | Ejemplos |
+|---|---|---|---|---|
+| 7 | Aplicación | Servicios para el usuario | Datos | HTTP, DNS, SSH |
+| 6 | Presentación | Formato, cifrado, compresión | Datos | TLS, JPEG |
+| 5 | Sesión | Abrir y cerrar diálogos | Datos | RPC |
+| 4 | Transporte | Entrega extremo a extremo, puertos | Segmento (TCP) o datagrama (UDP) | TCP, UDP |
+| 3 | Red | Direccionamiento lógico y enrutamiento | Paquete | IPv4, IPv6, ICMP |
+| 2 | Enlace de datos | Entrega en el mismo segmento, MAC | Trama | Ethernet, 802.11 |
+| 1 | Física | Bits sobre el medio | Bits | Cobre, fibra, radio |
+
+Una regla mnemotécnica de abajo hacia arriba: **F**ísica, **E**nlace, **R**ed, **T**ransporte, **S**esión,
+**P**resentación, **A**plicación.
+
+## El modelo TCP/IP
+
+Es el modelo que realmente implementan los equipos. Agrupa las capas 5, 6 y 7 de OSI en una sola capa de
+aplicación. Cisco suele presentarlo con cinco capas para poder hablar de la física por separado:
+
+| TCP/IP | Equivale en OSI |
+|---|---|
+| Aplicación | 5, 6 y 7 |
+| Transporte | 4 |
+| Internet (red) | 3 |
+| Enlace de datos | 2 |
+| Física | 1 |
+
+## Encapsulación
+
+Cuando tu PC envía datos, cada capa agrega su propio encabezado a lo que recibe de la capa superior. El receptor
+hace el proceso inverso (desencapsulación).
+
+```text
+Datos de la aplicación                       [ datos ]
++ encabezado TCP           -> segmento       [TCP| datos ]
++ encabezado IP            -> paquete        [IP|TCP| datos ]
++ encabezado y cola Eth.   -> trama          [Eth|IP|TCP| datos |FCS]
+Se transmite como          -> bits           0101101001...
+```
+
+Cada dispositivo de red trabaja hasta cierta capa:
+
+- Un **switch** abre la trama, lee la MAC de destino y la reenvía. No necesita mirar la IP.
+- Un **router** quita la trama, lee la IP de destino, decide la interfaz de salida y arma una trama **nueva**
+  para el siguiente salto. Las MAC cambian en cada salto; las IP de origen y destino no (salvo que haya NAT).
+
+## TCP frente a UDP
+
+| | TCP | UDP |
+|---|---|---|
+| Conexión | Orientado a conexión (saludo de tres vías) | Sin conexión |
+| Fiabilidad | Confirma (ACK) y retransmite lo perdido | No confirma ni retransmite |
+| Orden | Reordena con números de secuencia | No garantiza orden |
+| Control de flujo | Ventana deslizante | No tiene |
+| Encabezado | 20 bytes como mínimo | 8 bytes |
+| Usos típicos | Web, correo, SSH, transferencias | DNS, VoIP, video en vivo, DHCP, TFTP, SNMP, syslog |
+
+Puertos que conviene saber de memoria:
+
+| Puerto | Protocolo | Transporte |
+|---|---|---|
+| 20, 21 | FTP (datos, control) | TCP |
+| 22 | SSH, SCP, SFTP | TCP |
+| 23 | Telnet | TCP |
+| 25 | SMTP | TCP |
+| 53 | DNS | UDP (y TCP para respuestas grandes) |
+| 67, 68 | DHCP (servidor, cliente) | UDP |
+| 69 | TFTP | UDP |
+| 80, 443 | HTTP, HTTPS | TCP |
+| 123 | NTP | UDP |
+| 161, 162 | SNMP, traps SNMP | UDP |
+| 514 | Syslog | UDP |
+
+<aside class="examen">
+
+Debes poder decir en qué capa trabaja cada dispositivo, qué PDU corresponde a cada capa y qué cambia (MAC) y qué
+no cambia (IP) cuando un paquete atraviesa un router. Las preguntas de TCP frente a UDP suelen pedirte elegir el
+protocolo adecuado para una aplicación concreta.
+
+</aside>
+
+## Mini práctica en Packet Tracer
+
+No hace falta un laboratorio completo para ver la encapsulación:
+
+1. Arrastra dos PC, conéctalas a un switch y asígnales 192.168.1.1/24 y 192.168.1.2/24.
+2. Cambia al **modo Simulación** (pestaña inferior derecha) y filtra solo ICMP y ARP.
+3. Haz ping de una PC a la otra y avanza paso a paso. Abre cada sobre: verás primero la solicitud ARP
+   (difusión de capa 2) y después el ICMP, con las capas OSI que procesa cada equipo.

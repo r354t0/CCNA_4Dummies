@@ -1,0 +1,158 @@
+---
+// Dibuja una topología en SVG a partir de nodos y enlaces.
+// Uso en MDX:
+// <Topologia ancho={640} alto={320}
+//   nodos={[{ id: 'R1', tipo: 'router', x: 320, y: 60 }, ...]}
+//   enlaces={[{ a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1' }, ...]} />
+
+type Tipo = 'router' | 'switch' | 'pc' | 'servidor' | 'laptop' | 'nube';
+type Lado = 'arriba' | 'abajo' | 'derecha' | 'izquierda';
+// lado: dónde va el nombre del equipo. Por defecto: router arriba, switch a la derecha, hosts abajo.
+interface Nodo { id: string; tipo: Tipo; x: number; y: number; etiqueta?: string; detalle?: string; lado?: Lado; }
+interface Enlace { a: string; b: string; ia?: string; ib?: string; tipo?: 'cobre' | 'serial' | 'consola'; }
+interface Props {
+  nodos: Nodo[];
+  enlaces: Enlace[];
+  ancho?: number;
+  alto?: number;
+  titulo?: string;
+}
+
+const { nodos, enlaces, ancho = 640, alto = 320, titulo = 'Topología del laboratorio' } = Astro.props;
+const uid = `topo-${Math.random().toString(36).slice(2, 8)}`;
+const porId = new Map(nodos.map((n) => [n.id, n]));
+
+// Cada etiqueta de interfaz se coloca sobre el enlace, a una distancia fija de su equipo
+// (o al 40 % si el enlace es corto). En enlaces casi verticales se corre a la derecha de la línea.
+function etiqueta(a: Nodo, b: Nodo) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const largo = Math.hypot(dx, dy) || 1;
+  const d = Math.min(largo * 0.4, 56);
+  const vertical = Math.abs(dx) < Math.abs(dy) * 0.35;
+  return {
+    x: a.x + (dx / largo) * d + (vertical ? 7 : 0),
+    y: a.y + (dy / largo) * d,
+    anchor: vertical ? 'start' : 'middle',
+  };
+}
+const trazos = enlaces.map((e) => {
+  const a = porId.get(e.a)!;
+  const b = porId.get(e.b)!;
+  if (!a || !b) throw new Error(`Topologia: enlace con nodo inexistente ${e.a} - ${e.b}`);
+  return { e, a, b, pa: etiqueta(a, b), pb: etiqueta(b, a) };
+});
+
+const LADO_POR_TIPO: Record<Tipo, Lado> = {
+  router: 'arriba', switch: 'derecha', nube: 'derecha', pc: 'abajo', laptop: 'abajo', servidor: 'abajo',
+};
+function rotulo(n: Nodo) {
+  const lado = n.lado ?? LADO_POR_TIPO[n.tipo];
+  const alto = n.tipo === 'servidor' ? 19 : 16;
+  switch (lado) {
+    case 'arriba': return { x: 0, y: n.detalle ? -46 : -28, anchor: 'middle', dyDetalle: 15 };
+    case 'derecha': return { x: 36, y: n.detalle ? -3 : 5, anchor: 'start', dyDetalle: 15 };
+    case 'izquierda': return { x: -36, y: n.detalle ? -3 : 5, anchor: 'end', dyDetalle: 15 };
+    default: return { x: 0, y: alto + 18, anchor: 'middle', dyDetalle: 15 };
+  }
+}
+const descripcion = enlaces
+  .map((e) => `${e.a}${e.ia ? ` ${e.ia}` : ''} conectado a ${e.b}${e.ib ? ` ${e.ib}` : ''}`)
+  .join('; ');
+---
+<figure class="topologia">
+  <svg viewBox={`0 0 ${ancho} ${alto}`} role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
+    <title id={`${uid}-t`}>{titulo}</title>
+    <desc id={`${uid}-d`}>{descripcion}</desc>
+
+    {trazos.map(({ e, a, b }) => (
+      <line x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+        class={`enlace enlace-${e.tipo ?? 'cobre'}`} />
+    ))}
+
+    {trazos.map(({ e, pa, pb }) => (
+      <g class="interfaz">
+        {e.ia && <text x={pa.x} y={pa.y} text-anchor={pa.anchor} dy="0.35em" paint-order="stroke">{e.ia}</text>}
+        {e.ib && <text x={pb.x} y={pb.y} text-anchor={pb.anchor} dy="0.35em" paint-order="stroke">{e.ib}</text>}
+      </g>
+    ))}
+
+    {nodos.map((n) => (
+      <g class={`nodo nodo-${n.tipo}`} transform={`translate(${n.x} ${n.y})`}>
+        {n.tipo === 'router' && (
+          <>
+            <ellipse rx="26" ry="17" class="cuerpo" />
+            <path d="M-13 -4 L-5 -4 M-8 -8 L-4 -4 L-8 0 M13 4 L5 4 M8 0 L4 4 L8 8" class="trazo" />
+          </>
+        )}
+        {n.tipo === 'switch' && (
+          <>
+            <rect x="-28" y="-14" width="56" height="28" rx="4" class="cuerpo" />
+            <path d="M-16 -4 H12 M8 -8 L12 -4 L8 0 M16 5 H-12 M-8 1 L-12 5 L-8 9" class="trazo" />
+          </>
+        )}
+        {(n.tipo === 'pc' || n.tipo === 'servidor') && (
+          <>
+            {n.tipo === 'pc' ? (
+              <>
+                <rect x="-17" y="-16" width="34" height="23" rx="2" class="cuerpo" />
+                <path d="M-8 13 H8 M0 7 V13" class="trazo-oscuro" />
+              </>
+            ) : (
+              <>
+                <rect x="-13" y="-19" width="26" height="38" rx="2" class="cuerpo" />
+                <path d="M-7 -10 H7 M-7 -3 H7 M-7 4 H7" class="trazo" />
+              </>
+            )}
+          </>
+        )}
+        {n.tipo === 'laptop' && (
+          <>
+            <rect x="-15" y="-15" width="30" height="20" rx="2" class="cuerpo" />
+            <path d="M-21 9 H21" class="trazo-oscuro" />
+          </>
+        )}
+        {n.tipo === 'nube' && (
+          <path d="M-22 10 a10 10 0 0 1 2 -20 a14 14 0 0 1 26 -2 a10 10 0 0 1 16 12 a8 8 0 0 1 -4 10 Z" class="cuerpo" />
+        )}
+        {(() => {
+          const r = rotulo(n);
+          return (
+            <>
+              <text class="nombre" x={r.x} y={r.y} text-anchor={r.anchor} paint-order="stroke">{n.etiqueta ?? n.id}</text>
+              {n.detalle && <text class="detalle" x={r.x} y={r.y + r.dyDetalle} text-anchor={r.anchor} paint-order="stroke">{n.detalle}</text>}
+            </>
+          );
+        })()}
+      </g>
+    ))}
+  </svg>
+</figure>
+
+<style>
+  .topologia {
+    margin: 0 0 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 0.5rem;
+    overflow-x: auto;
+  }
+  svg { display: block; width: 100%; min-width: 480px; height: auto; }
+  .enlace { stroke: var(--line-strong); stroke-width: 2.5; }
+  .enlace-serial { stroke: var(--bad); stroke-dasharray: 8 5; }
+  .enlace-consola { stroke: var(--n5); stroke-dasharray: 3 4; }
+  .interfaz text {
+    font-family: var(--font-cli); font-size: 11px; fill: var(--muted);
+    stroke: var(--surface); stroke-width: 4px;
+  }
+  .cuerpo { fill: var(--n3); }
+  .nodo-switch .cuerpo { fill: var(--n2); }
+  .nodo-pc .cuerpo, .nodo-laptop .cuerpo { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+  .nodo-servidor .cuerpo { fill: var(--ink); }
+  .nodo-nube .cuerpo { fill: var(--bg); stroke: var(--line-strong); stroke-width: 2; }
+  .trazo { stroke: #fff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .trazo-oscuro { stroke: var(--ink); stroke-width: 2; fill: none; stroke-linecap: round; }
+  .nombre { font-family: var(--font-head); font-weight: 700; font-size: 14px; fill: var(--ink); stroke: var(--surface); stroke-width: 4px; }
+  .detalle { font-family: var(--font-cli); font-size: 10.5px; fill: var(--muted); stroke: var(--surface); stroke-width: 4px; }
+</style>

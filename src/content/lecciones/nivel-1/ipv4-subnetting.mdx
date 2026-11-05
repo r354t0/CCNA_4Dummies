@@ -1,0 +1,132 @@
+---
+titulo: Direccionamiento IPv4 y subnetting
+descripcion: Estructura de una dirección IPv4, rangos privados y especiales, y el método del tamaño de bloque para calcular cualquier subred sin calculadora.
+nivel: 1
+orden: 4
+duracion: 50
+examen:
+  v1.1: 1
+  v2.0: 1
+labs: [l1-02-vlsm, l1-04-troubleshooting-capa-1]
+quiz:
+  - p: "¿A qué subred pertenece el host 10.20.37.130/20?"
+    opciones: [10.20.0.0/20, 10.20.32.0/20, 10.20.36.0/20, 10.20.37.128/20]
+    correcta: 1
+    explicacion: "En /20 el límite está en el tercer octeto con máscara 240, bloque de 16. El múltiplo de 16 que contiene a 37 es 32, así que la red es 10.20.32.0."
+  - p: "¿Cuántos hosts utilizables tiene una subred /27?"
+    opciones: [27, 30, 32, 62]
+    correcta: 1
+    explicacion: "Quedan 5 bits de host. 2 elevado a 5 da 32 direcciones, menos red y broadcast, 30 hosts."
+  - p: "¿Cuál es la dirección de broadcast de 192.168.5.100/26?"
+    opciones: [192.168.5.63, 192.168.5.127, 192.168.5.128, 192.168.5.255]
+    correcta: 1
+    explicacion: "El bloque es 64. La red es 192.168.5.64 y la siguiente es .128, así que el broadcast es .127."
+  - p: "Una PC con Windows tiene la dirección 169.254.18.7. ¿Qué indica?"
+    opciones:
+      - "Que está en una red privada clase B"
+      - "Que no obtuvo respuesta de un servidor DHCP y se asignó una dirección APIPA"
+      - "Que es una dirección de loopback"
+      - "Que tiene IPv6 activado"
+    correcta: 1
+    explicacion: "El rango 169.254.0.0/16 es de enlace local (APIPA). Aparece cuando el cliente DHCP no recibe respuesta."
+  - p: "¿Cuál de estas direcciones es privada según el RFC 1918?"
+    opciones: [172.32.1.1, 172.20.1.1, 192.169.1.1, 11.0.0.1]
+    correcta: 1
+    explicacion: "El rango privado de la clase B va de 172.16.0.0 a 172.31.255.255. 172.32 ya es pública."
+---
+
+import SubnetTrainer from '../../../components/SubnetTrainer.tsx';
+
+Subnetting es el tema que más tiempo ahorra (o hace perder) en el examen. Las preguntas no siempre dicen «calcula
+la subred»: aparece escondido en la tabla de enrutamiento, en las ACL y en el troubleshooting. Por eso conviene
+llegar a resolverlo en menos de un minuto y de cabeza.
+
+## Estructura de una dirección
+
+Una dirección IPv4 tiene 32 bits, escritos como cuatro octetos en decimal. La **máscara** indica cuántos bits de
+la izquierda son la parte de red; el resto identifica al host.
+
+```text
+Dirección   192.168.10.77    11000000.10101000.00001010.01001101
+Máscara     255.255.255.224  11111111.11111111.11111111.11100000   (/27)
+            |<------------ 27 bits de red ------------>|<-host->|
+```
+
+La notación **/27** (prefijo) es la cantidad de unos de la máscara. Los valores posibles de un octeto de máscara son
+solo estos nueve, y conviene saberlos de memoria:
+
+| Bits en uno | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|---|
+| Valor del octeto | 0 | 128 | 192 | 224 | 240 | 248 | 252 | 254 | 255 |
+
+## Rangos que debes reconocer
+
+| Rango | Uso |
+|---|---|
+| 10.0.0.0/8 | Privado (RFC 1918) |
+| 172.16.0.0/12 (172.16.0.0 a 172.31.255.255) | Privado (RFC 1918) |
+| 192.168.0.0/16 | Privado (RFC 1918) |
+| 127.0.0.0/8 | Loopback (127.0.0.1 es el propio equipo) |
+| 169.254.0.0/16 | Enlace local, APIPA: el cliente DHCP no obtuvo dirección |
+| 224.0.0.0/4 | Multicast (antigua clase D) |
+
+Las **clases** A (1 a 126), B (128 a 191) y C (192 a 223) ya no se usan para asignar redes; hoy todo es sin clases
+(CIDR). Igual aparecen en preguntas, y su máscara por defecto es /8, /16 y /24 respectivamente.
+
+## El método del tamaño de bloque
+
+Para cualquier dirección y prefijo:
+
+1. **Encuentra el octeto interesante**: el octeto donde la máscara no es ni 255 ni 0.
+2. **Calcula el tamaño de bloque**: 256 menos el valor de la máscara en ese octeto.
+3. **Busca el múltiplo** del bloque que sea menor o igual al valor de la IP en ese octeto. Esa es la red; los octetos
+   a la derecha van en 0.
+4. **El broadcast** es la siguiente red menos 1 (los octetos a la derecha van en 255).
+5. **Hosts utilizables**: 2 elevado a la cantidad de bits de host, menos 2.
+
+**Ejemplo 1: 192.168.10.77/27**
+
+- /27 tiene máscara 255.255.255.224. Octeto interesante: el cuarto.
+- Bloque: 256 − 224 = 32. Las redes son .0, .32, .64, .96...
+- 77 cae entre 64 y 96. Red: **192.168.10.64**.
+- Broadcast: 96 − 1 = **192.168.10.95**.
+- Hosts: de **.65 a .94**, 30 en total.
+
+**Ejemplo 2: 172.16.45.200/21**
+
+- /21 tiene máscara 255.255.248.0. Octeto interesante: el tercero.
+- Bloque: 256 − 248 = 8. Las redes avanzan 0, 8, 16, 24, 32, 40, 48...
+- 45 cae entre 40 y 48. Red: **172.16.40.0**.
+- Broadcast: **172.16.47.255** (la siguiente red sería 172.16.48.0).
+- Hosts: de **172.16.40.1 a 172.16.47.254**, 2<sup>11</sup> − 2 = 2046.
+
+## Cuántas subredes y cuántos hosts
+
+Cuando divides una red, cada bit que tomas de la parte de host **duplica** la cantidad de subredes y **reduce a la
+mitad** el tamaño de cada una.
+
+| Prefijo | Máscara | Direcciones por bloque | Hosts utilizables |
+|---|---|---|---|
+| /24 | 255.255.255.0 | 256 | 254 |
+| /25 | 255.255.255.128 | 128 | 126 |
+| /26 | 255.255.255.192 | 64 | 62 |
+| /27 | 255.255.255.224 | 32 | 30 |
+| /28 | 255.255.255.240 | 16 | 14 |
+| /29 | 255.255.255.248 | 8 | 6 |
+| /30 | 255.255.255.252 | 4 | 2 |
+| /31 | 255.255.255.254 | 2 | 2 (solo enlaces punto a punto, RFC 3021) |
+
+Si divides un /24 en /27 obtienes 2<sup>3</sup> = 8 subredes de 30 hosts cada una.
+
+<aside class="examen">
+
+Practica hasta que el bloque y la red te salgan de memoria. Un error frecuente es contar el broadcast o la red como
+hosts, o tomar el múltiplo siguiente en lugar del anterior.
+
+</aside>
+
+## Practica aquí
+
+Cada ejercicio es distinto. Resuelve primero en papel y después escribe tus respuestas.
+
+<SubnetTrainer client:only="react" modo="subred" />

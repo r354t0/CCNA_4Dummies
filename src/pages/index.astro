@@ -1,0 +1,206 @@
+---
+import Base from '../layouts/Base.astro';
+import ItemRuta from '../components/ItemRuta.astro';
+import { NIVELES } from '../data/niveles';
+import { BLUEPRINTS } from '../data/blueprints';
+import { porNivel, idProgresoLeccion, idProgresoLab, urlLeccion, urlLab } from '../lib/contenido';
+
+const { grupos, labs: todosLabs } = await porNivel();
+const labPorId = new Map(todosLabs.map((l) => [l.id, l]));
+
+const niveles = NIVELES.map((n) => {
+  const g = grupos.get(n.numero)!;
+  // Cada laboratorio aparece después de la última lección que lo menciona,
+  // porque recién ahí el alumno tiene toda la teoría que necesita. Los labs sin lección van al final.
+  const ultimaLeccion = new Map<string, string>();
+  g.lecciones.forEach((l) => l.data.labs.forEach((id) => ultimaLeccion.set(id, l.id)));
+  type Fila = { tipo: 'Lección'; l: (typeof g.lecciones)[number] } | { tipo: 'Lab'; l: (typeof g.labs)[number] };
+  const filas: Fila[] = g.lecciones.flatMap((l) => {
+    const propios = g.labs.filter((x) => ultimaLeccion.get(x.id) === l.id);
+    return [{ tipo: 'Lección' as const, l }, ...propios.map((x) => ({ tipo: 'Lab' as const, l: x }))];
+  });
+  g.labs.filter((x) => !ultimaLeccion.has(x.id)).forEach((x) => filas.push({ tipo: 'Lab', l: x }));
+  const ids = [...g.lecciones.map(idProgresoLeccion), ...g.labs.map(idProgresoLab)];
+  return { ...n, filas, ids };
+});
+---
+<Base titulo="CCNA 4Dummies">
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-texto">
+        <h1>Aprende CCNA configurando equipos, no memorizando diapositivas</h1>
+        <p class="hero-bajada">
+          Cinco niveles que van del cableado a la automatización. Cada tema trae una lectura corta, un laboratorio
+          en Packet Tracer o GNS3 y un quiz para comprobar que lo entendiste.
+        </p>
+        <p class="hero-version">
+          <span class="solo-v11">Estás preparando la <strong>v1.1</strong> del examen 200-301 ({BLUEPRINTS['v1.1'].vigencia.toLowerCase()}).</span>
+          <span class="solo-v20">Estás preparando la <strong>v2.0</strong> del examen 200-301 ({BLUEPRINTS['v2.0'].vigencia.toLowerCase()}).</span>{' '}
+          Cambia de versión con el selector de arriba y la ruta te indica qué temas no entran.
+        </p>
+      </div>
+
+      <div class="panel" aria-label="Tu avance por nivel">
+        <div class="panel-orejas" aria-hidden="true"><span></span><span></span></div>
+        <ol class="puertos">
+          {niveles.map((n) => (
+            <li class={`puerto ${n.disponible ? 'conectado' : 'libre'}`} style={`--c:${n.color}`}
+              data-led={n.ids.join(' ')}>
+              <a href={`#nivel-${n.numero}`}>
+                <span class="puerto-led" aria-hidden="true"></span>
+                <span class="puerto-num">Nivel {n.numero}</span>
+                <span class="puerto-boca" aria-hidden="true"><span></span></span>
+                <span class="puerto-nombre">{n.nombre}</span>
+                <span class="puerto-estado">
+                  {n.disponible ? <span data-led-texto>0 de {n.ids.length} completados</span> : 'Próximamente'}
+                </span>
+                {n.disponible && <span class="puerto-cable" aria-hidden="true"></span>}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="ciclo" aria-labelledby="ciclo-t">
+      <h2 id="ciclo-t">Así se estudia cada tema</h2>
+      <ol>
+        <li><strong>Lee la teoría.</strong> Lo justo para entender qué vas a configurar y por qué.</li>
+        <li><strong>Arma el laboratorio.</strong> Topología, tabla de direccionamiento y tareas paso a paso.</li>
+        <li><strong>Verifica con show.</strong> Compara tu salida con la esperada antes de mirar la solución.</li>
+        <li><strong>Responde el quiz.</strong> Preguntas al estilo del examen con la explicación de cada respuesta.</li>
+      </ol>
+    </section>
+
+    {niveles.map((n) => (
+      <section class="nivel" id={`nivel-${n.numero}`} style={`--c:${n.color}`} aria-labelledby={`nivel-${n.numero}-t`}>
+        <header class="nivel-cabecera">
+          <h2 id={`nivel-${n.numero}-t`}>Nivel {n.numero}: {n.nombre}</h2>
+          <p>{n.resumen}</p>
+        </header>
+        {n.disponible ? (
+          <ul class="nivel-lista">
+            {n.filas.map((f) =>
+              f.tipo === 'Lección' ? (
+                <ItemRuta tipo="Lección" href={urlLeccion(f.l)} titulo={f.l.data.titulo}
+                  progreso={idProgresoLeccion(f.l)} minutos={f.l.data.duracion} examen={f.l.data.examen} />
+              ) : (
+                <ItemRuta tipo="Lab" href={urlLab(f.l)} titulo={f.l.data.titulo}
+                  progreso={idProgresoLab(f.l)} minutos={f.l.data.duracion} examen={f.l.data.examen}
+                  extra={f.l.data.herramienta} />
+              )
+            )}
+          </ul>
+        ) : (
+          <div class="nivel-pendiente">
+            <p>Este nivel está en preparación. Temas previstos:</p>
+            <ul>{n.temas.map((t) => <li>{t}</li>)}</ul>
+          </div>
+        )}
+      </section>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .hero {
+    display: grid; gap: 2rem 3rem; align-items: center;
+    padding-bottom: 2.5rem;
+  }
+  @media (min-width: 960px) { .hero { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+  .hero h1 { max-width: 19ch; }
+  .hero-bajada { font-size: 1.2rem; max-width: 46ch; }
+  .hero-version { color: var(--muted); max-width: 52ch; }
+
+  /* Panel de parcheo: un puerto por nivel */
+  .panel {
+    position: relative;
+    background: linear-gradient(180deg, #d7dde2, #c3cbd2);
+    border: 1px solid #a9b3bc;
+    border-radius: 6px;
+    padding: 1rem 2.2rem 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+  @media (prefers-color-scheme: dark) {
+    .panel { background: linear-gradient(180deg, #27313c, #1e2731); border-color: #3a4756; box-shadow: none; }
+  }
+  .panel-orejas span {
+    position: absolute; top: 50%; width: 10px; height: 22px; margin-top: -11px;
+    border-radius: 5px; background: var(--bg); border: 1px solid var(--line-strong);
+  }
+  .panel-orejas span:first-child { left: 0.7rem; }
+  .panel-orejas span:last-child { right: 0.7rem; }
+
+  .puertos {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.9rem;
+  }
+  .puerto + .puerto { margin-top: 0; }
+  .puerto a {
+    display: grid; justify-items: center; text-align: center;
+    color: var(--ink); text-decoration: none; padding-bottom: 0.5rem;
+  }
+  @media (prefers-color-scheme: dark) { .puerto a { color: var(--ink); } }
+  .puerto-led {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--led-off); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+  .puerto[data-estado='en-curso'] .puerto-led { background: var(--led-amber); box-shadow: 0 0 6px var(--led-amber); }
+  .puerto[data-estado='completo'] .puerto-led { background: var(--led-on); box-shadow: 0 0 6px var(--led-on); }
+  .puerto-num { font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; margin: 0.35rem 0 0.4rem; }
+  .puerto-boca {
+    width: 100%; max-width: 64px; aspect-ratio: 1.15; position: relative;
+    background: #1a2129; border-radius: 3px;
+    clip-path: polygon(0 0, 100% 0, 100% 78%, 72% 78%, 72% 100%, 28% 100%, 28% 78%, 0 78%);
+  }
+  .puerto-boca span {
+    position: absolute; left: 14%; right: 14%; top: 12%; height: 10%;
+    background: repeating-linear-gradient(90deg, #c9a24a 0 2px, transparent 2px 6px);
+  }
+  .conectado .puerto-boca { background: var(--c); }
+  .conectado .puerto-boca span { background: rgba(255, 255, 255, 0.35); }
+  .puerto-nombre { font-size: 0.85rem; line-height: 1.25; margin-top: 0.5rem; min-height: 2.5em; }
+  .puerto-estado { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+  .puerto-cable {
+    width: 14px; height: 2.4rem; margin-top: 0.4rem;
+    background: var(--c); border-radius: 0 0 3px 3px;
+  }
+  .libre .puerto-boca { opacity: 0.9; }
+  .libre .puerto-nombre { color: var(--muted); }
+  .puerto a:hover .puerto-nombre { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .panel { padding: 0.8rem 1rem 0.4rem; }
+    .panel-orejas { display: none; }
+    .puertos { grid-template-columns: 1fr; gap: 0.4rem; }
+    .puerto a {
+      grid-template-columns: 12px 4.2rem 44px 1fr; align-items: center; justify-items: start;
+      text-align: left; column-gap: 0.6rem; padding-bottom: 0.4rem;
+    }
+    .puerto-num { margin: 0; }
+    .puerto-boca { max-width: 44px; }
+    .puerto-nombre { margin: 0; min-height: 0; grid-column: 4; grid-row: 1; }
+    .puerto-estado { grid-column: 4; grid-row: 2; margin: 0; }
+    .puerto-cable { display: none; }
+  }
+
+  .ciclo { border-top: 1px solid var(--line); padding-top: 0.5rem; }
+  .ciclo ol {
+    list-style: none; counter-reset: paso; padding: 0; margin: 0;
+    display: grid; gap: 1rem 2rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .ciclo li { counter-increment: paso; margin: 0; padding-left: 2.2rem; position: relative; }
+  .ciclo li::before {
+    content: counter(paso); position: absolute; left: 0; top: 0.05rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    display: grid; place-items: center;
+    border: 2px solid var(--ink); font-family: var(--font-head); font-weight: 700; font-size: 0.9rem;
+  }
+
+  .nivel { margin-top: 3rem; border-left: 6px solid var(--c); padding-left: 1.2rem; }
+  .nivel-cabecera h2 { margin: 0 0 0.3rem; }
+  .nivel-cabecera p { color: var(--muted); max-width: var(--measure); }
+  .nivel-lista { list-style: none; padding: 0; margin: 0; max-width: 900px; border-top: 1px solid var(--line); }
+  .nivel-pendiente { color: var(--muted); }
+  .nivel-pendiente ul { columns: 2 220px; margin: 0; }
+</style>

@@ -1,0 +1,72 @@
+---
+titulo: Título del laboratorio
+descripcion: Una frase con lo que el alumno va a lograr.
+nivel: 2
+orden: 1
+duracion: 45
+dificultad: Básica
+herramienta: Packet Tracer
+tipo: Configuración
+examen:
+  v1.1: 2
+  v2.0: 2
+dispositivos: [Router ISR 4331, Switch Catalyst 2960, 2 PC]
+# archivo: l2-01-ejemplo/l2-01-ejemplo.pkt
+---
+
+import Topologia from '../../components/Topologia.astro';
+
+## Objetivos
+
+- Objetivo 1.
+- Objetivo 2.
+
+## Topología
+
+<Topologia
+  ancho={600}
+  alto={340}
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 300, y: 60 },
+    { id: 'S1', tipo: 'switch', x: 300, y: 180 },
+    { id: 'PC1', tipo: 'pc', x: 180, y: 290 },
+    { id: 'PC2', tipo: 'pc', x: 420, y: 290 },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1' },
+    { a: 'S1', b: 'PC1', ia: 'F0/1' },
+    { a: 'S1', b: 'PC2', ia: 'F0/2' },
+  ]}
+/>
+
+## Tabla de direccionamiento
+
+| Equipo | Interfaz | Dirección IP | Máscara | Gateway |
+|---|---|---|---|---|
+| R1 | G0/0/1 | | | No aplica |
+
+## Parte 1: Primera parte
+
+1. Tarea.
+
+## Verificación
+
+```text
+R1# show ...
+```
+
+## Solución
+
+<details class="solucion">
+<summary>Ver la configuración completa</summary>
+
+```text
+enable
+configure terminal
+```
+
+</details>
+
+## Reto adicional
+
+1. Pregunta que obligue a pensar.
