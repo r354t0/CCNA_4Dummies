@@ -1,0 +1,130 @@
+---
+titulo: Enrutamiento entre VLANs
+descripcion: Las tres formas de comunicar VLANs (router con una interfaz por VLAN, router-on-a-stick y switch de capa 3) y cómo configurar y verificar cada una.
+nivel: 2
+orden: 3
+duracion: 40
+examen:
+  v1.1: 2
+  v2.0: 2
+labs: [l2-02-inter-vlan, l2-05-troubleshooting-vlans]
+quiz:
+  - p: "En router-on-a-stick, ¿qué comando asocia una subinterfaz con la VLAN 20?"
+    opciones:
+      - "switchport access vlan 20"
+      - "encapsulation dot1Q 20"
+      - "vlan 20"
+      - "ip vlan 20"
+    correcta: 1
+    explicacion: "En la subinterfaz, encapsulation dot1Q 20 indica que procesa las tramas etiquetadas con la VLAN 20."
+  - p: "En un switch de capa 3, las SVI están configuradas pero las VLANs no se comunican entre sí. ¿Qué comando falta probablemente?"
+    opciones: ["ip routing", "no shutdown en el trunk", "switchport mode trunk", "ip default-gateway"]
+    correcta: 0
+    explicacion: "Sin ip routing el switch no enruta entre sus SVI, aunque cada una responda a su propia VLAN."
+  - p: "¿Qué estado tiene una SVI de una VLAN que existe pero no tiene ningún puerto activo?"
+    opciones: ["up/up", "up/down", "down/down", "administratively down/down"]
+    correcta: 1
+    explicacion: "Una SVI está up/up solo si la VLAN existe y hay al menos un puerto activo en ella (acceso o trunk que la lleve)."
+  - p: "¿Qué tipo de puerto debe tener el switch hacia el router en un esquema router-on-a-stick?"
+    opciones: ["Acceso en la VLAN 1", "Trunk", "Puerto enrutado (no switchport)", "Acceso en la VLAN nativa"]
+    correcta: 1
+    explicacion: "El enlace lleva todas las VLANs etiquetadas hacia las subinterfaces del router, así que debe ser trunk."
+---
+
+Cada VLAN es una subred distinta, así que comunicar dos VLANs es **enrutar**: hace falta un equipo de capa 3 con
+una dirección IP en cada VLAN, que sirva de gateway a los hosts.
+
+## Las tres opciones
+
+| Método | Cómo funciona | Ventajas | Límites |
+|---|---|---|---|
+| Interfaz por VLAN | Una interfaz física del router conectada a un puerto de acceso de cada VLAN | Simple | Se acaban las interfaces |
+| Router-on-a-stick (ROAS) | Un solo enlace trunk al router, con una **subinterfaz** por VLAN | Una interfaz para muchas VLANs | Todo el tráfico entre VLANs comparte un enlace |
+| Switch de capa 3 | Una **SVI** por VLAN dentro del switch, que enruta por hardware | Rápido y escalable | Requiere un switch multicapa |
+
+## Router-on-a-stick
+
+El switch envía todas las VLANs etiquetadas por un trunk. El router crea una subinterfaz para cada una:
+
+```text
+R1(config)# interface gigabitethernet0/0/1
+R1(config-if)# no shutdown
+R1(config-if)# interface gigabitethernet0/0/1.10
+R1(config-subif)# description Gateway VLAN 10
+R1(config-subif)# encapsulation dot1Q 10
+R1(config-subif)# ip address 192.168.10.1 255.255.255.0
+R1(config-subif)# interface gigabitethernet0/0/1.20
+R1(config-subif)# encapsulation dot1Q 20
+R1(config-subif)# ip address 192.168.20.1 255.255.255.0
+R1(config-subif)# interface gigabitethernet0/0/1.99
+R1(config-subif)# encapsulation dot1Q 99 native
+R1(config-subif)# ip address 192.168.99.1 255.255.255.0
+```
+
+Detalles que causan fallas:
+
+- El **número de subinterfaz** (`.10`) es solo un nombre. Lo que manda es `encapsulation dot1Q 10`. Usar el mismo
+  número es una convención para no confundirse.
+- La **interfaz física** necesita `no shutdown`; las subinterfaces heredan su estado.
+- La subinterfaz de la VLAN nativa lleva la palabra `native` para que el router acepte tramas sin etiqueta.
+- En el switch, el puerto hacia el router debe ser **trunk** y permitir todas esas VLANs.
+
+## Switch de capa 3 con SVI
+
+Una **SVI** (switched virtual interface) es una interfaz virtual del switch dentro de una VLAN. Con `ip routing`, el
+switch enruta entre sus SVI:
+
+```text
+DS1(config)# ip routing
+DS1(config)# vlan 10
+DS1(config-vlan)# vlan 20
+DS1(config-vlan)# exit
+DS1(config)# interface vlan 10
+DS1(config-if)# ip address 192.168.10.1 255.255.255.0
+DS1(config-if)# no shutdown
+DS1(config-if)# interface vlan 20
+DS1(config-if)# ip address 192.168.20.1 255.255.255.0
+DS1(config-if)# no shutdown
+```
+
+Una SVI queda **up/up** solo si se cumplen tres condiciones:
+
+1. La VLAN existe en la base de VLANs del switch.
+2. Hay al menos un puerto activo en esa VLAN (de acceso, o un trunk que la lleve).
+3. La SVI no tiene `shutdown`.
+
+Un switch de capa 3 también puede tener **puertos enrutados**, que se comportan como una interfaz de router:
+
+```text
+DS1(config)# interface gigabitethernet1/0/24
+DS1(config-if)# no switchport
+DS1(config-if)# ip address 10.0.0.1 255.255.255.252
+```
+
+## Verificación
+
+```text
+R1# show ip interface brief
+Interface                IP-Address      OK? Method Status   Protocol
+GigabitEthernet0/0/1     unassigned      YES unset  up       up
+GigabitEthernet0/0/1.10  192.168.10.1    YES manual up       up
+GigabitEthernet0/0/1.20  192.168.20.1    YES manual up       up
+GigabitEthernet0/0/1.99  192.168.99.1    YES manual up       up
+```
+
+```text
+R1# show ip route connected
+C        192.168.10.0/24 is directly connected, GigabitEthernet0/0/1.10
+C        192.168.20.0/24 is directly connected, GigabitEthernet0/0/1.20
+C        192.168.99.0/24 is directly connected, GigabitEthernet0/0/1.99
+```
+
+`show vlans` en el router muestra cada subinterfaz con su VLAN y contadores de paquetes. En un switch de capa 3 usa
+`show ip interface brief | include Vlan` y `show ip route`.
+
+<aside class="examen">
+
+Si un host no llega a otra VLAN, revisa en orden: el gateway del host, que su VLAN esté permitida en el trunk, que
+la subinterfaz tenga el `encapsulation dot1Q` correcto y, en un switch de capa 3, que exista `ip routing`.
+
+</aside>

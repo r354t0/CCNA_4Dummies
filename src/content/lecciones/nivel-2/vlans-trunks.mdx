@@ -1,0 +1,194 @@
+---
+titulo: VLANs y trunks 802.1Q
+descripcion: Para qué sirven las VLANs, cómo se configuran puertos de acceso y de voz, cómo viajan varias VLANs por un trunk y qué es la VLAN nativa.
+nivel: 2
+orden: 2
+duracion: 45
+examen:
+  v1.1: 2
+  v2.0: 2
+labs: [l2-01-vlans-trunks, l2-05-troubleshooting-vlans]
+quiz:
+  - p: "¿Qué hace un trunk 802.1Q con las tramas de la VLAN nativa?"
+    opciones:
+      - "Las descarta"
+      - "Las envía sin etiqueta"
+      - "Les agrega una etiqueta doble"
+      - "Las cifra"
+    correcta: 1
+    explicacion: "Las tramas de la VLAN nativa cruzan el trunk sin etiqueta 802.1Q. Por eso ambos extremos deben tener la misma VLAN nativa."
+  - p: "Dos PC de la VLAN 20 están en switches distintos unidos por un trunk y no se comunican. En el trunk ves 'Vlans allowed on trunk: 1,10,99'. ¿Cuál es el problema?"
+    opciones:
+      - "La VLAN nativa no coincide"
+      - "La VLAN 20 no está permitida en el trunk"
+      - "Falta el gateway en las PC"
+      - "El trunk debe ser de acceso"
+    correcta: 1
+    explicacion: "La lista de VLANs permitidas excluye la 20. Se corrige con switchport trunk allowed vlan add 20."
+  - p: "¿Cuántos bits del encabezado 802.1Q identifican la VLAN?"
+    opciones: ["8", "10", "12", "16"]
+    correcta: 2
+    explicacion: "El campo VID tiene 12 bits, lo que permite IDs de 0 a 4095. Los valores 0 y 4095 están reservados."
+  - p: "Un puerto conecta un teléfono IP y detrás una PC. ¿Qué configuración es la correcta?"
+    opciones:
+      - "Puerto trunk con todas las VLANs"
+      - "Puerto de acceso con switchport access vlan para la PC y switchport voice vlan para el teléfono"
+      - "Dos puertos de acceso separados"
+      - "Puerto de acceso solo en la VLAN de voz"
+    correcta: 1
+    explicacion: "El puerto queda en modo acceso para los datos de la PC y el teléfono etiqueta su tráfico en la VLAN de voz."
+  - p: "¿Qué rango de VLAN se considera normal?"
+    opciones: ["1 a 1005", "1 a 4094", "1006 a 4094", "0 a 4095"]
+    correcta: 0
+    explicacion: "El rango normal es 1 a 1005 (1002 a 1005 están reservadas para tecnologías antiguas). El rango extendido va de 1006 a 4094."
+---
+
+Sin VLANs, todos los puertos de un switch están en un único dominio de broadcast. Con VLANs puedes dividir un
+switch (o varios) en redes lógicas separadas: cada VLAN es su propio dominio de broadcast y, en la práctica, su
+propia subred IP.
+
+## Para qué sirven
+
+- **Seguridad**: los equipos de Contabilidad no ven el tráfico de capa 2 de los Invitados.
+- **Rendimiento**: los broadcasts quedan dentro de su VLAN.
+- **Organización**: los usuarios se agrupan por función, no por el piso o el switch al que están conectados.
+
+Para que dos VLANs se comuniquen hace falta **enrutamiento** (un router o un switch de capa 3). Lo verás en la
+siguiente lección.
+
+## Tipos y rangos
+
+| Rango | Uso |
+|---|---|
+| 1 | VLAN por defecto: todos los puertos empiezan en ella. No se puede borrar |
+| 2 a 1001 | Rango normal, para uso general |
+| 1002 a 1005 | Reservadas (Token Ring y FDDI) |
+| 1006 a 4094 | Rango extendido |
+
+Se habla además de **VLAN de datos** (usuarios), **VLAN de voz** (teléfonos IP), **VLAN de gestión** (la SVI con la
+que administras el switch) y **VLAN nativa** (la que va sin etiqueta por el trunk). Una buena práctica es no usar la
+VLAN 1 para nada de esto.
+
+## Crear VLANs y asignar puertos de acceso
+
+Un **puerto de acceso** pertenece a una sola VLAN y envía tramas sin etiqueta: el equipo conectado no sabe que hay
+VLANs.
+
+```text
+S1(config)# vlan 10
+S1(config-vlan)# name Ventas
+S1(config-vlan)# vlan 20
+S1(config-vlan)# name Bodega
+S1(config-vlan)# exit
+S1(config)# interface range fastethernet0/1 - 10
+S1(config-if-range)# switchport mode access
+S1(config-if-range)# switchport access vlan 10
+```
+
+Si asignas un puerto a una VLAN que no existe, IOS la crea automáticamente, pero sin nombre. Mejor créala tú.
+
+**VLAN de voz.** Un teléfono IP suele tener un switch interno con una PC detrás. El puerto queda en acceso para la
+PC y el teléfono marca su tráfico con la VLAN de voz:
+
+```text
+S1(config)# interface fastethernet0/11
+S1(config-if)# switchport mode access
+S1(config-if)# switchport access vlan 10
+S1(config-if)# switchport voice vlan 150
+```
+
+## Trunks 802.1Q
+
+Un **trunk** lleva varias VLANs por el mismo enlace, normalmente entre switches o hacia un router. Para que el otro
+extremo sepa a qué VLAN pertenece cada trama, 802.1Q inserta una **etiqueta de 4 bytes** en la trama Ethernet:
+
+```text
+| MAC destino | MAC origen | Etiqueta 802.1Q | Tipo | Datos | FCS |
+                            TPID 0x8100 (16 bits)
+                            PRI (3) DEI (1) VID (12 bits)
+```
+
+- **VID**: 12 bits, el número de VLAN.
+- **PRI**: 3 bits de prioridad (CoS), útiles para la voz.
+- Como la trama cambia, el switch recalcula el FCS.
+
+```text
+S1(config)# interface gigabitethernet0/1
+S1(config-if)# switchport mode trunk
+S1(config-if)# switchport trunk native vlan 99
+S1(config-if)# switchport trunk allowed vlan 10,20,99
+```
+
+En switches que soportan ISL y 802.1Q (como el 3650) antes hay que fijar `switchport trunk encapsulation dot1q`.
+En el 2960 no hace falta porque solo soporta 802.1Q.
+
+Para modificar la lista de VLANs permitidas sin borrar las que ya están, usa `add` o `remove`:
+
+```text
+S1(config-if)# switchport trunk allowed vlan add 30
+S1(config-if)# switchport trunk allowed vlan remove 30
+```
+
+## La VLAN nativa
+
+Las tramas de la VLAN nativa cruzan el trunk **sin etiqueta**. Por defecto es la VLAN 1. Si un extremo tiene nativa
+99 y el otro nativa 1, las tramas sin etiqueta terminan en VLANs distintas en cada lado. CDP detecta el problema y
+avisa con `%CDP-4-NATIVE_VLAN_MISMATCH`.
+
+Buenas prácticas: usa como nativa una VLAN que no lleve usuarios, la misma en ambos extremos, y no la VLAN 1.
+
+## DTP y negociación
+
+**DTP** (Dynamic Trunking Protocol) es propietario de Cisco y negocia si un enlace será trunk:
+
+| Modo | Comportamiento |
+|---|---|
+| `switchport mode access` | Siempre acceso |
+| `switchport mode trunk` | Siempre trunk (y sigue enviando DTP) |
+| `dynamic desirable` | Pide activamente ser trunk |
+| `dynamic auto` | Acepta ser trunk si el otro lado lo pide |
+
+Dos puertos en `dynamic auto` **quedan en acceso**, porque ninguno lo pide. Lo recomendado es fijar el modo a mano y
+apagar DTP con `switchport nonegotiate` en los trunks.
+
+**VTP** (VLAN Trunking Protocol) propaga la base de VLANs entre switches. Basta con saber que existe; en redes
+reales suele dejarse en modo `transparent` u `off` para evitar borrados accidentales.
+
+## Verificación
+
+```text
+S1# show vlan brief
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/12, Fa0/13, ...
+10   Ventas                           active    Fa0/1, Fa0/2, ...
+20   Bodega                           active
+99   Gestion                          active
+```
+
+Los puertos trunk **no aparecen** en `show vlan brief`. Para verlos:
+
+```text
+S1# show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Gi0/1       on           802.1q         trunking      99
+
+Port        Vlans allowed on trunk
+Gi0/1       10,20,99
+
+Port        Vlans allowed and active in management domain
+Gi0/1       10,20,99
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gi0/1       10,20,99
+```
+
+Y para un puerto concreto: `show interfaces fastethernet0/1 switchport`.
+
+<aside class="examen">
+
+Las preguntas típicas: qué pasa con dos puertos `dynamic auto`, qué viaja sin etiqueta, por qué un puerto trunk no
+aparece en `show vlan brief`, y qué falla cuando una VLAN no está en la lista de permitidas o no existe en uno de
+los switches.
+
+</aside>

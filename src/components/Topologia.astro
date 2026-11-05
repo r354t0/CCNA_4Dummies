@@ -5,6 +5,9 @@
 //   nodos={[{ id: 'R1', tipo: 'router', x: 320, y: 60, detalle: 'G0/0/1 192.168.1.1' }, ...]}
 //   enlaces={[{ a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1' }, ...]} />
 //
+// Varios enlaces entre los mismos dos equipos se dibujan en paralelo. Si además comparten
+// `grupo` (por ejemplo 'Po1'), se dibuja el óvalo de EtherChannel con ese nombre.
+//
 // x, y son el centro del ícono. Los enlaces se recortan al borde de cada ícono y las
 // interfaces se dibujan como etiquetas sobre el cable, junto al equipo al que pertenecen.
 
@@ -12,7 +15,7 @@ type Tipo = 'router' | 'switch' | 'pc' | 'servidor' | 'laptop' | 'nube';
 type Lado = 'arriba' | 'abajo' | 'derecha' | 'izquierda';
 // lado: dónde va el nombre del equipo. Por defecto: router arriba, switch a la derecha, hosts abajo.
 interface Nodo { id: string; tipo: Tipo; x: number; y: number; etiqueta?: string; detalle?: string; lado?: Lado; }
-interface Enlace { a: string; b: string; ia?: string; ib?: string; tipo?: 'cobre' | 'serial' | 'consola' | 'fibra'; }
+interface Enlace { a: string; b: string; ia?: string; ib?: string; tipo?: 'cobre' | 'serial' | 'consola' | 'fibra'; grupo?: string; }
 interface Props {
   nodos: Nodo[];
   enlaces: Enlace[];
@@ -48,6 +51,13 @@ function borde(n: Nodo, ux: number, uy: number) {
 const ANCHO_CARACTER = 6.7; // fuente monoespaciada de 11 px
 const ALTO_ETIQUETA = 16;
 
+// Enlaces paralelos: se reparten a ambos lados del eje que une los dos equipos.
+const SEPARACION = 14;
+const clavePar = (e: Enlace) => [e.a, e.b].sort().join('|');
+const totalPorPar = new Map<string, number>();
+enlaces.forEach((e) => totalPorPar.set(clavePar(e), (totalPorPar.get(clavePar(e)) ?? 0) + 1));
+const vistosPorPar = new Map<string, number>();
+
 const trazos = enlaces.map((e) => {
   const a = porId.get(e.a);
   const b = porId.get(e.b);
@@ -60,19 +70,31 @@ const trazos = enlaces.map((e) => {
   const da = borde(a, ux, uy);
   const db = borde(b, -ux, -uy);
 
+  // Desplazamiento perpendicular, siempre medido en el mismo sentido para un par de equipos.
+  const clave = clavePar(e);
+  const total = totalPorPar.get(clave)!;
+  const indice = vistosPorPar.get(clave) ?? 0;
+  vistosPorPar.set(clave, indice + 1);
+  const signo = e.a < e.b ? 1 : -1;
+  const desfase = (indice - (total - 1) / 2) * SEPARACION;
+  const px = -uy * signo * desfase;
+  const py = ux * signo * desfase;
+
   // La etiqueta se centra sobre el cable, pegada al borde del equipo.
   const etiqueta = (texto: string | undefined, desde: Nodo, d: number, sx: number, sy: number) => {
     if (!texto) return null;
     const w = texto.length * ANCHO_CARACTER + 10;
     const recorrido = (w * Math.abs(sx) + ALTO_ETIQUETA * Math.abs(sy)) / 2;
     const dist = d + 5 + recorrido;
-    return { texto, w, sx, sy, ox: desde.x, oy: desde.y, dist, max: largo / 2, x: desde.x + sx * dist, y: desde.y + sy * dist };
+    const ox = desde.x + px;
+    const oy = desde.y + py;
+    return { texto, w, sx, sy, ox, oy, dist, max: largo / 2, x: ox + sx * dist, y: oy + sy * dist };
   };
 
   return {
-    e,
-    x1: a.x + ux * da, y1: a.y + uy * da,
-    x2: b.x - ux * db, y2: b.y - uy * db,
+    e, a, b, ux, uy,
+    x1: a.x + px + ux * da, y1: a.y + py + uy * da,
+    x2: b.x + px - ux * db, y2: b.y + py - uy * db,
     la: etiqueta(e.ia, a, da, ux, uy),
     lb: etiqueta(e.ib, b, db, -ux, -uy),
   };
@@ -105,6 +127,23 @@ for (let vuelta = 0; vuelta < 200; vuelta++) {
   if (!movida) break;
 }
 
+// Óvalo de EtherChannel: abraza los enlaces del grupo en el punto medio entre los equipos.
+const grupos = [...new Set(trazos.filter((t) => t.e.grupo).map((t) => `${clavePar(t.e)}|${t.e.grupo}`))].map((k) => {
+  const miembros = trazos.filter((t) => t.e.grupo && `${clavePar(t.e)}|${t.e.grupo}` === k);
+  const t0 = miembros[0];
+  const mx = (t0.a.x + t0.b.x) / 2;
+  const my = (t0.a.y + t0.b.y) / 2;
+  const angulo = (Math.atan2(t0.uy, t0.ux) * 180) / Math.PI;
+  const radio = ((miembros.length - 1) * SEPARACION) / 2 + 9;
+  const nombre = t0.e.grupo!;
+  const w = nombre.length * ANCHO_CARACTER + 10;
+  // La etiqueta del port-channel va al costado del óvalo, fuera de los cables.
+  const nx = -t0.uy;
+  const ny = t0.ux;
+  const d = radio + 6 + (w * Math.abs(nx) + ALTO_ETIQUETA * Math.abs(ny)) / 2;
+  return { mx, my, angulo, radio, nombre, w, lx: mx + nx * d, ly: my + ny * d };
+});
+
 const LADO_POR_TIPO: Record<Tipo, Lado> = {
   router: 'arriba', switch: 'derecha', nube: 'derecha', pc: 'abajo', laptop: 'abajo', servidor: 'abajo',
 };
@@ -126,6 +165,7 @@ const descripcion = enlaces
 const hayConsola = enlaces.some((e) => e.tipo === 'consola');
 const haySerial = enlaces.some((e) => e.tipo === 'serial');
 const hayFibra = enlaces.some((e) => e.tipo === 'fibra');
+const hayGrupo = grupos.length > 0;
 ---
 <figure class="topologia">
   <svg viewBox={`0 0 ${ancho} ${alto}`} role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
@@ -134,6 +174,11 @@ const hayFibra = enlaces.some((e) => e.tipo === 'fibra');
 
     {trazos.map((t) => (
       <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} class={`enlace enlace-${t.e.tipo ?? 'cobre'}`} />
+    ))}
+
+    {grupos.map((g) => (
+      <ellipse class="etherchannel" cx={g.mx} cy={g.my} rx="8" ry={g.radio}
+        transform={`rotate(${g.angulo} ${g.mx} ${g.my})`} />
     ))}
 
     {nodos.map((n) => (
@@ -200,6 +245,13 @@ const hayFibra = enlaces.some((e) => e.tipo === 'fibra');
       </g>
     ))}
 
+    {grupos.map((g) => (
+      <g class="interfaz interfaz-grupo" transform={`translate(${g.lx} ${g.ly})`}>
+        <rect x={-g.w / 2} y={-ALTO_ETIQUETA / 2} width={g.w} height={ALTO_ETIQUETA} rx="3" />
+        <text text-anchor="middle" dy="0.35em">{g.nombre}</text>
+      </g>
+    ))}
+
     {etiquetas.map((l) => (
       <g class="interfaz" transform={`translate(${l.x} ${l.y})`}>
         <rect x={-l.w / 2} y={-ALTO_ETIQUETA / 2} width={l.w} height={ALTO_ETIQUETA} rx="3" />
@@ -207,11 +259,12 @@ const hayFibra = enlaces.some((e) => e.tipo === 'fibra');
       </g>
     ))}
   </svg>
-  {(hayConsola || haySerial || hayFibra) && (
+  {(hayConsola || haySerial || hayFibra || hayGrupo) && (
     <figcaption>
       <span class="ley"><svg width="28" height="6" aria-hidden="true"><line x1="0" y1="3" x2="28" y2="3" class="enlace" /></svg> Cobre</span>
       {hayConsola && <span class="ley"><svg width="28" height="6" aria-hidden="true"><line x1="0" y1="3" x2="28" y2="3" class="enlace enlace-consola" /></svg> Cable de consola</span>}
       {haySerial && <span class="ley"><svg width="28" height="6" aria-hidden="true"><line x1="0" y1="3" x2="28" y2="3" class="enlace enlace-serial" /></svg> Serial</span>}
+      {hayGrupo && <span class="ley"><svg width="28" height="14" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4" class="enlace" /><line x1="0" y1="10" x2="28" y2="10" class="enlace" /><ellipse cx="14" cy="7" rx="4" ry="6.5" class="etherchannel" /></svg> EtherChannel</span>}
       {hayFibra && <span class="ley"><svg width="28" height="6" aria-hidden="true"><line x1="0" y1="3" x2="28" y2="3" class="enlace enlace-fibra" /></svg> Fibra</span>}
     </figcaption>
   )}
@@ -241,6 +294,9 @@ const hayFibra = enlaces.some((e) => e.tipo === 'fibra');
   .enlace-serial { stroke: var(--bad); stroke-dasharray: 8 5; }
   .enlace-consola { stroke: var(--n5); stroke-dasharray: 2 5; stroke-width: 2.5; }
   .enlace-fibra { stroke: var(--n1); }
+  .etherchannel { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+  .interfaz-grupo rect { stroke: var(--ink); }
+  .interfaz-grupo text { font-weight: 600; }
 
   .cara-superior { fill: var(--ic-superior); }
   .cara-frente { fill: var(--ic-frente); }

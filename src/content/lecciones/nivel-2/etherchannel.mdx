@@ -1,0 +1,144 @@
+---
+titulo: EtherChannel con LACP
+descripcion: Cómo agrupar varios enlaces físicos en uno lógico, los modos de LACP y PAgP, los requisitos de compatibilidad y la verificación.
+nivel: 2
+orden: 5
+duracion: 35
+examen:
+  v1.1: 2
+  v2.0: 2
+labs: [l2-03-etherchannel-cdp-lldp]
+quiz:
+  - p: "¿Qué combinación de modos LACP forma un EtherChannel?"
+    opciones: ["passive y passive", "active y passive", "auto y desirable", "on y active"]
+    correcta: 1
+    explicacion: "LACP necesita al menos un extremo en active. Dos passive esperan a que el otro empiece y no forman nunca el canal."
+  - p: "¿Qué protocolo de EtherChannel es un estándar abierto?"
+    opciones: ["PAgP", "LACP", "DTP", "VTP"]
+    correcta: 1
+    explicacion: "LACP es el estándar IEEE 802.3ad (hoy 802.1AX). PAgP es propietario de Cisco."
+  - p: "Un puerto del grupo está en otra velocidad que los demás. ¿Qué ocurre?"
+    opciones:
+      - "El canal funciona a la velocidad más baja"
+      - "Ese puerto queda suspendido y no se agrega al canal"
+      - "El switch reinicia el canal cada minuto"
+      - "Todos los puertos se apagan"
+    correcta: 1
+    explicacion: "Los puertos deben coincidir en velocidad, dúplex, modo y VLANs. Los que no coinciden quedan fuera del canal (estado suspendido)."
+  - p: "En show etherchannel summary, ¿qué indican las letras SU junto a Po1?"
+    opciones:
+      - "Suspendido y sin uso"
+      - "Capa 2 y en uso"
+      - "Standby y up"
+      - "Switch y unidireccional"
+    correcta: 1
+    explicacion: "S significa Layer2 y U, in use. Los puertos miembros deberían aparecer con P (bundled in port-channel)."
+  - p: "¿Por qué STP no bloquea los enlaces de un EtherChannel?"
+    opciones:
+      - "Porque STP se desactiva en los switches con EtherChannel"
+      - "Porque STP ve el grupo como un solo enlace lógico"
+      - "Porque los enlaces están en VLANs distintas"
+      - "Sí los bloquea, salvo uno"
+    correcta: 1
+    explicacion: "El port-channel es una sola interfaz para STP, así que no hay bucle que bloquear y se usa el ancho de banda de todos los enlaces."
+---
+
+Si unes dos switches con dos cables para tener más ancho de banda, STP bloqueará uno de ellos para evitar un bucle.
+**EtherChannel** resuelve esto: agrupa varios enlaces físicos en una sola interfaz lógica (un *port-channel*).
+STP la ve como un único enlace, el tráfico se reparte entre todos los cables y, si uno falla, los demás siguen.
+
+## Protocolos y modos
+
+| Protocolo | Tipo | Modos |
+|---|---|---|
+| LACP | Estándar IEEE 802.3ad (802.1AX) | `active` (inicia la negociación), `passive` (responde) |
+| PAgP | Propietario de Cisco | `desirable` (inicia), `auto` (responde) |
+| Estático | Sin negociación | `on` |
+
+Combinaciones que forman el canal:
+
+| Extremo A | Extremo B | ¿Se forma? |
+|---|---|---|
+| active | active | Sí |
+| active | passive | Sí |
+| passive | passive | **No** |
+| desirable | desirable o auto | Sí |
+| auto | auto | **No** |
+| on | on | Sí |
+| on | active o desirable | **No** |
+
+Prefiere LACP: es el estándar y detecta errores de cableado que el modo `on` deja pasar.
+
+## Requisitos
+
+Todos los puertos del grupo deben coincidir en:
+
+- velocidad y dúplex;
+- modo (todos acceso en la misma VLAN, o todos trunk con la misma VLAN nativa y las mismas VLANs permitidas);
+- tipo de puerto (todos de capa 2 o todos de capa 3).
+
+Un puerto que no coincide queda **suspendido** y fuera del canal. Se admiten hasta 8 enlaces activos por grupo.
+
+## Configuración
+
+Se configuran los puertos físicos y el switch crea la interfaz `Port-channel` sola. Desde ahí, la configuración de
+trunk se aplica al port-channel:
+
+```text
+S1(config)# interface range gigabitethernet0/1 - 2
+S1(config-if-range)# channel-group 1 mode active
+S1(config-if-range)# exit
+S1(config)# interface port-channel 1
+S1(config-if)# switchport mode trunk
+S1(config-if)# switchport trunk native vlan 99
+S1(config-if)# switchport trunk allowed vlan 10,20,99
+```
+
+En el otro switch, lo mismo con `mode passive` (o `active`).
+
+**EtherChannel de capa 3** (entre switches multicapa o hacia un router): la IP va en el port-channel.
+
+```text
+DS1(config)# interface range gigabitethernet1/0/1 - 2
+DS1(config-if-range)# no switchport
+DS1(config-if-range)# channel-group 2 mode active
+DS1(config-if-range)# interface port-channel 2
+DS1(config-if)# no switchport
+DS1(config-if)# ip address 10.0.0.1 255.255.255.252
+```
+
+## Reparto de carga
+
+El tráfico no se divide paquete por paquete: el switch calcula un *hash* con direcciones MAC o IP de origen y destino,
+y cada flujo va siempre por el mismo enlace. Por eso una sola transferencia grande no supera la velocidad de un cable.
+El método se elige con `port-channel load-balance` y se consulta con `show etherchannel load-balance`.
+
+## Verificación
+
+```text
+S1# show etherchannel summary
+Flags:  D - down        P - bundled in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+...
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+1      Po1(SU)         LACP      Gig0/1(P) Gig0/2(P)
+```
+
+- `Po1(SU)`: capa 2 (**S**) y en uso (**U**). Un `(SD)` indica que el canal está caído.
+- `(P)` en cada puerto: está dentro del canal. Una `(s)` es un puerto suspendido; una `(I)`, un puerto suelto.
+
+Otros comandos: `show etherchannel port-channel`, `show interfaces port-channel 1` y `show lacp neighbor`.
+
+<aside class="examen">
+
+Memoriza la tabla de combinaciones de modos y las banderas de `show etherchannel summary`. Es habitual que te
+muestren dos configuraciones y pregunten por qué el canal no se forma.
+
+</aside>

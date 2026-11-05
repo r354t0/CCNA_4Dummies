@@ -1,0 +1,110 @@
+---
+titulo: Cómo conmuta un switch
+descripcion: Aprendizaje de direcciones MAC, reenvío, inundación y envejecimiento, dominios de colisión y de broadcast, y cómo leer la tabla MAC.
+nivel: 2
+orden: 1
+duracion: 30
+examen:
+  v1.1: 1
+  v2.0: 2
+labs: [l2-01-vlans-trunks]
+quiz:
+  - p: "Un switch recibe una trama unicast cuya MAC de destino no está en su tabla. ¿Qué hace?"
+    opciones:
+      - "La descarta"
+      - "La inunda por todos los puertos de la misma VLAN, excepto por el que llegó"
+      - "La envía solo al puerto del router"
+      - "Envía una solicitud ARP para averiguar el puerto"
+    correcta: 1
+    explicacion: "Una trama unicast desconocida se inunda dentro de la VLAN. Cuando el destino responda, el switch aprenderá en qué puerto está."
+  - p: "¿Qué dirección usa el switch para aprender y llenar su tabla MAC?"
+    opciones: ["La MAC de destino", "La MAC de origen", "La IP de origen", "La IP de destino"]
+    correcta: 1
+    explicacion: "El switch aprende mirando la MAC de origen de cada trama que recibe y la asocia al puerto de entrada."
+  - p: "¿Cuántos dominios de broadcast hay en un switch de 24 puertos sin VLANs adicionales?"
+    opciones: ["1", "2", "24", "48"]
+    correcta: 0
+    explicacion: "Todos los puertos están en la VLAN 1, así que forman un solo dominio de broadcast. Cada puerto, en cambio, es su propio dominio de colisión."
+  - p: "¿Cuánto tiempo conserva por defecto un switch Cisco una entrada dinámica que no se usa?"
+    opciones: ["30 segundos", "5 minutos", "1 hora", "Para siempre"]
+    correcta: 1
+    explicacion: "El tiempo de envejecimiento por defecto es de 300 segundos. Si no llega tráfico de esa MAC en ese lapso, la entrada se borra."
+---
+
+Un switch decide a qué puerto enviar cada trama mirando la dirección MAC de destino. Para hacerlo necesita saber
+dónde está cada equipo, y lo aprende solo, observando el tráfico. Entender este proceso explica por qué funcionan
+(o fallan) las VLANs, STP y buena parte del troubleshooting de capa 2.
+
+## La dirección MAC
+
+Tiene 48 bits escritos en hexadecimal. Cisco la muestra en tres grupos: `0050.7966.6800`. Los primeros 24 bits
+son el **OUI**, que identifica al fabricante; los otros 24 los asigna el fabricante a cada tarjeta.
+
+- **Unicast**: un solo destino.
+- **Broadcast**: `ffff.ffff.ffff`, todos los equipos de la VLAN.
+- **Multicast**: un grupo de equipos (por ejemplo, las que empiezan por `0100.5e` para IPv4 multicast).
+
+## Las cuatro acciones del switch
+
+Cuando llega una trama por un puerto, el switch hace lo siguiente:
+
+1. **Aprender.** Anota la **MAC de origen** y el puerto por el que llegó. Si ya existía, renueva el temporizador.
+2. **Reenviar.** Si la **MAC de destino** está en la tabla, envía la trama solo por ese puerto.
+3. **Filtrar.** Si el destino está en el mismo puerto por el que llegó la trama, la descarta.
+4. **Inundar.** Si el destino es desconocido, broadcast o multicast, la envía por todos los puertos de la misma
+   VLAN, excepto por el de entrada.
+
+Las entradas dinámicas que no se usan durante **300 segundos** se borran (envejecimiento). Así la tabla se adapta
+cuando un equipo cambia de puerto.
+
+## La tabla en la CLI
+
+```text
+S1# show mac address-table
+          Mac Address Table
+-------------------------------------------
+
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+   1    0050.7966.6800    DYNAMIC     Fa0/1
+   1    0050.7966.6801    DYNAMIC     Fa0/2
+   1    00d0.97a1.2b02    DYNAMIC     Gi0/1
+Total Mac Addresses for this criterion: 3
+```
+
+Comandos útiles:
+
+```text
+S1# show mac address-table dynamic
+S1# show mac address-table interface fastethernet0/1
+S1# show mac address-table address 0050.7966.6800
+S1# clear mac address-table dynamic
+```
+
+Si en un puerto ves **muchas MAC distintas**, del otro lado hay otro switch, un punto de acceso o un hub. Si ves una
+sola, es un equipo final. Este razonamiento sirve para seguir el rastro de un equipo a través de varios switches:
+buscas su MAC, encuentras el puerto, y si ese puerto lleva a otro switch, repites ahí.
+
+## Dominios de colisión y de broadcast
+
+| Dispositivo | Dominios de colisión | Dominios de broadcast |
+|---|---|---|
+| Hub | Uno para todos sus puertos | Uno |
+| Switch | Uno **por puerto** | Uno **por VLAN** |
+| Router | Uno por interfaz | Uno **por interfaz** |
+
+Con enlaces en full duplex no hay colisiones, pero el concepto sigue apareciendo en el examen. Lo importante en la
+práctica: **un switch no separa broadcasts**. Para eso están las VLANs y los routers.
+
+## Métodos de reenvío
+
+- **Store-and-forward**: recibe la trama completa y comprueba el FCS antes de reenviarla. Descarta tramas dañadas.
+  Es el método de los switches Cisco actuales.
+- **Cut-through**: empieza a reenviar en cuanto lee la MAC de destino. Menos latencia, pero propaga tramas dañadas.
+
+<aside class="examen">
+
+Recuerda que el switch **aprende con la MAC de origen** y **reenvía con la MAC de destino**. Las preguntas suelen
+describir una tabla MAC a medio llenar y preguntar qué hará el switch con una trama concreta.
+
+</aside>

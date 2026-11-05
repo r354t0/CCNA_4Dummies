@@ -22,7 +22,7 @@ laboratorios en **Packet Tracer** y **GNS3**.
 | Nivel | Tema | Estado |
 |---|---|---|
 | 1 | Fundamentos de red | 6 lecciones y 4 laboratorios |
-| 2 | Switching y acceso | En preparación |
+| 2 | Switching y acceso | 7 lecciones y 5 laboratorios |
 | 3 | Enrutamiento IP | En preparación |
 | 4 | Servicios y seguridad | En preparación |
 | 5 | Automatización, IA y operación | En preparación |

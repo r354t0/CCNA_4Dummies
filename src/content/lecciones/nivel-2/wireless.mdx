@@ -1,0 +1,161 @@
+---
+titulo: Redes inalámbricas y arquitecturas WLAN
+descripcion: Bandas y canales, estándares 802.11, seguridad WPA2 y WPA3, arquitecturas autónoma, con controlador y en la nube, modos de AP y conexiones de un WLC.
+nivel: 2
+orden: 7
+duracion: 50
+examen:
+  v1.1: 2
+  v2.0: 1
+labs: []
+quiz:
+  - p: "¿Qué canales de 2.4 GHz no se solapan entre sí en la mayoría de los países de América?"
+    opciones: ["1, 2 y 3", "1, 6 y 11", "1, 7 y 13", "36, 40 y 44"]
+    correcta: 1
+    explicacion: "En 2.4 GHz los canales están separados 5 MHz y cada uno ocupa unos 22 MHz, así que solo 1, 6 y 11 no se solapan."
+  - p: "¿Qué protocolo usa un AP ligero para comunicarse con su WLC?"
+    opciones: ["LWAPP sobre TCP", "CAPWAP sobre UDP", "SNMP", "RADIUS"]
+    correcta: 1
+    explicacion: "CAPWAP usa UDP 5246 para control (cifrado con DTLS) y UDP 5247 para datos."
+  - p: "¿Qué mejora WPA3-Personal frente a WPA2-Personal?"
+    opciones:
+      - "Reemplaza la clave precompartida por SAE, resistente a ataques de diccionario fuera de línea"
+      - "Elimina el cifrado para ganar velocidad"
+      - "Usa WEP con claves más largas"
+      - "Obliga a usar un servidor RADIUS"
+    correcta: 0
+    explicacion: "WPA3-Personal usa SAE (Simultaneous Authentication of Equals) en lugar del intercambio PSK de WPA2."
+  - p: "Un AP ligero está en modo local. ¿Qué tipo de puerto debe tener el switch al que se conecta?"
+    opciones: ["Trunk con todas las VLANs", "Acceso en la VLAN de gestión del AP", "Puerto enrutado", "EtherChannel"]
+    correcta: 1
+    explicacion: "En modo local todo el tráfico de clientes va encapsulado en CAPWAP hacia el WLC, así que el AP solo necesita una VLAN: puerto de acceso."
+  - p: "¿Qué modo de EtherChannel admite un WLC Cisco AireOS con LAG?"
+    opciones: ["LACP active", "PAgP desirable", "on (estático)", "LACP passive"]
+    correcta: 2
+    explicacion: "El WLC no negocia LACP ni PAgP, así que en el switch el canal se configura con channel-group N mode on."
+---
+
+Las redes inalámbricas son la forma principal en que los usuarios se conectan. Comparten el medio (el aire), así que
+funcionan en half duplex y usan **CSMA/CA**: evitan colisiones en lugar de detectarlas.
+
+## Bandas y canales
+
+| Banda | Canales útiles | Características |
+|---|---|---|
+| 2.4 GHz | **1, 6 y 11** son los únicos que no se solapan | Más alcance, más interferencia (microondas, Bluetooth) |
+| 5 GHz | Más de 20 canales sin solapamiento | Menos alcance, mucho menos congestionada |
+| 6 GHz | Hasta 59 canales de 20 MHz | Solo Wi-Fi 6E y 7, poca interferencia |
+
+En un despliegue con varios AP, los vecinos deben usar canales que no se solapen, alternando 1, 6 y 11 en 2.4 GHz.
+
+## Estándares 802.11
+
+| Estándar | Nombre comercial | Bandas | Velocidad máxima teórica |
+|---|---|---|---|
+| 802.11b | | 2.4 GHz | 11 Mb/s |
+| 802.11a | | 5 GHz | 54 Mb/s |
+| 802.11g | | 2.4 GHz | 54 Mb/s |
+| 802.11n | Wi-Fi 4 | 2.4 y 5 GHz | 600 Mb/s |
+| 802.11ac | Wi-Fi 5 | 5 GHz | Varios Gb/s |
+| 802.11ax | Wi-Fi 6 / 6E | 2.4, 5 y 6 GHz | Varios Gb/s |
+
+## Conceptos de una WLAN
+
+- **SSID**: el nombre de la red que ven los usuarios.
+- **BSS**: un AP y sus clientes. Se identifica con el **BSSID**, la MAC de radio del AP.
+- **ESS**: varios AP con el mismo SSID, unidos por la red cableada. El cliente se mueve entre ellos (*roaming*).
+- **IBSS** (ad hoc): equipos conectados entre sí sin AP.
+- El AP es un **puente** entre 802.11 y Ethernet: conecta el SSID con una VLAN del lado cableado.
+
+Otros modos de servicio: **repetidor** (extiende la señal), **puente de grupo de trabajo** (conecta un equipo
+cableado a la WLAN), **puente exterior** (une edificios) y **malla** (*mesh*, AP que se enlazan entre sí por radio).
+
+## Seguridad
+
+| Método | Estado |
+|---|---|
+| Abierta o WEP | Inseguros. WEP se rompe en minutos |
+| WPA (TKIP) | Obsoleto |
+| WPA2 (AES-CCMP) | Aceptable, el más extendido |
+| WPA3 (SAE, AES-GCMP) | Recomendado |
+
+Cada uno tiene dos variantes:
+
+- **Personal**: una clave compartida (PSK en WPA2, SAE en WPA3). Para hogares y pequeñas oficinas.
+- **Enterprise**: cada usuario se autentica con **802.1X** contra un servidor **RADIUS**, usando EAP. Para empresas.
+
+WPA3 también añade **protección de tramas de gestión** (PMF) obligatoria y **Enhanced Open** (OWE), que cifra redes
+abiertas como las de un café.
+
+## Arquitecturas
+
+**Autónoma.** Cada AP se configura por separado y tiene toda la inteligencia. El puerto del switch suele ser **trunk**
+porque el AP conecta varios SSID a varias VLANs.
+
+**Con controlador (ligera, *split-MAC*).** Los AP ligeros (LAP) manejan lo que necesita tiempo real (radio,
+cifrado), y el **WLC** (Wireless LAN Controller) centraliza la configuración, la autenticación y el roaming. El AP y
+el WLC se comunican con **CAPWAP**:
+
+- UDP **5246**: control, cifrado con DTLS.
+- UDP **5247**: datos de los clientes (el cifrado DTLS es opcional).
+
+**En la nube.** Los AP se gestionan desde un panel en Internet (como Cisco Meraki), pero el tráfico de los clientes
+sale directo a la red local.
+
+## Modos de un AP ligero
+
+| Modo | Uso |
+|---|---|
+| Local | El predeterminado. Sirve clientes y envía todo su tráfico al WLC por CAPWAP |
+| FlexConnect | El tráfico de clientes sale localmente en la sucursal; sigue funcionando si se cae el enlace al WLC |
+| Monitor | No sirve clientes: escanea el aire para detectar intrusos y localizar equipos |
+| Sniffer | Captura tráfico 802.11 y lo envía a un analizador como Wireshark |
+| Rogue detector | Busca en la red cableada equipos de AP no autorizados |
+| SE-Connect | Análisis de espectro para encontrar interferencias |
+| Bridge / Mesh | Enlaces punto a punto o en malla entre AP |
+
+El puerto del switch para un AP en **modo local** es de **acceso**: todo va dentro de CAPWAP. Un AP **FlexConnect** que
+saca varias VLANs localmente necesita un **trunk**.
+
+## Conexiones del WLC
+
+Puertos físicos de un WLC AireOS:
+
+- **Puerto de servicio**: gestión fuera de banda, aun si la red falla.
+- **Puertos de sistema de distribución**: hacia la red; se conectan como **trunk**, normalmente agrupados con **LAG**.
+- **Puerto de consola**, y **puerto de redundancia** para un WLC de respaldo.
+
+Interfaces lógicas: **management** (gestión y túneles CAPWAP), **dynamic** (una por VLAN de clientes, asociada a cada
+WLAN), **virtual** (para autenticación web y DHCP relay) y **service-port**.
+
+El WLC **no negocia** LACP ni PAgP: en el switch, el LAG se configura con `channel-group N mode on`.
+
+**Acceso de gestión** al WLC y a los AP: consola, SSH (mejor que Telnet), HTTPS (mejor que HTTP), y autenticación
+centralizada con TACACS+ o RADIUS.
+
+## Crear una WLAN en el WLC
+
+Desde la interfaz web, el flujo es siempre el mismo:
+
+1. Crear una **interfaz dinámica** asociada a la VLAN de los clientes, con su IP y gateway.
+2. En **WLANs**, crear la WLAN: perfil, **SSID** e ID.
+3. En la pestaña **General**, asociarla a la interfaz dinámica y habilitarla.
+4. En **Security**, elegir WPA2 o WPA3, Personal (PSK o SAE) o Enterprise (802.1X con el servidor RADIUS).
+5. Opcionalmente, en **QoS**, elegir el perfil (Platinum para voz, Silver para datos).
+
+## Diagnóstico de clientes
+
+Cuando un cliente no se conecta, revisa en este orden:
+
+1. ¿Ve el SSID? Si no: AP sin energía o sin registrar en el WLC, o WLAN deshabilitada.
+2. ¿Se asocia? Si falla: clave incorrecta, método de seguridad que el cliente no soporta, o falla con RADIUS.
+3. ¿Obtiene IP? Si no: VLAN de la interfaz dinámica mal asignada o problema de DHCP.
+4. ¿Tiene buena señal? Si es débil o hay interferencia: ubicación del AP o canal congestionado.
+
+<aside class="examen">
+
+En la **v1.1** este tema es parte del dominio de acceso a la red e incluye la configuración de una WLAN en la
+interfaz web del WLC. En la **v2.0** pasa al dominio de infraestructura y conectividad, con más peso en los principios
+de radio y en el diagnóstico de clientes.
+
+</aside>

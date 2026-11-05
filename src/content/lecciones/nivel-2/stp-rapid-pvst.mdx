@@ -1,0 +1,189 @@
+---
+titulo: STP y Rapid PVST+
+descripcion: Por qué existen los bucles de capa 2, cómo elige STP el puente raíz y los roles de cada puerto, qué mejora RSTP y cómo se protegen los puertos con PortFast, BPDU Guard y Root Guard.
+nivel: 2
+orden: 6
+duracion: 55
+examen:
+  v1.1: 2
+  v2.0: 2
+labs: [l2-04-rapid-pvst]
+quiz:
+  - p: "¿Cómo se elige el puente raíz?"
+    opciones:
+      - "El switch con más puertos"
+      - "El switch con el Bridge ID más bajo (prioridad y luego MAC)"
+      - "El switch con la IP de gestión más baja"
+      - "El primero que se enciende"
+    correcta: 1
+    explicacion: "Gana el Bridge ID más bajo. Primero se compara la prioridad; si empatan, la MAC más baja."
+  - p: "Un switch tiene prioridad 32768 y está en la VLAN 10. ¿Qué prioridad muestra show spanning-tree vlan 10?"
+    opciones: ["32768", "32778", "32758", "4096"]
+    correcta: 1
+    explicacion: "El Bridge ID incluye el sys-id-ext, que es el número de VLAN: 32768 + 10 = 32778."
+  - p: "¿Cuál es el costo STP (método corto) de un enlace de 1 Gb/s?"
+    opciones: ["19", "4", "2", "100"]
+    correcta: 1
+    explicacion: "Costos cortos: 10 Mb/s = 100, 100 Mb/s = 19, 1 Gb/s = 4, 10 Gb/s = 2."
+  - p: "Un puerto con PortFast y BPDU Guard recibe una BPDU. ¿Qué pasa?"
+    opciones:
+      - "Pasa a ser puerto raíz"
+      - "Queda en estado err-disabled"
+      - "Ignora la BPDU"
+      - "Pasa a estado de aprendizaje"
+    correcta: 1
+    explicacion: "BPDU Guard apaga el puerto (err-disabled) en cuanto recibe una BPDU, porque en un puerto de usuario no debería haber un switch."
+  - p: "¿Qué rol de RSTP corresponde a un puerto de respaldo hacia la raíz, listo para reemplazar al puerto raíz?"
+    opciones: ["Designated", "Alternate", "Backup", "Edge"]
+    correcta: 1
+    explicacion: "El puerto alternate ofrece otro camino hacia la raíz y pasa a reenviar enseguida si falla el puerto raíz."
+  - p: "¿Qué protección impide que un switch conectado en el borde de la red se convierta en raíz?"
+    opciones: ["PortFast", "BPDU Guard", "Root Guard", "Loop Guard"]
+    correcta: 2
+    explicacion: "Root Guard pone el puerto en estado root-inconsistent si recibe una BPDU superior, sin apagarlo del todo."
+---
+
+Los enlaces redundantes entre switches son necesarios: si un cable se corta, el tráfico debe seguir por otro camino.
+Pero en capa 2 la redundancia crea **bucles**, y Ethernet no tiene TTL que los corte. **STP** (Spanning Tree
+Protocol) bloquea los caminos sobrantes y los reactiva si hace falta.
+
+## Qué pasa sin STP
+
+- **Tormentas de broadcast**: un broadcast da vueltas sin fin y se multiplica hasta saturar los enlaces.
+- **Inestabilidad de la tabla MAC**: la misma MAC aparece alternando entre puertos.
+- **Tramas duplicadas**: el destino recibe varias copias de la misma trama.
+
+## Cómo construye STP el árbol
+
+Los switches intercambian **BPDUs** y siguen tres pasos.
+
+**1. Elegir el puente raíz.** Gana el **Bridge ID más bajo**. El Bridge ID es la prioridad seguida de la MAC:
+
+```text
+Bridge ID = prioridad (4 bits) + sys-id-ext = n.° de VLAN (12 bits) + MAC (48 bits)
+```
+
+La prioridad por defecto es 32768 y solo se puede cambiar en múltiplos de **4096**. Como se le suma el número de
+VLAN, en la VLAN 10 verás 32778. Si todas las prioridades son iguales, gana el switch con la MAC más baja, que suele
+ser el más viejo: mala elección. Por eso la raíz se fija a mano.
+
+**2. Elegir el puerto raíz** en cada switch que no es raíz: el que llega a la raíz con el **menor costo acumulado**.
+Si hay empate, gana el puerto que recibe la BPDU del vecino con menor Bridge ID, y después el menor Port ID del
+vecino.
+
+| Velocidad | Costo (método corto) |
+|---|---|
+| 10 Mb/s | 100 |
+| 100 Mb/s | 19 |
+| 1 Gb/s | 4 |
+| 10 Gb/s | 2 |
+
+**3. Elegir el puerto designado** en cada segmento: el que ofrece el menor costo hacia la raíz en ese enlace. Todos
+los puertos de la raíz son designados. Los puertos que no son raíz ni designados se **bloquean**.
+
+## De STP a RSTP
+
+El STP original (802.1D) tarda 30 a 50 segundos en converger, pasando por los estados *blocking*, *listening*,
+*learning* y *forwarding*. **RSTP** (802.1w) converge en uno o dos segundos y simplifica los estados:
+
+| Estado RSTP | Equivale en STP | Aprende MAC | Reenvía |
+|---|---|---|---|
+| Discarding | Disabled, blocking, listening | No | No |
+| Learning | Learning | Sí | No |
+| Forwarding | Forwarding | Sí | Sí |
+
+Y define roles de puerto más claros:
+
+| Rol | Significado |
+|---|---|
+| Root | El mejor camino hacia la raíz |
+| Designated | El que reenvía en su segmento |
+| Alternate | Otro camino hacia la raíz, listo para reemplazar al root |
+| Backup | Respaldo de un designated en el mismo segmento (raro, con hubs) |
+| Disabled | Puerto apagado |
+
+**Rapid PVST+** es la versión de Cisco: una instancia de RSTP **por cada VLAN**. Permite que la VLAN 10 tenga la raíz
+en S1 y la VLAN 20 en S2, repartiendo el tráfico entre los dos enlaces.
+
+## Configuración
+
+```text
+S1(config)# spanning-tree mode rapid-pvst
+S1(config)# spanning-tree vlan 10 root primary
+S1(config)# spanning-tree vlan 20 root secondary
+```
+
+`root primary` fija la prioridad en 24576 (o menos, si hace falta para ganar) y `root secondary` en 28672. También
+puedes fijarla tú: `spanning-tree vlan 10 priority 4096`.
+
+Para influir en qué puerto se elige, puedes cambiar el costo (`spanning-tree vlan 10 cost 10`) o la prioridad del
+puerto (`spanning-tree vlan 10 port-priority 64`) en la interfaz.
+
+## Protecciones de borde
+
+**PortFast** hace que un puerto de acceso pase directo a *forwarding*, sin esperar. Es para puertos que conectan
+equipos finales; en RSTP esos puertos se llaman *edge*.
+
+**BPDU Guard** apaga (err-disabled) un puerto PortFast si recibe una BPDU: alguien conectó un switch donde debía haber
+una PC.
+
+```text
+S1(config)# interface range fastethernet0/1 - 24
+S1(config-if-range)# spanning-tree portfast
+S1(config-if-range)# spanning-tree bpduguard enable
+```
+
+O para todos los puertos de acceso con PortFast a la vez:
+
+```text
+S1(config)# spanning-tree portfast default
+S1(config)# spanning-tree portfast bpduguard default
+```
+
+Para recuperar un puerto err-disabled: quitar la causa y hacer `shutdown` y `no shutdown`, o configurar
+`errdisable recovery cause bpduguard`.
+
+**Root Guard** se pone en puertos donde nunca debería estar la raíz (por ejemplo, hacia switches de otro dueño). Si
+llega una BPDU mejor, el puerto queda *root-inconsistent* y se recupera solo cuando dejan de llegar.
+
+**Loop Guard** protege los puertos root y alternate: si dejan de recibir BPDUs (por ejemplo, por un enlace
+unidireccional), en lugar de pasar a reenviar quedan *loop-inconsistent*.
+
+## Verificación
+
+```text
+S1# show spanning-tree vlan 10
+
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     0001.4321.aaaa
+             This bridge is the root
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24586  (priority 24576 sys-id-ext 10)
+             Address     0001.4321.aaaa
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  300 sec
+
+Interface           Role Sts Cost      Prio.Nbr Type
+------------------- ---- --- --------- -------- --------------------------------
+Gi0/1               Desg FWD 4         128.25   P2p
+Gi0/2               Desg FWD 4         128.26   P2p
+Fa0/1               Desg FWD 19        128.1    P2p Edge
+```
+
+- **This bridge is the root**: este switch es la raíz de la VLAN 10.
+- **24586** = 24576 + 10 (VLAN).
+- **Edge** en Fa0/1: tiene PortFast.
+- En un switch que no es raíz verás un puerto **Root** y quizá uno **Altn BLK**.
+
+`show spanning-tree summary` muestra el modo y las protecciones activas; `show interfaces status err-disabled`, los
+puertos apagados por BPDU Guard.
+
+<aside class="examen">
+
+Practica el cálculo con diagramas: elige la raíz, suma costos para hallar los puertos raíz, decide los designados y
+marca los bloqueados. Es una de las preguntas más frecuentes del dominio de acceso a la red.
+
+</aside>

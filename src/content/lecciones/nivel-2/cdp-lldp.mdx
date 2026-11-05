@@ -1,0 +1,103 @@
+---
+titulo: Descubrir vecinos con CDP y LLDP
+descripcion: Cómo usar CDP y LLDP para documentar la red y comprobar el cableado, cómo activarlos o desactivarlos y qué riesgos tienen.
+nivel: 2
+orden: 4
+duracion: 25
+examen:
+  v1.1: 2
+  v2.0: 2
+labs: [l2-03-etherchannel-cdp-lldp]
+quiz:
+  - p: "¿Cuál es la principal diferencia entre CDP y LLDP?"
+    opciones:
+      - "CDP es estándar IEEE y LLDP es de Cisco"
+      - "CDP es propietario de Cisco y LLDP es el estándar IEEE 802.1AB"
+      - "LLDP funciona en capa 3 y CDP en capa 2"
+      - "Solo LLDP muestra direcciones IP"
+    correcta: 1
+    explicacion: "CDP es propietario de Cisco y está activo por defecto. LLDP es el estándar 802.1AB y suele venir desactivado en equipos Cisco."
+  - p: "En la salida de show cdp neighbors, ¿a qué equipo se refiere la columna Port ID?"
+    opciones:
+      - "Al puerto del equipo local"
+      - "Al puerto del vecino"
+      - "Al número de VLAN"
+      - "Al puerto del router más cercano"
+    correcta: 1
+    explicacion: "Local Intrfce es tu puerto; Port ID es el puerto del vecino al otro lado del cable."
+  - p: "¿Qué comando muestra la dirección IP de los vecinos CDP?"
+    opciones: ["show cdp neighbors", "show cdp neighbors detail", "show cdp interface", "show cdp traffic"]
+    correcta: 1
+    explicacion: "La salida breve no incluye direcciones. show cdp neighbors detail (o show cdp entry *) muestra IP, versión de IOS y más."
+  - p: "¿Qué comando desactiva CDP solo en una interfaz?"
+    opciones: ["no cdp run", "no cdp enable", "cdp disable", "no lldp transmit"]
+    correcta: 1
+    explicacion: "no cdp enable actúa en la interfaz. no cdp run lo apaga en todo el equipo."
+---
+
+CDP y LLDP son protocolos de capa 2 con los que cada equipo anuncia quién es a sus vecinos directos: nombre, modelo,
+puerto, dirección IP y capacidades. Son la forma más rápida de comprobar si el cableado coincide con el diagrama.
+
+## CDP frente a LLDP
+
+| | CDP | LLDP |
+|---|---|---|
+| Origen | Propietario de Cisco | Estándar IEEE 802.1AB |
+| Estado por defecto en Cisco | Activo | Inactivo |
+| Intervalo de anuncio | 60 s | 30 s |
+| Tiempo de retención | 180 s | 120 s |
+| Útil para | Redes solo Cisco | Redes con varios fabricantes, teléfonos IP |
+
+Ambos solo ven **vecinos directos**: no atraviesan routers ni otros switches.
+
+## Comandos
+
+```text
+S1(config)# cdp run                 activa CDP en todo el equipo
+S1(config)# no cdp run              lo desactiva en todo el equipo
+S1(config-if)# no cdp enable        lo desactiva en una interfaz
+
+S1(config)# lldp run                activa LLDP en todo el equipo
+S1(config-if)# no lldp transmit     deja de enviar anuncios por esa interfaz
+S1(config-if)# no lldp receive      deja de procesar anuncios recibidos
+```
+
+## Leer la salida
+
+```text
+S1# show cdp neighbors
+Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone
+
+Device ID    Local Intrfce   Holdtme    Capability   Platform    Port ID
+S2           Gig 0/1         152        S            2960        Gig 0/1
+S2           Gig 0/2         152        S            2960        Gig 0/2
+R1           Fas 0/24        163        R            ISR4300     Gig 0/0/1
+```
+
+- **Device ID**: nombre del vecino.
+- **Local Intrfce**: tu puerto.
+- **Port ID**: el puerto del vecino.
+- **Capability**: qué tipo de equipo es.
+
+Con esta tabla puedes reconstruir el diagrama: «mi Fa0/24 está conectado al G0/0/1 de R1». Para ver la IP y la
+versión de software de cada vecino:
+
+```text
+S1# show cdp neighbors detail
+S1# show lldp neighbors
+S1# show lldp neighbors detail
+```
+
+## Riesgos
+
+Los anuncios CDP y LLDP viajan sin cifrar y revelan modelo, versión de IOS y direcciones. Un atacante conectado a
+un puerto de acceso puede usarlos para elegir qué vulnerabilidad probar. Buena práctica: desactivarlos en los
+puertos que dan a usuarios o a redes externas, y dejarlos en los enlaces entre equipos de red.
+
+<aside class="examen">
+
+El examen suele mostrar una salida de `show cdp neighbors` y preguntar a qué puerto del vecino está conectado un
+puerto local, o pedirte detectar que un cable no coincide con la documentación.
+
+</aside>

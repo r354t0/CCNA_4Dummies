@@ -20,13 +20,15 @@ en Packet Tracer y GNS3, y práctica de examen. El contenido cubre las dos versi
 
 1. **Base y MVP** (hecha): estructura, diseño, selector de versión, entrenador de subnetting, nivel 1 completo con
    6 lecciones y 4 laboratorios.
-2. **Contenido**: niveles 2 a 5 con sus laboratorios. Pendientes del nivel 1: virtualización y nube, y principios de
-   wireless.
+2. **Contenido**: niveles 2 a 5 con sus laboratorios.
+   - Nivel 2 (hecho): tabla MAC, VLANs y trunks, enrutamiento entre VLANs, CDP/LLDP, EtherChannel, Rapid PVST+ y
+     redes inalámbricas; 5 laboratorios.
+   - Pendientes: nivel 1, virtualización y nube; nivel 2, laboratorio de WLC en Packet Tracer; niveles 3 a 5.
 3. **Diferenciadores**: verificador de salidas `show` (el alumno pega su salida y la app la revisa), simulacro de
    examen ponderado por dominio según la versión elegida, laboratorio integrador final.
 4. **Opcional**: cuentas de usuario y panel del instructor para seguir el avance de un grupo.
 
 ## Pendiente del instructor
 
-- Construir y subir los archivos `.pkt` de los laboratorios del nivel 1 (ver `docs/CREAR-LABS.md`).
+- Construir y subir los archivos `.pkt` de los laboratorios de los niveles 1 y 2 (ver `docs/CREAR-LABS.md`).
 - Activar GitHub Pages con origen GitHub Actions.
