@@ -29,7 +29,7 @@ const porId = new Map(nodos.map((n) => [n.id, n]));
 const TAMANO: Record<Tipo, { w: number; h: number; forma: 'elipse' | 'rect' }> = {
   router: { w: 30, h: 18, forma: 'elipse' },
   switch: { w: 31, h: 14, forma: 'rect' },
-  pc: { w: 17, h: 16, forma: 'rect' },
+  pc: { w: 22, h: 20, forma: 'rect' },
   servidor: { w: 13, h: 22, forma: 'rect' },
   laptop: { w: 23, h: 13, forma: 'rect' },
   nube: { w: 30, h: 18, forma: 'elipse' },
@@ -163,10 +163,10 @@ const hayFibra = enlaces.some((e) => e.tipo === 'fibra');
         )}
         {n.tipo === 'pc' && (
           <>
-            <rect x="-17" y="-17" width="34" height="24" rx="2" class="carcasa" />
-            <rect x="-13.5" y="-13.5" width="27" height="17" rx="1" class="pantalla" />
-            <path d="M-3 7 V11 H3 V7" class="carcasa" />
-            <rect x="-11" y="11" width="22" height="4" rx="1.5" class="carcasa" />
+            <rect x="-22" y="-22" width="44" height="31" rx="2.5" class="carcasa" />
+            <rect x="-17.5" y="-17.5" width="35" height="22" rx="1.2" class="pantalla" />
+            <path d="M-4 9 V14 H4 V9" class="carcasa" />
+            <rect x="-14" y="14" width="28" height="5" rx="2" class="carcasa" />
           </>
         )}
         {n.tipo === 'servidor' && (
