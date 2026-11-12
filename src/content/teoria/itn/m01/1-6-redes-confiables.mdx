@@ -1,0 +1,138 @@
+---
+curso: itn
+modulo: 1
+tema: "1.6"
+titulo: Redes confiables
+objetivo: Describir los cuatro requisitos básicos de una red confiable.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [clasificar]
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.6.1 Arquitectura de red
+
+La **arquitectura de red** es el conjunto de tecnologías que sostienen la infraestructura y los servicios. Para que
+una red sea confiable debe cumplir cuatro características. Una forma de recordarlas: **T-E-Q-S**.
+
+<Tarjetas
+  columnas={4}
+  items={[
+    { titulo: 'Tolerancia a fallas', texto: 'Sigue funcionando aunque falle un componente.' },
+    { titulo: 'Escalabilidad', texto: 'Crece sin perder rendimiento para los usuarios actuales.' },
+    { titulo: 'Calidad de servicio', texto: 'Prioriza el tráfico que no puede esperar, como la voz.' },
+    { titulo: 'Seguridad', texto: 'Protege los equipos y los datos que circulan.' },
+  ]}
+/>
+
+## 1.6.2 Tolerancia a fallas
+
+Una red tolerante a fallas limita el impacto de una avería y se recupera rápido. Se logra con **redundancia**:
+caminos y equipos de reserva.
+
+<Topologia
+  ancho={620}
+  alto={250}
+  titulo="Redundancia: si un enlace falla, el tráfico sigue por el otro camino"
+  nodos={[
+    { id: 'Origen', tipo: 'pc', x: 70, y: 125, lado: 'abajo' },
+    { id: 'R1', tipo: 'router', x: 200, y: 125, lado: 'abajo' },
+    { id: 'R2', tipo: 'router', x: 340, y: 50, lado: 'arriba' },
+    { id: 'R3', tipo: 'router', x: 340, y: 200, lado: 'abajo' },
+    { id: 'R4', tipo: 'router', x: 470, y: 125, lado: 'abajo' },
+    { id: 'Destino', tipo: 'servidor', x: 570, y: 125 },
+  ]}
+  enlaces={[
+    { a: 'Origen', b: 'R1' },
+    { a: 'R1', b: 'R2', caido: true },
+    { a: 'R2', b: 'R4' },
+    { a: 'R1', b: 'R3', resaltado: true },
+    { a: 'R3', b: 'R4', resaltado: true },
+    { a: 'R4', b: 'Destino' },
+  ]}
+/>
+
+Internet es tolerante a fallas gracias a la **conmutación de paquetes**:
+
+<div class="duo">
+<div>
+
+#### Conmutación de circuitos (telefonía antigua)
+
+Se reserva un **camino fijo** para toda la llamada. Si un tramo se cae, la llamada se corta.
+
+</div>
+<div>
+
+#### Conmutación de paquetes (redes de datos)
+
+El mensaje se divide en **paquetes** y cada uno puede tomar **un camino distinto**. Si un enlace falla, los routers
+envían los paquetes por otro.
+
+</div>
+</div>
+
+## 1.6.3 Escalabilidad
+
+Una red escalable **crece rápido** para sumar usuarios y aplicaciones **sin afectar** a quienes ya la usan. Se logra
+porque se diseña siguiendo **estándares y protocolos aceptados**: así cualquier equipo nuevo, de cualquier fabricante,
+puede sumarse sin rediseñar todo.
+
+## 1.6.4 Calidad de servicio (QoS)
+
+Cuando la demanda supera el ancho de banda disponible, se produce **congestión** y los paquetes tienen que esperar en
+una cola. QoS decide **qué sale primero**.
+
+<Pasos
+  client:visible
+  titulo="Cómo prioriza QoS en un enlace congestionado"
+  pasos={[
+    { titulo: 'Llega el tráfico', texto: 'Por el mismo enlace intentan pasar una videollamada, una llamada de voz, un correo y la descarga de un archivo.' },
+    { titulo: 'Se clasifica', texto: 'El router identifica de qué tipo es cada paquete: voz, video, datos de una aplicación crítica, navegación…' },
+    { titulo: 'Se prioriza', texto: 'La voz y el video en vivo van primero, porque un retraso se nota enseguida (cortes, eco, imagen congelada).' },
+    { titulo: 'Lo demás espera', texto: 'El correo y la descarga pueden esperar unos milisegundos sin que el usuario lo note.' },
+  ]}
+/>
+
+| Tráfico | ¿Sensible al retraso? | Prioridad típica |
+|---|---|---|
+| Voz sobre IP | Sí, mucho | Alta |
+| Videoconferencia | Sí | Alta |
+| Transacciones financieras, ERP | Moderadamente | Media |
+| Correo, navegación, descargas | No | Baja |
+
+## 1.6.5 Seguridad de la red
+
+Tiene dos frentes:
+
+- **Seguridad de la infraestructura**: proteger físicamente los equipos y evitar accesos no autorizados a su
+  software de administración.
+- **Seguridad de la información**: proteger los datos que circulan y se guardan.
+
+Los tres objetivos de la seguridad de la información forman la **tríada CIA**:
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Confidencialidad', texto: 'Solo los destinatarios autorizados pueden leer los datos.', ejemplo: 'Cifrar una conexión con HTTPS.' },
+    { titulo: 'Integridad', texto: 'Los datos no se alteran en el camino entre origen y destino.', ejemplo: 'Una firma o un hash que detecta cambios.' },
+    { titulo: 'Disponibilidad', texto: 'Los usuarios autorizados acceden a la información cuando la necesitan.', ejemplo: 'Servidores redundantes y protección contra DoS.' },
+  ]}
+/>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Un enlace se corta y el tráfico sigue por otro camino. ¿Qué característica es?', dorso: 'Tolerancia a fallas, gracias a la redundancia.' },
+    { frente: '¿Qué tipo de conmutación usa Internet?', dorso: 'Conmutación de paquetes: cada paquete puede tomar un camino distinto.' },
+    { frente: '¿Qué tráfico necesita más QoS: correo o voz?', dorso: 'La voz: es muy sensible al retraso.' },
+    { frente: '¿Qué permite que una red sea escalable?', dorso: 'Diseñarla con estándares y protocolos aceptados.' },
+    { frente: 'Cifrar los datos protege principalmente la…', dorso: 'Confidencialidad.' },
+  ]}
+/>

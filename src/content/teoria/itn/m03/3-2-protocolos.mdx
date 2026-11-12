@@ -1,0 +1,73 @@
+---
+curso: itn
+modulo: 3
+tema: "3.2"
+titulo: Protocolos
+objetivo: Explicar por qué los protocolos son necesarios en la comunicación de red.
+duracion: 20
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [capas]
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.2.1 Tipos de protocolos de red
+
+Los protocolos se implementan en software, hardware o ambos, y cada uno tiene una función:
+
+<Tarjetas
+  columnas={4}
+  items={[
+    { titulo: 'Comunicación de red', texto: 'Permiten que dos o más dispositivos se comuniquen en una o más redes.', ejemplo: 'Ethernet, IP, TCP, HTTP' },
+    { titulo: 'Seguridad', texto: 'Protegen los datos: autenticación, integridad y cifrado.', ejemplo: 'SSH, SSL/TLS' },
+    { titulo: 'Enrutamiento', texto: 'Los routers intercambian información de rutas y eligen el mejor camino.', ejemplo: 'OSPF, BGP' },
+    { titulo: 'Detección de servicios', texto: 'Descubren automáticamente dispositivos o servicios.', ejemplo: 'DHCP (direcciones), DNS (nombres)' },
+  ]}
+/>
+
+## 3.2.2 Funciones de los protocolos
+
+| Función | Qué hace |
+|---|---|
+| **Direccionamiento** | Identifica al emisor y al receptor (por ejemplo, direcciones IP y MAC) |
+| **Confiabilidad** | Garantiza la entrega: retransmite lo que se pierde o se daña (TCP) |
+| **Control de flujo** | Ajusta la velocidad para no saturar al receptor |
+| **Secuenciación** | Numera cada segmento para reordenarlo al llegar |
+| **Detección de errores** | Comprueba si los datos se dañaron en el camino |
+| **Interfaz de aplicación** | Define cómo se comunican los procesos de las aplicaciones (HTTP entre navegador y servidor web) |
+
+## 3.2.3 Interacción de protocolos
+
+Una sola acción, como abrir una página web, usa **varios protocolos a la vez**, cada uno con su tarea:
+
+<Pasos
+  client:visible
+  titulo="Qué protocolos intervienen cuando abres una página web"
+  pasos={[
+    { titulo: 'HTTP', texto: 'Define cómo el navegador pide la página y cómo el servidor responde. Es el protocolo de la aplicación.' },
+    { titulo: 'TCP', texto: 'Administra la conversación: divide los datos en segmentos, los numera y retransmite los que se pierden.' },
+    { titulo: 'IP', texto: 'Pone las direcciones de origen y destino y lleva los paquetes de red en red hasta el servidor.' },
+    { titulo: 'Ethernet', texto: 'Entrega cada trama dentro de cada red local, de un dispositivo al siguiente, por el medio físico.' },
+  ]}
+/>
+
+<aside class="clave">
+
+Ningún protocolo hace todo: cada uno resuelve una parte y confía en que los demás hagan la suya. Esa división del
+trabajo es la idea detrás de las **capas** que verás en el tema 3.5.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿De qué tipo son OSPF y BGP?', dorso: 'Protocolos de enrutamiento.' },
+    { frente: '¿Qué función numera los segmentos para reordenarlos?', dorso: 'La secuenciación.' },
+    { frente: '¿Qué protocolo administra la conversación y retransmite lo perdido al abrir una web?', dorso: 'TCP.' },
+    { frente: 'DHCP y DNS son protocolos de…', dorso: 'Detección de servicios.' },
+  ]}
+/>

@@ -1,0 +1,98 @@
+---
+curso: itn
+modulo: 2
+tema: "2.7"
+titulo: Configurar direcciones IP
+objetivo: Configurar un dispositivo host con una dirección IP.
+duracion: 25
+examen:
+  v1.1: 4
+  v2.0: 4
+practica: [cli, pt-switch, pt-conectividad, diagnostico]
+actividades:
+  - codigo: "2.7.3"
+    tipo: Verificador de sintaxis
+    titulo: Verificar la configuración IP de Windows
+    guia: Compara ipconfig con ipconfig /all. El segundo muestra además la dirección MAC y si la IP vino por DHCP.
+  - codigo: "2.7.5"
+    tipo: Verificador de sintaxis
+    titulo: Configurar una interfaz virtual de switch
+  - codigo: "2.7.6"
+    tipo: Packet Tracer
+    titulo: Implementar la conectividad básica
+    guia: Cuando termines, prueba el ejercicio «Conectividad básica entre dos switches» de la página Práctica. Usa otros valores, así compruebas que lo entendiste y no solo lo copiaste.
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.7.1 Configuración manual en un dispositivo final
+
+En Windows: **Panel de control › Centro de redes › Cambiar configuración del adaptador**, propiedades del adaptador,
+**Protocolo de Internet versión 4 (TCP/IPv4)** y «Usar la siguiente dirección IP». Ahí escribes la IP, la máscara, el
+gateway y los servidores DNS.
+
+En Packet Tracer es más directo: la PC, pestaña **Desktop › IP Configuration**, opción **Static**.
+
+## 2.7.2 Configuración automática con DHCP
+
+Con **DHCP** (*Dynamic Host Configuration Protocol*), un servidor entrega la configuración IP a los hosts
+automáticamente. Es lo normal en la mayoría de las redes: evita errores de tipeo y direcciones duplicadas.
+
+En Windows es la opción «Obtener una dirección IP automáticamente». En Packet Tracer, **IP Configuration › DHCP**.
+
+<aside class="ojo">
+
+Si un host con DHCP no encuentra ningún servidor, Windows le asigna una dirección **169.254.x.x** (APIPA). Ver esa
+dirección es una pista inmediata de que DHCP falló.
+
+</aside>
+
+Para verificar la configuración en Windows o en Packet Tracer:
+
+```text
+C:\> ipconfig
+
+Ethernet adapter Ethernet0:
+
+   Connection-specific DNS Suffix  . :
+   IPv4 Address. . . . . . . . . . . : 192.168.1.10
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.1.1
+```
+
+`ipconfig /all` agrega la dirección MAC, los servidores DNS y si DHCP está activo.
+
+## 2.7.4 Configurar la interfaz virtual del switch
+
+Para administrar un switch por la red, su SVI necesita una IP. Y si el administrador está en **otra red**, el switch
+también necesita saber a qué router responder: el **gateway predeterminado**.
+
+<Pasos
+  client:visible
+  titulo="IP de administración de un switch"
+  pasos={[
+    { titulo: 'Entrar a la SVI', texto: 'La interfaz VLAN 1 es la SVI por defecto.', codigo: 'S1(config)# interface vlan 1' },
+    { titulo: 'Asignar la IP', texto: 'Dirección y máscara, como en cualquier host.', codigo: 'S1(config-if)# ip address 192.168.1.2 255.255.255.0' },
+    { titulo: 'Encenderla', texto: 'Las SVI vienen apagadas. Sin no shutdown la IP queda configurada pero sin funcionar.', codigo: 'S1(config-if)# no shutdown\n%LINK-5-CHANGED: Interface Vlan1, changed state to up\nS1(config-if)# exit' },
+    { titulo: 'Gateway', texto: 'Para responder a equipos de otras redes. Se configura en modo global, no en la interfaz.', codigo: 'S1(config)# ip default-gateway 192.168.1.1' },
+    { titulo: 'Guardar', texto: 'Como siempre, guarda al terminar.', codigo: 'S1(config)# end\nS1# copy running-config startup-config' },
+  ]}
+/>
+
+<aside class="examen">
+
+Tres errores típicos que el examen te pide encontrar: la SVI sin `no shutdown`, el switch sin `ip default-gateway`
+cuando lo administran desde otra red, y un host con la máscara o el gateway equivocados.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Un host tiene la dirección 169.254.20.7. ¿Qué pasó?', dorso: 'No encontró un servidor DHCP y Windows le asignó una dirección APIPA.' },
+    { frente: '¿Qué comando muestra la IP, la máscara y el gateway en Windows?', dorso: 'ipconfig' },
+    { frente: '¿En qué modo se configura ip default-gateway en un switch?', dorso: 'En configuración global.' },
+    { frente: 'Configuraste la IP en interface vlan 1 pero no responde. ¿Qué revisas primero?', dorso: 'Que tenga no shutdown.' },
+  ]}
+/>

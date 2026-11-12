@@ -1,0 +1,65 @@
+---
+curso: itn
+modulo: 1
+tema: "1.0"
+titulo: Introducción
+objetivo: Explicar los avances en las tecnologías de red modernas.
+duracion: 15
+actividades:
+  - codigo: "1.0.3"
+    tipo: Packet Tracer
+    titulo: Descargue e instale Packet Tracer
+    guia: Instálalo desde la sección de recursos de NetAcad con tu cuenta. Usa la misma versión que tu instructor para que los archivos .pka abran sin problemas.
+  - codigo: "1.0.5"
+    tipo: Packet Tracer
+    titulo: Exploración de los modos lógico y físico
+    guia: Fíjate en cómo el mismo cable aparece como una línea en el modo lógico y como un cable real entre racks en el modo físico. Cambia de modo con los botones de la esquina superior izquierda.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+
+Hoy casi todo pasa por una red: la clase en línea, el pago con el celular, la videollamada con la familia o el
+sistema de turnos de un hospital. Este módulo te da el mapa general: qué piezas forman una red, cómo se dibuja, qué
+tipos existen, cómo se llega a Internet y qué hace que una red sea confiable y segura.
+
+## 1.0.1 ¿Por qué estudiar este módulo?
+
+Porque todo lo que verás después (cables, direcciones IP, switches, routers) encaja en este mapa. Si entiendes el
+panorama, cada tema nuevo tiene un lugar donde ubicarse.
+
+## 1.0.2 Qué vas a aprender
+
+| Tema | Objetivo |
+|---|---|
+| 1.1 Las redes afectan nuestras vidas | Explicar cómo las redes influyen en la vida cotidiana |
+| 1.2 Componentes de la red | Explicar cómo se usan los dispositivos host e intermediarios |
+| 1.3 Topologías y representaciones | Explicar cómo se representan las redes en diagramas |
+| 1.4 Tipos comunes de redes | Comparar las características de los tipos de red más comunes |
+| 1.5 Conexiones a Internet | Explicar cómo se conectan a Internet las LAN y las WAN |
+| 1.6 Redes confiables | Describir los cuatro requisitos de una red confiable |
+| 1.7 Tendencias de red | Explicar cómo BYOD, la colaboración en línea, el video y la nube cambian la forma de usar la red |
+| 1.8 Seguridad de la red | Identificar amenazas y soluciones de seguridad básicas |
+| 1.9 El profesional de TI | Explicar las oportunidades laborales en redes |
+
+## 1.0.3 Tu herramienta principal: Packet Tracer
+
+**Cisco Packet Tracer** es un simulador de redes gratuito para alumnos de Networking Academy. Con él armas
+topologías, configuras routers y switches con la misma línea de comandos que los equipos reales y ves cómo viajan
+los paquetes paso a paso.
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'Modo lógico', texto: 'Muestra la topología como un diagrama: equipos y cables entre ellos. Es donde pasarás la mayor parte del tiempo.', icono: 'switch' },
+    { titulo: 'Modo físico', texto: 'Muestra dónde está cada equipo: ciudad, edificio, armario de cableado y rack. Sirve para entender distancias y ubicación.', icono: 'servidor' },
+    { titulo: 'Tiempo real', texto: 'La red funciona como en la vida real: haces un ping y obtienes la respuesta al instante.', icono: 'pc' },
+    { titulo: 'Simulación', texto: 'Congela el tiempo y te deja seguir cada paquete, abrirlo y ver qué capas procesa cada equipo.', icono: 'laptop' },
+  ]}
+/>
+
+<aside class="clave">
+
+Usa el **modo Tiempo real** para configurar y probar, y el **modo Simulación** cuando quieras entender qué está
+pasando dentro de la red. Lo usarás mucho en el módulo 3.
+
+</aside>

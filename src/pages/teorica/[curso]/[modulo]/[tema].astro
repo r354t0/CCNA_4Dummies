@@ -1,0 +1,153 @@
+---
+import { render } from 'astro:content';
+import Teoria from '../../../../layouts/Teoria.astro';
+import ExamenInfo from '../../../../components/ExamenInfo.astro';
+import Verifique from '../../../../components/teoria/Verifique.tsx';
+import Actividades from '../../../../components/teoria/Actividades.astro';
+import { curso as datosCurso, claveTema, slugTema } from '../../../../data/cursos';
+import { ejercicio } from '../../../../data/practica';
+import { temas, preguntas, vecinos, urlTema, type Tema } from '../../../../lib/teoria';
+import { url } from '../../../../lib/url';
+
+export async function getStaticPaths() {
+  const lista = await temas();
+  return lista.map((t) => ({
+    params: { curso: t.data.curso, modulo: String(t.data.modulo), tema: slugTema(t.data.tema) },
+    props: { t },
+  }));
+}
+
+interface Props { t: Tema }
+const { t } = Astro.props;
+const d = t.data;
+const c = datosCurso(d.curso);
+const modulo = c.modulos.find((m) => m.numero === d.modulo)!;
+const { Content } = await render(t);
+const { anterior, siguiente } = await vecinos(d.curso, urlTema(t));
+const verifique = (await preguntas(d.curso, [d.modulo])).filter((q) => q.tema === d.tema && q.verifique);
+const ejercicios = d.practica.map(ejercicio).filter((e) => e !== undefined);
+const clave = claveTema(d.curso, d.tema);
+const esIntro = d.tema.endsWith('.0');
+---
+<Teoria
+  titulo={`${d.tema} ${d.titulo}`}
+  descripcion={d.objetivo}
+  curso={d.curso}
+  ubicacion={`Módulo ${d.modulo}: ${modulo.titulo} › ${d.tema} ${d.titulo}`}
+  anterior={anterior}
+  siguiente={siguiente}
+>
+  <article class="tema" data-tema-clave={clave}>
+    <header class="tema-cabecera">
+      <p class="modulo">{c.sigla} · Módulo {d.modulo}: {modulo.titulo}</p>
+      <h1><span class="num">{d.tema}</span> {d.titulo}</h1>
+      <div class="objetivo">
+        <span class="objetivo-rotulo">{esIntro ? 'Objetivo del módulo' : 'Objetivo del tema'}</span>
+        <p>{d.objetivo}</p>
+      </div>
+      <p class="meta">
+        <span>{d.duracion} min</span>
+        {d.examen && <ExamenInfo examen={d.examen} />}
+      </p>
+    </header>
+
+    <div class="prose contenido">
+      <Content />
+    </div>
+
+    <Actividades actividades={d.actividades} />
+
+    {ejercicios.length > 0 && (
+      <section class="bloque" aria-labelledby="practica-t">
+        <h2 id="practica-t">Practica este tema</h2>
+        <ul class="ejercicios">
+          {ejercicios.map((e) => (
+            <li>
+              <a href={url(`practica/${e!.ruta}`)}>
+                <span class="ej-tipo">{e!.tipo}</span>
+                <span class="ej-titulo">{e!.titulo}</span>
+                <span class="ej-desc">{e!.descripcion}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {verifique.length > 0 && (
+      <section class="bloque" aria-labelledby="verifique-t">
+        <h2 id="verifique-t">Verifique su comprensión</h2>
+        <p class="bloque-intro">Responde sin volver a leer. Si fallas, la explicación te dice qué repasar.</p>
+        <Verifique client:visible preguntas={verifique} />
+      </section>
+    )}
+
+    <div class="fin" data-fin-tema>
+      <button type="button" class="boton-progreso" data-progreso-boton={clave} aria-pressed="false">
+        <span class="led" aria-hidden="true"></span>
+        <span data-texto>Marcar como completado</span>
+      </button>
+    </div>
+  </article>
+</Teoria>
+
+<script is:inline>
+  // El tema se marca como completado al llegar al final de la página.
+  (function () {
+    var fin = document.querySelector('[data-fin-tema]');
+    var clave = document.querySelector('[data-tema-clave]').dataset.temaClave;
+    if (!fin || !('IntersectionObserver' in window)) return;
+    var obs = new IntersectionObserver(function (entradas) {
+      if (!entradas[0].isIntersecting) return;
+      obs.disconnect();
+      try {
+        var p = JSON.parse(localStorage.getItem('ccna-progreso') || '{}');
+        if (!p[clave]) { p[clave] = true; localStorage.setItem('ccna-progreso', JSON.stringify(p)); }
+      } catch (e) {}
+      window.dispatchEvent(new Event('ccna-progreso'));
+    });
+    setTimeout(function () { obs.observe(fin); }, 1500);
+  })();
+</script>
+
+<style>
+  .tema-cabecera { margin-bottom: 2rem; }
+  .modulo { color: var(--muted); margin-bottom: 0.3rem; font-size: 0.95rem; }
+  h1 { margin-bottom: 1rem; }
+  .num { color: var(--c); }
+  .objetivo {
+    border-left: 5px solid var(--c); background: var(--surface);
+    border-radius: 0 var(--radius-m) var(--radius-m) 0; padding: 0.75rem 1rem; max-width: var(--measure);
+    border-top: 1px solid var(--line); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .objetivo-rotulo { font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; color: var(--c); }
+  .objetivo p { margin: 0.15rem 0 0; font-size: 1.08rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; color: var(--muted); font-size: 0.92rem; margin-top: 0.8rem; }
+
+  .contenido { max-width: none; }
+  .contenido :global(> p), .contenido :global(> ul), .contenido :global(> ol) { max-width: var(--measure); }
+
+  .bloque { margin-top: 3rem; padding-top: 0.5rem; border-top: 1px solid var(--line); }
+  .bloque-intro { color: var(--muted); }
+  .ejercicios { list-style: none; padding: 0; display: grid; gap: 0.7rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .ejercicios li { margin: 0; }
+  .ejercicios a {
+    display: grid; gap: 0.2rem; height: 100%; padding: 0.8rem 1rem; text-decoration: none; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); border-top: 4px solid var(--c);
+  }
+  .ejercicios a:hover { border-color: var(--c); }
+  .ej-tipo { font-size: 0.82rem; color: var(--c); font-weight: 600; }
+  .ej-titulo { font-weight: 600; }
+  .ej-desc { color: var(--muted); font-size: 0.92rem; }
+
+  .fin { margin: 2.5rem 0 0; }
+  .boton-progreso {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 0.55rem 1rem; border-radius: 999px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  }
+  .boton-progreso:hover { border-color: var(--ink); }
+  .led { width: 10px; height: 10px; border-radius: 50%; background: var(--led-off); }
+  .boton-progreso[aria-pressed='true'] .led { background: var(--led-on); box-shadow: 0 0 6px var(--led-on); }
+</style>

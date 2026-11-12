@@ -1,0 +1,129 @@
+---
+curso: itn
+modulo: 1
+tema: "1.3"
+titulo: Topologías y representaciones de red
+objetivo: Explicar cómo se representan las redes en diagramas de topología.
+duracion: 20
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [topologias]
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+Los técnicos de redes no describen una red con párrafos: la dibujan. Un **diagrama de topología** muestra en una sola
+imagen qué equipos hay, cómo se conectan y, a veces, qué direcciones usan. Saber leerlos es indispensable, porque casi
+todas las preguntas de configuración del examen vienen acompañadas de uno.
+
+## 1.3.1 Representaciones de red
+
+Cada tipo de equipo tiene un **símbolo estándar**, reconocible en cualquier documentación de Cisco:
+
+<Tarjetas
+  columnas={4}
+  items={[
+    { titulo: 'Router', texto: 'Cilindro con flechas que entran y salen.', icono: 'router' },
+    { titulo: 'Switch', texto: 'Caja con flechas en sentidos opuestos.', icono: 'switch' },
+    { titulo: 'Router inalámbrico', texto: 'Router con antenas.', icono: 'router-inalambrico' },
+    { titulo: 'Punto de acceso', texto: 'Disco con ondas.', icono: 'ap' },
+    { titulo: 'Firewall', texto: 'Una pared de ladrillos.', icono: 'firewall' },
+    { titulo: 'PC', texto: 'Monitor sobre una base.', icono: 'pc' },
+    { titulo: 'Servidor', texto: 'Torre con bahías.', icono: 'servidor' },
+    { titulo: 'Nube', texto: 'Una red que no se detalla, como Internet.', icono: 'nube' },
+  ]}
+/>
+
+Además de los símbolos, hay tres términos que verás todo el tiempo:
+
+| Término | Qué es | Ejemplo |
+|---|---|---|
+| **NIC** (tarjeta de interfaz de red) | El hardware que conecta un dispositivo a la red | La tarjeta Ethernet o Wi-Fi de una laptop |
+| **Puerto físico** | El conector donde se enchufa el cable | El conector RJ-45 de un switch |
+| **Interfaz** | Un puerto especializado de un equipo de red, con nombre propio | `GigabitEthernet0/0/1` en un router |
+
+En la práctica, «puerto» e «interfaz» se usan casi como sinónimos.
+
+## 1.3.2 Diagramas de topología
+
+Hay dos tipos y responden a preguntas distintas.
+
+### Topología física: ¿dónde está cada cosa?
+
+Muestra la **ubicación real** de los equipos y cómo está instalado el cableado: qué sala, qué piso, qué rack.
+
+<Topologia
+  ancho={660}
+  alto={250}
+  titulo="Topología física: equipos ubicados por sala"
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 120, y: 105, detalle: 'Sala de servidores', lado: 'abajo' },
+    { id: 'S1', tipo: 'switch', x: 330, y: 105, detalle: 'Armario del piso 1', lado: 'abajo' },
+    { id: 'PC-Aula1', tipo: 'pc', x: 540, y: 60, detalle: 'Aula 101', lado: 'derecha' },
+    { id: 'PC-Aula2', tipo: 'pc', x: 540, y: 170, detalle: 'Aula 102', lado: 'derecha' },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1' },
+    { a: 'S1', b: 'PC-Aula1' },
+    { a: 'S1', b: 'PC-Aula2' },
+  ]}
+/>
+
+### Topología lógica: ¿cómo está organizada la red?
+
+Muestra **dispositivos, puertos y el esquema de direccionamiento**. No importa dónde está cada equipo, sino cómo se
+comunican. Es el diagrama que usarás para configurar.
+
+<Topologia
+  ancho={660}
+  alto={250}
+  titulo="Topología lógica: interfaces y direcciones"
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 120, y: 105, detalle: 'G0/0/0 192.168.10.1/24' },
+    { id: 'S1', tipo: 'switch', x: 330, y: 105, lado: 'abajo' },
+    { id: 'PC-A', tipo: 'pc', x: 540, y: 60, detalle: '192.168.10.11', lado: 'derecha' },
+    { id: 'PC-B', tipo: 'pc', x: 540, y: 170, detalle: '192.168.10.12', lado: 'derecha' },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/0', ib: 'G0/1' },
+    { a: 'S1', b: 'PC-A', ia: 'F0/1' },
+    { a: 'S1', b: 'PC-B', ia: 'F0/2' },
+  ]}
+/>
+
+<div class="duo">
+<div>
+
+#### Física
+
+Ubicación de los equipos, salas, racks y recorrido del cableado. Útil para instalar y para encontrar un equipo.
+
+</div>
+<div>
+
+#### Lógica
+
+Equipos, interfaces, direcciones IP y cómo se agrupan en redes. Útil para configurar y para diagnosticar.
+
+</div>
+</div>
+
+<aside class="examen">
+
+Si un diagrama muestra nombres de **interfaces y direcciones IP**, es lógico. Si muestra **edificios, pisos o salas**,
+es físico. En Packet Tracer corresponden a los modos lógico y físico que viste en la introducción.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Un diagrama indica «Rack 3, piso 2». ¿Físico o lógico?', dorso: 'Físico: describe la ubicación real.' },
+    { frente: 'Un diagrama muestra G0/0/1 y 10.1.1.1/24. ¿Físico o lógico?', dorso: 'Lógico: muestra interfaces y direccionamiento.' },
+    { frente: '¿Qué es una NIC?', dorso: 'La tarjeta de interfaz de red: el hardware que conecta un dispositivo a la red.' },
+    { frente: '¿Qué símbolo representa una red que no se detalla, como Internet?', dorso: 'Una nube.' },
+  ]}
+/>

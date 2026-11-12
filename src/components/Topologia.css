@@ -1,0 +1,72 @@
+.topologia {
+  --ic-superior: #4b8bd0;
+  --ic-frente: #2462a6;
+  --ic-lateral: #1a4a80;
+  --ic-carcasa: #e3e8ee;
+  --ic-borde: #6f8193;
+  margin: 0 0 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+html[data-tema='oscuro'] .topologia {
+  --ic-carcasa: #c9d2db;
+  --ic-borde: #8a9aaa;
+}
+.topologia svg { display: block; width: 100%; height: auto; }
+
+.topologia .enlace { stroke: var(--line-strong); stroke-width: 2.5; stroke-linecap: round; }
+.topologia .enlace-serial { stroke: var(--bad); stroke-dasharray: 8 5; }
+.topologia .enlace-consola { stroke: var(--n5); stroke-dasharray: 2 5; }
+.topologia .enlace-fibra { stroke: var(--n1); }
+.topologia .enlace-inalambrico { stroke: var(--n5); stroke-dasharray: 9 4 2 4; }
+.topologia .enlace-resaltado { stroke: var(--acento); stroke-width: 4; }
+.topologia .etherchannel { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+.topologia .interfaz-grupo rect { stroke: var(--ink); }
+.topologia .interfaz-grupo text { font-weight: 600; }
+
+.topologia .cara-superior { fill: var(--ic-superior); }
+.topologia .cara-frente { fill: var(--ic-frente); }
+.topologia .cara-lateral { fill: var(--ic-lateral); }
+.topologia .flechas path { stroke: #fff; stroke-width: 2; fill: none; stroke-linecap: round; }
+.topologia .flechas .punta { fill: #fff; stroke: none; }
+.topologia .antenas path { stroke: var(--ic-frente); stroke-width: 2.5; stroke-linecap: round; }
+.topologia .antenas circle { fill: var(--ic-frente); }
+.topologia .ondas path { stroke: var(--ic-frente); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.topologia .ladrillo-fondo { fill: #b5482f; }
+.topologia .ladrillo-junta { stroke: #f3e2dc; stroke-width: 1.6; fill: none; }
+.topologia .carcasa { fill: var(--ic-carcasa); stroke: var(--ic-borde); stroke-width: 1.4; stroke-linejoin: round; }
+.topologia .pantalla { fill: var(--ic-frente); }
+.topologia .bahia { fill: var(--ic-borde); }
+.topologia .teclas { stroke: var(--ic-borde); stroke-width: 2; stroke-linecap: round; }
+.topologia .hoja { fill: #fff; stroke: var(--ic-borde); stroke-width: 1.2; }
+.topologia .led { fill: var(--led-on); }
+.topologia .halo { fill: none; stroke: var(--acento); stroke-width: 2.5; stroke-dasharray: 5 4; }
+
+.topologia .nombre {
+  font-family: var(--font-head); font-weight: 700; font-size: 14px; fill: var(--ink);
+  stroke: var(--surface); stroke-width: 4px; paint-order: stroke;
+}
+.topologia .detalle {
+  font-family: var(--font-cli); font-size: 10.5px; fill: var(--muted);
+  stroke: var(--surface); stroke-width: 4px; paint-order: stroke;
+}
+.topologia .interfaz rect { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+.topologia .interfaz text { font-family: var(--font-cli); font-size: 11px; fill: var(--ink); }
+
+.topologia .marca rect { fill: var(--ink); }
+.topologia .marca text { fill: var(--surface); font-family: var(--font-head); font-weight: 700; font-size: 12px; }
+.topologia .marca-resaltada rect { fill: var(--acento); }
+.topologia .marca-resaltada text { fill: #fff; }
+
+.topologia .caido circle { fill: var(--bad); }
+.topologia .caido path { stroke: #fff; stroke-width: 2.2; stroke-linecap: round; }
+
+.topologia figcaption {
+  display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem;
+  padding: 0.3rem 0.5rem 0.1rem; font-size: 0.85rem; color: var(--muted);
+}
+.topologia .ley { display: inline-flex; align-items: center; gap: 0.4rem; }
+.topologia .ley svg { min-width: 0; width: 28px; }

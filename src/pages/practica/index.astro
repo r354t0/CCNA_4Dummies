@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CURSOS } from '../../data/cursos';
+import { EJERCICIOS, type TipoEjercicio } from '../../data/practica';
+import { url } from '../../lib/url';
+
+const itn = CURSOS[0];
+const porModulo = itn.modulos
+  .map((m) => ({ ...m, ejercicios: EJERCICIOS.filter((e) => e.curso === 'itn' && e.modulos.includes(m.numero) && m.numero <= 3) }))
+  .filter((m) => m.ejercicios.length);
+const extra = EJERCICIOS.filter((e) => e.modulos.every((m) => m > 3));
+
+const TIPOS: Record<TipoEjercicio, string> = {
+  Interactivo: 'Ordena, relaciona y clasifica con escenarios nuevos en cada ronda.',
+  'Consola IOS': 'Una consola de switch en el navegador que valida cada comando.',
+  Diagnóstico: 'Lee salidas de comandos y encuentra la falla escondida.',
+  'Packet Tracer': 'Arma la red en Packet Tracer, pega la configuración y la app la corrige.',
+};
+---
+<Base titulo="Práctica" descripcion="Ejercicios aleatorios para practicar el CCNA: consola IOS, diagnóstico, interactivos y Packet Tracer.">
+  <div class="wrap" style="--c: var(--n2)">
+    <header class="cab">
+      <h1>Práctica</h1>
+      <p class="bajada">
+        Cada ejercicio genera un escenario distinto: otros nombres, otras direcciones, otras fallas. Repítelos hasta
+        resolverlos sin dudar. Cada escenario tiene un código; compártelo y tu instructor podrá abrir exactamente el mismo
+        caso.
+      </p>
+      <ul class="tipos">
+        {(Object.keys(TIPOS) as TipoEjercicio[]).map((t) => (
+          <li><strong>{t}</strong><span>{TIPOS[t]}</span></li>
+        ))}
+      </ul>
+    </header>
+
+    {porModulo.map((m) => (
+      <section class="modulo" aria-labelledby={`m-${m.numero}`}>
+        <h2 id={`m-${m.numero}`}><span class="sigla">ITN {m.numero}</span> {m.titulo}</h2>
+        <ul class="ejercicios">
+          {m.ejercicios.map((e) => (
+            <li data-progreso={`e:${e.id}`}>
+              <a href={url(`practica/${e.ruta}`)}>
+                <span class="fila">
+                  <span class="tipo">{e.tipo}</span>
+                  <span class="led" aria-hidden="true"></span>
+                </span>
+                <span class="titulo">{e.titulo}</span>
+                <span class="desc">{e.descripcion}</span>
+                <span class="min">{e.minutos} min por escenario</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <section class="modulo" aria-labelledby="m-extra">
+      <h2 id="m-extra">Herramientas para más adelante</h2>
+      <ul class="ejercicios">
+        {extra.map((e) => (
+          <li>
+            <a href={url(`practica/${e.ruta}`)}>
+              <span class="fila"><span class="tipo">{e.tipo}</span></span>
+              <span class="titulo">{e.titulo}</span>
+              <span class="desc">{e.descripcion}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .cab { margin-bottom: 1rem; }
+  .bajada { font-size: 1.15rem; max-width: 64ch; }
+  .tipos { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; gap: 0.6rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .tipos li { margin: 0; display: grid; gap: 0.1rem; border-left: 3px solid var(--c); padding-left: 0.7rem; }
+  .tipos span { color: var(--muted); font-size: 0.95rem; }
+  .modulo { margin-top: 2.5rem; }
+  .modulo h2 { display: flex; align-items: center; gap: 0.6rem; }
+  .sigla { font-size: 0.85rem; background: var(--n1); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; }
+  .ejercicios { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+  .ejercicios li { margin: 0; }
+  .ejercicios a {
+    display: grid; gap: 0.35rem; align-content: start; height: 100%; padding: 1rem 1.1rem;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; border-top: 4px solid var(--c);
+    color: var(--ink); text-decoration: none;
+  }
+  .ejercicios a:hover { border-color: var(--c); }
+  .fila { display: flex; justify-content: space-between; align-items: center; }
+  .tipo { font-size: 0.82rem; font-weight: 600; color: var(--c); }
+  .led { width: 10px; height: 10px; border-radius: 50%; background: var(--led-off); }
+  [data-hecho='si'] .led { background: var(--led-on); box-shadow: 0 0 5px var(--led-on); }
+  .titulo { font-family: var(--font-head); font-weight: 700; font-size: 1.2rem; line-height: 1.2; }
+  .desc { color: var(--muted); font-size: 0.95rem; }
+  .min { font-size: 0.85rem; color: var(--muted); }
+</style>

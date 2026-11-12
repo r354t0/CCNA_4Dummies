@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import Teoria from '../../layouts/Teoria.astro';
+import Simulacro from '../../components/teoria/Simulacro.tsx';
+import { CURSOS, curso as datosCurso } from '../../data/cursos';
+import { preguntas } from '../../lib/teoria';
+
+const bancos = (await getCollection('preguntas')).sort((a, b) =>
+  CURSOS.findIndex((c) => c.id === a.data.curso) - CURSOS.findIndex((c) => c.id === b.data.curso) || a.data.modulo - b.data.modulo);
+const banco = (await Promise.all(CURSOS.map((c) => preguntas(c.id)))).flat();
+const modulos = bancos.map((b) => {
+  const c = datosCurso(b.data.curso);
+  return {
+    curso: c.id,
+    sigla: c.sigla,
+    numero: b.data.modulo,
+    titulo: c.modulos.find((m) => m.numero === b.data.modulo)!.titulo,
+    preguntas: b.data.preguntas.length,
+  };
+});
+---
+<Teoria titulo="Simulacro de examen" curso="itn" ubicacion="Simulacro de examen">
+  <header class="cab">
+    <h1>Simulacro de examen</h1>
+    <p class="bajada">
+      Arma tu propio examen con preguntas al azar de los módulos que ya estudiaste. Cada intento es distinto y al final
+      ves en qué módulos o temas fallaste más.
+    </p>
+  </header>
+  <Simulacro client:load banco={banco} modulos={modulos} />
+</Teoria>
+
+<style>
+  .bajada { max-width: var(--measure); font-size: 1.08rem; }
+  .cab { margin-bottom: 1.5rem; }
+  :global(.sim-config) { padding: 1.25rem 1.5rem 1.5rem; display: grid; gap: 1.25rem; justify-items: start; }
+  :global(.sim-config fieldset) { border: 0; padding: 0; margin: 0; width: 100%; }
+  :global(.sim-config legend) { font-family: var(--font-head); font-weight: 600; font-size: 1.15rem; margin-bottom: 0.5rem; }
+  :global(.sim-atajos) { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
+  :global(.sim-modulos) { display: grid; gap: 0.1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); column-gap: 0.6rem; }
+  :global(.sim-n) { color: var(--muted); font-size: 0.88rem; }
+  :global(.sim-cantidades) { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  :global(.sim-chip) {
+    display: inline-flex; align-items: center; cursor: pointer; font-weight: 600;
+    padding: 0.4rem 1rem; border-radius: 999px; border: 1px solid var(--line-strong);
+  }
+  :global(.sim-chip input) { position: absolute; opacity: 0; pointer-events: none; }
+  :global(.sim-chip.activo) { background: var(--c); border-color: var(--c); color: #fff; }
+  :global(.sim-chip:has(input:focus-visible)) { outline: 3px solid var(--focus); outline-offset: 2px; }
+  :global(.sim-nota) { color: var(--muted); margin: 0.5rem 0 0; }
+  :global(.sim-volver) { margin-top: 1rem; }
+</style>

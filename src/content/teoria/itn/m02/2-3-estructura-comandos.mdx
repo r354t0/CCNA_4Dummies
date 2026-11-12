@@ -1,0 +1,143 @@
+---
+curso: itn
+modulo: 2
+tema: "2.3"
+titulo: Estructura de los comandos
+objetivo: Describir la estructura de los comandos de Cisco IOS y usar su ayuda.
+duracion: 25
+examen:
+  v1.1: 4
+  v2.0: 4
+practica: [cli]
+actividades:
+  - codigo: "2.3.7"
+    tipo: Packet Tracer
+    titulo: Navegar por el IOS
+    guia: Usa ? en cada paso aunque sepas el comando. Descubrirás opciones que no sabías que existían, y es justo lo que harás en el examen cuando dudes de una sintaxis.
+  - codigo: "2.3.8"
+    tipo: Laboratorio
+    titulo: Navegar por el IOS con un emulador de terminal por consola
+    guia: Si tienes acceso a un equipo real, anota los valores de puerto serie que usaste (velocidad, bits de datos, paridad). En la versión de modo físico de Packet Tracer verás el mismo proceso.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.3.1 Estructura básica
+
+Un comando de IOS tiene un **comando** inicial seguido de **palabras clave** y **argumentos**:
+
+<figure class="anatomia">
+  <svg viewBox="0 0 620 130" role="img" aria-labelledby="an-t">
+    <title id="an-t">En «ping 192.168.10.5», ping es el comando y la dirección es el argumento. En «show ip protocols», show es el comando e ip protocols son palabras clave.</title>
+    <text x="20" y="40" class="an-prompt">Switch&gt;</text>
+    <text x="104" y="40" class="an-cmd">ping</text>
+    <text x="160" y="40" class="an-arg">192.168.10.5</text>
+    <path d="M104 52 H150" class="an-l an-l-cmd" /><text x="127" y="72" text-anchor="middle" class="an-e">comando</text>
+    <path d="M160 52 H290" class="an-l an-l-arg" /><text x="225" y="72" text-anchor="middle" class="an-e">argumento</text>
+    <text x="330" y="40" class="an-prompt">Switch#</text>
+    <text x="410" y="40" class="an-cmd">show</text>
+    <text x="468" y="40" class="an-kw">ip protocols</text>
+    <path d="M410 52 H458" class="an-l an-l-cmd" /><text x="434" y="72" text-anchor="middle" class="an-e">comando</text>
+    <path d="M468 52 H600" class="an-l an-l-kw" /><text x="534" y="72" text-anchor="middle" class="an-e">palabras clave</text>
+    <text x="20" y="112" class="an-nota">Palabra clave: un parámetro definido por IOS. Argumento: un valor que define el usuario.</text>
+  </svg>
+</figure>
+
+<style>{`
+  .anatomia { margin: 0 0 1.5rem; max-width: 640px; background: var(--console-bg); border-radius: var(--radius-m); padding: 0.4rem; }
+  .anatomia svg { width: 100%; height: auto; display: block; }
+  .anatomia text { font-family: var(--font-cli); font-size: 16px; }
+  .anatomia .an-prompt { fill: var(--console-prompt); }
+  .anatomia .an-cmd { fill: #ffd27a; font-weight: 600; }
+  .anatomia .an-kw { fill: #8fe3a5; }
+  .anatomia .an-arg { fill: #ffa8a8; }
+  .anatomia .an-l { stroke-width: 3; }
+  .anatomia .an-l-cmd { stroke: #ffd27a; }
+  .anatomia .an-l-kw { stroke: #8fe3a5; }
+  .anatomia .an-l-arg { stroke: #ffa8a8; }
+  .anatomia .an-e { fill: var(--console-ink); font-size: 12px; font-family: var(--font-body); }
+  .anatomia .an-nota { fill: var(--console-ink); font-size: 12.5px; font-family: var(--font-body); }
+`}</style>
+
+## 2.3.2 Convenciones de sintaxis
+
+La documentación de Cisco usa estas convenciones para describir los comandos:
+
+| Convención | Significado |
+|---|---|
+| **Negrita** | Comandos y palabras clave que se escriben tal cual |
+| *Cursiva* | Argumentos: valores que tú defines |
+| `[x]` | Elemento opcional |
+| `{x}` | Elemento obligatorio |
+| `[x {y \| z}]` | Opción obligatoria (y o z) dentro de un elemento opcional |
+
+Por ejemplo, **ping** *ip-address* significa: escribe `ping` y después la dirección que quieras.
+
+## 2.3.3 Funciones de ayuda
+
+IOS tiene dos tipos de ayuda:
+
+- **Ayuda contextual (`?`)**: muestra qué comandos o parámetros son válidos en ese punto.
+  - `?` solo: lista todos los comandos del modo actual.
+  - `sh?`: lista los comandos que empiezan con «sh».
+  - `show ?`: lista lo que puede ir después de `show`.
+- **Verificación de sintaxis**: IOS revisa cada comando al pulsar Enter y avisa si algo está mal.
+
+| Mensaje de error | Qué significa | Cómo se corrige |
+|---|---|---|
+| `% Ambiguous command: "show con"` | Lo que escribiste coincide con más de un comando | Escribe más letras hasta que sea único |
+| `% Incomplete command.` | Faltan palabras clave o argumentos | Usa `?` después del último elemento para ver qué falta |
+| `% Invalid input detected at '^' marker.` | Hay un error en la posición que señala el `^` | Corrige la palabra marcada |
+
+```text
+Switch# clock set 19:50:00
+% Incomplete command.
+Switch# clock set 19:50:00 ?
+  <1-31>  Day of the month
+  MONTH   Month of the year
+Switch# c
+% Ambiguous command: "c"
+Switch# conigure terminal
+         ^
+% Invalid input detected at '^' marker.
+```
+
+## 2.3.5 Teclas de acceso rápido y abreviaturas
+
+Cualquier comando o palabra clave se puede **abreviar** con las letras mínimas que la identifican sin ambigüedad:
+`conf t` es `configure terminal` y `sh ip int br` es `show ip interface brief`. Pero `con` no sirve, porque también
+empiezan así `connect` y otros comandos.
+
+<Tarjetas
+  columnas={4}
+  items={[
+    { titulo: 'Tab', texto: 'Completa el comando o la palabra que empezaste a escribir.' },
+    { titulo: 'Flecha arriba / Ctrl+P', texto: 'Recupera el comando anterior del historial.' },
+    { titulo: 'Flecha abajo / Ctrl+N', texto: 'Avanza en el historial de comandos.' },
+    { titulo: 'Ctrl+A / Ctrl+E', texto: 'Mueve el cursor al inicio o al final de la línea.' },
+    { titulo: 'Ctrl+Z', texto: 'Sale de cualquier modo de configuración y vuelve a EXEC privilegiado.' },
+    { titulo: 'Ctrl+C', texto: 'Cancela el comando actual o sale del modo de configuración.' },
+    { titulo: 'Ctrl+Shift+6', texto: 'Interrumpe procesos como un ping o un traceroute que no terminan.' },
+    { titulo: 'Ctrl+R', texto: 'Vuelve a mostrar la línea, útil si un mensaje del sistema la cortó.' },
+  ]}
+/>
+
+Cuando una salida ocupa más de una pantalla aparece `--More--`:
+
+| Tecla | Acción |
+|---|---|
+| Enter | Muestra la línea siguiente |
+| Barra espaciadora | Muestra la pantalla siguiente |
+| Cualquier otra tecla | Termina la salida y vuelve al prompt |
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'En «ping 10.1.1.1», ¿qué es 10.1.1.1?', dorso: 'Un argumento: un valor definido por el usuario.' },
+    { frente: 'IOS responde «% Incomplete command.» ¿Qué haces?', dorso: 'Escribir ? después del último elemento para ver qué falta.' },
+    { frente: '¿Qué tecla completa un comando parcial?', dorso: 'Tab.' },
+    { frente: 'Un ping no termina. ¿Cómo lo interrumpes?', dorso: 'Ctrl+Shift+6.' },
+    { frente: 'Aparece --More--. ¿Qué hace la barra espaciadora?', dorso: 'Muestra la pantalla siguiente.' },
+  ]}
+/>

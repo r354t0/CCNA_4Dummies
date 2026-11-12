@@ -6,15 +6,16 @@ import { INICIO_V20 } from '../data/blueprints';
 interface Props {
   titulo: string;
   descripcion?: string;
+  /** La página maneja su propio espaciado (p. ej. la vista de teoría con barra lateral). */
+  sinPadding?: boolean;
 }
-const { titulo, descripcion = 'Repasa CCNA 200-301 con teoría breve y laboratorios en Packet Tracer y GNS3.' } = Astro.props;
+const { titulo, descripcion = 'Prepara el CCNA 200-301: teoría por módulos de NetAcad y práctica con ejercicios generados al azar.', sinPadding = false } = Astro.props;
 
 const ruta = Astro.url.pathname;
 const nav = [
-  { href: url(''), texto: 'Ruta de estudio', activo: ruta === url('') || ruta.startsWith(url('lecciones')) },
-  { href: url('labs/'), texto: 'Laboratorios', activo: ruta.startsWith(url('labs')) },
-  { href: url('practica/subnetting/'), texto: 'Subnetting', activo: ruta.startsWith(url('practica')) },
-  { href: url('examen/'), texto: 'Temario', activo: ruta.startsWith(url('examen')) },
+  { href: url('teorica/'), texto: 'Teórica', activo: ruta.startsWith(url('teorica')) },
+  { href: url('practica/'), texto: 'Práctica', activo: ruta.startsWith(url('practica')) },
+  { href: url('temario/'), texto: 'Temario del examen', activo: ruta.startsWith(url('temario')) },
 ];
 ---
 <!doctype html>
@@ -86,17 +87,18 @@ const nav = [
       </div>
     </header>
 
-    <main id="contenido">
+    <main id="contenido" class:list={[{ 'sin-padding': sinPadding }]}>
       <slot />
     </main>
 
     <footer class="pie">
       <div class="wrap">
         <p>
-          Proyecto abierto para estudiantes de CCNA 200-301. Tu progreso se guarda solo en este navegador.{' '}
-          <a href="https://github.com/r354t0/CCNA_4Dummies">Código y laboratorios en GitHub</a>.
+          Proyecto abierto para estudiantes de CCNA 200-301. Sigue el índice de los cursos de Cisco Networking Academy con
+          explicaciones, diagramas y ejercicios propios. Tu progreso se guarda solo en este navegador.{' '}
+          <a href="https://github.com/r354t0/CCNA_4Dummies">Código en GitHub</a>.
         </p>
-        <p class="pie-legal">CCNA y Cisco son marcas de Cisco Systems, Inc. Este sitio no está afiliado a Cisco.</p>
+        <p class="pie-legal">CCNA, Cisco, Packet Tracer y Networking Academy son marcas de Cisco Systems, Inc. Este sitio no está afiliado a Cisco.</p>
       </div>
     </footer>
 
@@ -124,6 +126,15 @@ const nav = [
             var h = !!p[b.dataset.progresoBoton];
             b.setAttribute('aria-pressed', String(h));
             b.querySelector('[data-texto]').textContent = h ? 'Completado' : 'Marcar como completado';
+          });
+          document.querySelectorAll('[data-barra]').forEach(function (el) {
+            var ids = el.dataset.barra.split(' ').filter(Boolean);
+            var n = ids.filter(function (i) { return p[i]; }).length;
+            var pct = ids.length ? Math.round((n / ids.length) * 100) : 0;
+            el.style.setProperty('--p', pct + '%');
+            el.dataset.estado = pct === 100 ? 'completo' : pct > 0 ? 'en-curso' : 'pendiente';
+            var t = el.querySelector('[data-barra-texto]');
+            if (t) t.textContent = pct + '%';
           });
           document.querySelectorAll('[data-led]').forEach(function (el) {
             var ids = el.dataset.led.split(' ').filter(Boolean);
@@ -153,6 +164,9 @@ const nav = [
           pintar();
         });
 
+        // Los componentes interactivos avisan con este evento cuando cambian el progreso.
+        window.addEventListener('ccna-progreso', pintar);
+        window.addEventListener('storage', pintar);
         pintar();
       })();
     </script>
@@ -215,6 +229,7 @@ const nav = [
   :global(html[data-tema='oscuro']) .tema-luna { display: block; }
 
   main { padding: 2.5rem 0 4rem; }
+  main.sin-padding { padding: 0; }
 
   .pie { border-top: 1px solid var(--line); padding: 1.5rem 0 2rem; color: var(--muted); font-size: 0.95rem; }
   .pie p { margin: 0 0 0.4rem; max-width: var(--measure); }

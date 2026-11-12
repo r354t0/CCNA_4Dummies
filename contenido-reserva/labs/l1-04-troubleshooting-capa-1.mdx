@@ -1,0 +1,192 @@
+---
+titulo: "Troubleshooting: interfaces, dúplex y direccionamiento de hosts"
+descripcion: Una LAN con cuatro fallas ocultas. Encuéntralas con un método de abajo hacia arriba y documenta cada causa y su corrección.
+nivel: 1
+orden: 4
+duracion: 50
+dificultad: Intermedia
+herramienta: Packet Tracer
+tipo: Troubleshooting
+examen:
+  v1.1: 1
+  v2.0: 1
+dispositivos: [Router ISR 4331, Switch Catalyst 2960, 3 PC]
+---
+
+import Topologia from '../../src/components/Topologia.tsx';
+
+## Objetivos
+
+- Aplicar un método ordenado de troubleshooting, de la capa física hacia arriba.
+- Interpretar `show ip interface brief`, `show interfaces status`, `show interfaces` y la configuración IP de un host.
+- Corregir cada falla y verificar que no rompiste nada más.
+
+## El reporte de los usuarios
+
+Mesa de ayuda recibió estos tickets durante la mañana:
+
+1. «Desde PC1 puedo abrir carpetas compartidas de las otras PC, pero no tengo Internet.»
+2. «PC2 no tiene red. El cable parece estar bien conectado.»
+3. «PC3 no puede comunicarse con nadie.»
+4. «Todo lo que pasa por el router está lento, y a veces se cortan las descargas.»
+
+En este laboratorio, «Internet» es la interfaz Loopback0 de R1 con la dirección **10.10.10.1**.
+
+## Topología
+
+<Topologia
+  ancho={620}
+  alto={360}
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 310, y: 60, detalle: 'Lo0 10.10.10.1' },
+    { id: 'S1', tipo: 'switch', x: 310, y: 185 },
+    { id: 'PC1', tipo: 'pc', x: 130, y: 290 },
+    { id: 'PC2', tipo: 'pc', x: 310, y: 295 },
+    { id: 'PC3', tipo: 'pc', x: 490, y: 290 },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1' },
+    { a: 'S1', b: 'PC1', ia: 'F0/1' },
+    { a: 'S1', b: 'PC2', ia: 'F0/2' },
+    { a: 'S1', b: 'PC3', ia: 'F0/3' },
+  ]}
+/>
+
+## Documentación de la red (así debería estar)
+
+| Equipo | Interfaz | Dirección IP | Máscara | Gateway |
+|---|---|---|---|---|
+| R1 | G0/0/1 | 192.168.1.1 | 255.255.255.0 | No aplica |
+| R1 | Loopback0 | 10.10.10.1 | 255.255.255.255 | No aplica |
+| S1 | VLAN 1 | 192.168.1.2 | 255.255.255.0 | 192.168.1.1 |
+| PC1 | NIC | 192.168.1.10 | 255.255.255.0 | 192.168.1.1 |
+| PC2 | NIC | 192.168.1.11 | 255.255.255.0 | 192.168.1.1 |
+| PC3 | NIC | 192.168.1.12 | 255.255.255.0 | 192.168.1.1 |
+
+Política de la red: todos los enlaces deben quedar en **autonegociación** de velocidad y dúplex.
+
+## Método de trabajo
+
+Trabaja de abajo hacia arriba y no cambies nada hasta tener una hipótesis:
+
+| Capa | Pregunta | Comandos |
+|---|---|---|
+| 1 | ¿Hay enlace? ¿Velocidad y dúplex coinciden? | `show interfaces status`, `show interfaces`, `show ip interface brief` |
+| 2 | ¿El switch ve al vecino y aprende las MAC? | `show cdp neighbors`, `show mac address-table` |
+| 3 | ¿IP, máscara y gateway son correctos? | `ipconfig` en la PC, `ping`, `show ip interface brief` |
+
+## Parte 1: Recolectar información
+
+1. Ejecuta los comandos de la tabla en R1 y S1 y guarda las salidas.
+2. Ejecuta `ipconfig` en las tres PC y compáralo con la documentación.
+3. Revisa los mensajes de consola de R1 y S1: a veces el propio equipo te dice qué está mal.
+
+## Parte 2: Aislar y corregir
+
+Para cada falla, completa una fila de esta tabla antes de pasar a la siguiente:
+
+| N.° | Síntoma | Causa | Corrección aplicada | Cómo verificaste |
+|---|---|---|---|---|
+| 1 | | | | |
+| 2 | | | | |
+| 3 | | | | |
+| 4 | | | | |
+
+Al terminar, las tres PC deben llegar a 10.10.10.1 y entre ellas, y los contadores de errores no deben seguir
+aumentando (usa `clear counters` y vuelve a mirar después de unos pings).
+
+## Pistas
+
+Ábrelas de una en una, solo si te atascas.
+
+<details class="solucion">
+<summary>Pista para el ticket 1</summary>
+
+PC1 llega a sus vecinos de la misma red pero no fuera de ella. ¿Qué dato de la configuración IP se usa solo para
+salir de la red local?
+
+</details>
+
+<details class="solucion">
+<summary>Pista para el ticket 2</summary>
+
+Mira la columna **Status** de `show interfaces status` en S1 para el puerto de PC2. «notconnect» y «disabled» no
+significan lo mismo.
+
+</details>
+
+<details class="solucion">
+<summary>Pista para el ticket 3</summary>
+
+Compara la máscara de PC3 con la documentación y calcula a qué subred cree pertenecer PC3. ¿Están PC1 y el gateway
+dentro de esa subred?
+
+</details>
+
+<details class="solucion">
+<summary>Pista para el ticket 4</summary>
+
+Revisa velocidad y dúplex en **los dos extremos** del enlace R1 a S1, y busca colisiones tardías y CRC en
+`show interfaces`.
+
+</details>
+
+## Solución
+
+<details class="solucion">
+<summary>Ver las cuatro fallas y sus correcciones</summary>
+
+**Falla 1: gateway incorrecto en PC1.** PC1 tiene 192.168.1.254 como gateway. Llega a las PC de su red porque eso no
+pasa por el gateway, pero todo lo demás se envía a una dirección que no existe.
+Corrección: gateway 192.168.1.1. Verificación: `ping 10.10.10.1` desde PC1.
+
+**Falla 2: puerto apagado.** S1 F0/2 tiene `shutdown`. En `show interfaces status` aparece como **disabled** (en
+`show ip interface brief` sería *administratively down*).
+
+```text
+S1(config)# interface fastethernet0/2
+S1(config-if)# no shutdown
+```
+
+**Falla 3: máscara incorrecta en PC3.** PC3 tiene 192.168.1.30 con máscara 255.255.255.240, así que cree estar en
+192.168.1.16/28 (de .16 a .31). Ni el gateway .1 ni las otras PC están en ese rango.
+Corrección: 192.168.1.12 con máscara 255.255.255.0, como indica la documentación.
+
+**Falla 4: desajuste de dúplex.** S1 G0/1 está fijo en `speed 100` y `duplex full`, mientras R1 G0/0/1 está en
+automático. R1 detecta los 100 Mb/s pero, sin negociación, asume **half duplex**. Se ven colisiones tardías y CRC, y
+CDP avisa con un mensaje `%CDP-4-DUPLEX_MISMATCH`.
+
+```text
+S1(config)# interface gigabitethernet0/1
+S1(config-if)# speed auto
+S1(config-if)# duplex auto
+```
+
+Verificación: `show interfaces g0/0/1` en R1 debe mostrar full duplex, y tras `clear counters` no deben aumentar
+las colisiones.
+
+</details>
+
+## Para quien prepara el archivo .pkt
+
+<details class="solucion">
+<summary>Cómo inyectar las fallas (no lo abras si vas a resolver el laboratorio)</summary>
+
+Arma la red funcionando según la documentación y luego aplica estos cambios antes de guardar el archivo:
+
+```text
+S1(config)# interface fastethernet0/2
+S1(config-if)# shutdown
+S1(config-if)# interface gigabitethernet0/1
+S1(config-if)# speed 100
+S1(config-if)# duplex full
+```
+
+- PC1: gateway 192.168.1.254.
+- PC3: IP 192.168.1.30 con máscara 255.255.255.240 (gateway 192.168.1.1).
+- R1: `interface loopback0` con `ip address 10.10.10.1 255.255.255.255`.
+
+Comprueba en tu versión de Packet Tracer que cada síntoma del reporte se reproduce tal como está escrito. Si alguno
+se comporta distinto, ajusta el texto del ticket. Si usas Activity Wizard, define como respuesta la red corregida.
+
+</details>

@@ -1,0 +1,259 @@
+curso: itn
+modulo: 3
+preguntas:
+  - id: itn3-01
+    tema: "3.1"
+    verifique: true
+    p: "¿Qué requisito de los protocolos convierte la información en señales que pueden viajar por el medio?"
+    opciones: ["Codificación", "Control de flujo", "Secuenciación", "Opciones de entrega"]
+    correcta: 0
+    explicacion: "La codificación transforma la información en bits y luego en señales eléctricas, luz u ondas. El receptor hace el proceso inverso."
+  - id: itn3-02
+    tema: "3.1"
+    verifique: true
+    p: "Un host envía un mensaje que deben recibir todos los equipos de su red local. ¿Qué opción de entrega usa?"
+    opciones: ["Unicast", "Multicast", "Broadcast", "Anycast"]
+    correcta: 2
+    explicacion: "Broadcast es uno a todos. Unicast va a un solo destino y multicast a un grupo de destinos suscritos."
+  - id: itn3-03
+    tema: "3.1"
+    p: "¿Qué concepto de sincronización evita que un emisor rápido sature a un receptor más lento?"
+    opciones: ["Método de acceso", "Control de flujo", "Codificación", "Encapsulación"]
+    correcta: 1
+    explicacion: "El control de flujo regula cuántos datos se envían y a qué velocidad."
+  - id: itn3-04
+    tema: "3.1"
+    p: "¿Qué determina cuándo puede un dispositivo transmitir por un medio compartido?"
+    opciones: ["El método de acceso", "El tiempo de espera de respuesta", "La codificación", "El tamaño del mensaje"]
+    correcta: 0
+    explicacion: "El método de acceso define el momento en que cada dispositivo puede enviar, para evitar que todos hablen a la vez."
+  - id: itn3-05
+    tema: "3.1"
+    p: "¿Qué opción de entrega no existe en IPv6?"
+    opciones: ["Unicast", "Multicast", "Broadcast", "Anycast"]
+    correcta: 2
+    explicacion: "IPv6 eliminó el broadcast; usa multicast para lo que en IPv4 se hacía con broadcast."
+  - id: itn3-06
+    tema: "3.2"
+    verifique: true
+    p: "¿Qué función de un protocolo numera los segmentos para que el destino los reordene?"
+    opciones: ["Direccionamiento", "Secuenciación", "Detección de errores", "Codificación"]
+    correcta: 1
+    explicacion: "La secuenciación etiqueta cada segmento con un número para reensamblarlos en orden y detectar faltantes."
+  - id: itn3-07
+    tema: "3.2"
+    verifique: true
+    p: "¿A qué tipo de protocolo pertenecen OSPF y BGP?"
+    opciones: ["Seguridad", "Enrutamiento", "Detección de servicios", "Interfaz de aplicación"]
+    correcta: 1
+    explicacion: "OSPF y BGP intercambian información de rutas entre routers para elegir el mejor camino."
+  - id: itn3-08
+    tema: "3.2"
+    p: "Al abrir una página web, ¿qué protocolo administra la conversación y retransmite los segmentos perdidos?"
+    opciones: ["HTTP", "TCP", "IP", "Ethernet"]
+    correcta: 1
+    explicacion: "TCP divide, numera y confirma los segmentos. HTTP define la conversación entre navegador y servidor; IP lleva los paquetes entre redes; Ethernet entrega en la LAN."
+  - id: itn3-09
+    tema: "3.2"
+    p: "¿Qué protocolos son de seguridad?"
+    opciones: ["SSH", "DHCP", "SSL/TLS", "OSPF", "Ethernet"]
+    correcta: [0, 2]
+    explicacion: "SSH y SSL/TLS ofrecen autenticación, integridad y cifrado. DHCP detecta servicios, OSPF enruta y Ethernet comunica en la LAN."
+  - id: itn3-10
+    tema: "3.3"
+    verifique: true
+    p: "¿Qué protocolo traduce un nombre de dominio, como www.ejemplo.com, en una dirección IP?"
+    opciones: ["DHCP", "DNS", "ARP", "HTTP"]
+    correcta: 1
+    explicacion: "DNS resuelve nombres en direcciones IP. DHCP asigna configuración IP y ARP resuelve IP en MAC."
+  - id: itn3-11
+    tema: "3.3"
+    verifique: true
+    p: "¿Qué protocolo de la capa de acceso a la red obtiene la dirección MAC correspondiente a una dirección IPv4?"
+    opciones: ["ARP", "ICMP", "NAT", "DNS"]
+    correcta: 0
+    explicacion: "ARP pregunta en la red local qué equipo tiene una IPv4 y obtiene su MAC."
+  - id: itn3-12
+    tema: "3.3"
+    p: "¿Qué protocolo se usa para enviar correo electrónico?"
+    opciones: ["POP3", "IMAP", "SMTP", "FTP"]
+    correcta: 2
+    explicacion: "SMTP envía el correo. POP3 e IMAP los usa el cliente para descargarlo o sincronizarlo."
+  - id: itn3-13
+    tema: "3.3"
+    p: "¿Qué característica tiene la suite TCP/IP?"
+    opciones:
+      - "Es propietaria de un único fabricante"
+      - "Es abierta y basada en estándares"
+      - "Solo funciona en redes locales"
+      - "Fue reemplazada por AppleTalk"
+    correcta: 1
+    explicacion: "TCP/IP es una suite abierta, sin licencias, cuyos estándares mantiene el IETF. Es la base de Internet."
+  - id: itn3-14
+    tema: "3.3"
+    p: "¿Qué protocolo transfiere archivos de forma simple, sin conexión y sin autenticación?"
+    opciones: ["FTP", "SFTP", "TFTP", "HTTPS"]
+    correcta: 2
+    explicacion: "TFTP es liviano y no autentica. FTP usa conexión y autenticación, y SFTP además cifra con SSH."
+  - id: itn3-15
+    tema: "3.3"
+    p: "¿En qué capa del modelo TCP/IP funcionan IPv4, ICMP y OSPF?"
+    opciones: ["Aplicación", "Transporte", "Internet", "Acceso a la red"]
+    correcta: 2
+    explicacion: "La capa de Internet incluye IP, ICMP, NAT y los protocolos de enrutamiento."
+  - id: itn3-16
+    tema: "3.4"
+    verifique: true
+    p: "¿Qué organización desarrolla los estándares de Internet y los publica como RFC?"
+    opciones: ["IEEE", "IETF", "TIA", "UIT-T"]
+    correcta: 1
+    explicacion: "El IETF mantiene los estándares de Internet y TCP/IP en documentos RFC."
+  - id: itn3-17
+    tema: "3.4"
+    verifique: true
+    p: "¿Qué organización define los estándares 802.3 (Ethernet) y 802.11 (Wi-Fi)?"
+    opciones: ["IEEE", "ICANN", "ISOC", "EIA"]
+    correcta: 0
+    explicacion: "El IEEE desarrolla los estándares de LAN de la familia 802."
+  - id: itn3-18
+    tema: "3.4"
+    p: "¿Cuál es la principal ventaja de los estándares abiertos?"
+    opciones:
+      - "Que solo un fabricante puede producir los equipos"
+      - "Que permiten la interoperabilidad entre equipos de distintos fabricantes"
+      - "Que eliminan la necesidad de protocolos"
+      - "Que hacen las redes más lentas pero más seguras"
+    correcta: 1
+    explicacion: "Con estándares abiertos, equipos de marcas distintas se comunican entre sí, y eso fomenta la competencia."
+  - id: itn3-19
+    tema: "3.4"
+    p: "¿Qué organización administra la asignación de direcciones IP, nombres de dominio y números de puerto?"
+    opciones: ["IANA", "IRTF", "TIA", "IEEE"]
+    correcta: 0
+    explicacion: "IANA, bajo la coordinación de ICANN, administra direcciones IP, dominios y números de puerto."
+  - id: itn3-20
+    tema: "3.5"
+    verifique: true
+    p: "¿Qué capa del modelo OSI se encarga del formato, la compresión y el cifrado de los datos?"
+    opciones: ["Sesión", "Presentación", "Transporte", "Aplicación"]
+    correcta: 1
+    explicacion: "La capa 6, presentación, da formato común a los datos para que el receptor los interprete."
+  - id: itn3-21
+    tema: "3.5"
+    verifique: true
+    p: "¿Qué capas del modelo OSI equivalen a la capa de acceso a la red de TCP/IP?"
+    opciones: ["Física y enlace de datos", "Red y transporte", "Sesión y presentación", "Enlace de datos y red"]
+    correcta: 0
+    explicacion: "La capa de acceso a la red de TCP/IP abarca las capas 1 (física) y 2 (enlace de datos) de OSI."
+  - id: itn3-22
+    tema: "3.5"
+    p: "¿Qué capa del modelo OSI se encarga del direccionamiento lógico y de elegir el camino entre redes?"
+    opciones: ["Capa 2", "Capa 3", "Capa 4", "Capa 7"]
+    correcta: 1
+    explicacion: "La capa 3 (red) usa direcciones IP y enrutamiento. Por eso los routers son dispositivos de capa 3."
+  - id: itn3-23
+    tema: "3.5"
+    p: "¿Cuál es un beneficio de usar un modelo en capas?"
+    opciones:
+      - "Obliga a usar un solo fabricante"
+      - "Un cambio de tecnología en una capa no afecta a las demás"
+      - "Elimina la necesidad de direcciones"
+      - "Hace innecesarios los estándares"
+    correcta: 1
+    explicacion: "Las capas aíslan los cambios: puedes cambiar el medio físico sin cambiar las aplicaciones. También fomentan la competencia y dan un lenguaje común."
+  - id: itn3-24
+    tema: "3.5"
+    p: "¿Qué capa del modelo OSI abre, administra y cierra los diálogos entre aplicaciones?"
+    opciones: ["Aplicación", "Presentación", "Sesión", "Transporte"]
+    correcta: 2
+    explicacion: "La capa 5, sesión, controla el diálogo entre las aplicaciones de origen y destino."
+  - id: itn3-25
+    tema: "3.5"
+    p: "¿Qué tipo de modelo es OSI?"
+    opciones: ["Un modelo de protocolo", "Un modelo de referencia", "Una suite propietaria", "Un estándar de cableado"]
+    correcta: 1
+    explicacion: "OSI describe qué debe hacer cada capa sin implementar una suite concreta. TCP/IP es un modelo de protocolo."
+  - id: itn3-26
+    tema: "3.6"
+    verifique: true
+    p: "¿Cuál es el nombre de la PDU en la capa de enlace de datos?"
+    opciones: ["Segmento", "Paquete", "Trama", "Bits"]
+    correcta: 2
+    explicacion: "En la capa de enlace de datos la PDU es la trama. En la de red es el paquete y en la de transporte el segmento."
+  - id: itn3-27
+    tema: "3.6"
+    verifique: true
+    p: "Un servidor prepara una página web para enviarla. ¿Cuál es el orden correcto de encapsulación?"
+    opciones:
+      - "Encabezado IP, encabezado TCP, datos HTTP, encabezado Ethernet"
+      - "Datos HTTP, encabezado TCP, encabezado IP, encabezado Ethernet"
+      - "Encabezado Ethernet, encabezado IP, encabezado TCP, datos HTTP"
+      - "Datos HTTP, encabezado IP, encabezado TCP, encabezado Ethernet"
+    correcta: 1
+    explicacion: "La encapsulación va de arriba hacia abajo: los datos de la aplicación, luego transporte (TCP), luego red (IP) y por último enlace (Ethernet)."
+  - id: itn3-28
+    tema: "3.6"
+    p: "¿Qué ventaja de la segmentación permite que varias conversaciones compartan el mismo medio?"
+    opciones: ["Codificación", "Multiplexación", "Encapsulación", "Direccionamiento"]
+    correcta: 1
+    explicacion: "Al dividir los datos en partes pequeñas, las partes de distintas conversaciones se intercalan: eso es multiplexación."
+  - id: itn3-29
+    tema: "3.6"
+    p: "¿Qué capa agrega un tráiler a la PDU?"
+    opciones: ["Transporte", "Red", "Enlace de datos", "Aplicación"]
+    correcta: 2
+    explicacion: "Solo la capa de enlace de datos agrega un tráiler: el FCS al final de la trama, para detectar errores."
+  - id: itn3-30
+    tema: "3.6"
+    p: "¿Qué hace el receptor durante la desencapsulación?"
+    opciones:
+      - "Agrega encabezados de arriba hacia abajo"
+      - "Quita los encabezados de abajo hacia arriba y entrega los datos a la capa superior"
+      - "Divide el mensaje en segmentos"
+      - "Cambia las direcciones IP"
+    correcta: 1
+    explicacion: "El receptor procesa la trama desde la capa física hacia arriba, quitando en cada capa el encabezado que le corresponde."
+  - id: itn3-31
+    tema: "3.7"
+    verifique: true
+    p: "Una PC envía un paquete a un servidor de otra red. ¿Qué dirección MAC de destino lleva la trama que sale de la PC?"
+    opciones:
+      - "La MAC del servidor"
+      - "La MAC de la interfaz del router que es su gateway predeterminado"
+      - "La dirección de broadcast"
+      - "La MAC del switch"
+    correcta: 1
+    explicacion: "Para llegar a otra red, la trama se entrega al gateway predeterminado. La IP de destino, en cambio, sí es la del servidor."
+  - id: itn3-32
+    tema: "3.7"
+    verifique: true
+    p: "¿Qué direcciones se mantienen iguales desde el origen hasta el destino cuando un paquete atraviesa varios routers?"
+    opciones:
+      - "Las direcciones MAC de origen y destino"
+      - "Las direcciones IP de origen y destino"
+      - "Solo la MAC de origen"
+      - "Ninguna: todas cambian en cada salto"
+    correcta: 1
+    explicacion: "Las IP son de extremo a extremo. Las MAC cambian en cada salto porque cada router arma una trama nueva."
+  - id: itn3-33
+    tema: "3.7"
+    p: "Una PC y un servidor están en la misma red. ¿Qué MAC de destino usa la PC?"
+    opciones: ["La del gateway", "La del servidor", "La del switch", "FF-FF-FF-FF-FF-FF siempre"]
+    correcta: 1
+    explicacion: "En la misma red la trama va directo al destino, así que la MAC de destino es la del servidor (obtenida con ARP)."
+  - id: itn3-34
+    tema: "3.7"
+    p: "Una PC se comunica con los equipos de su red pero no con ninguna red remota. ¿Qué configuración es la causa más probable?"
+    opciones: ["La dirección MAC", "El gateway predeterminado", "El nombre de host", "El cable"]
+    correcta: 1
+    explicacion: "Sin un gateway correcto el host no sabe a quién entregar las tramas para otras redes. La red local, en cambio, funciona."
+  - id: itn3-35
+    tema: "3.7"
+    p: "¿Qué hace un router con una trama que recibe y que debe reenviar a otra red?"
+    opciones:
+      - "La reenvía sin cambios"
+      - "Cambia la IP de destino"
+      - "Desencapsula el paquete, decide la salida y lo encapsula en una trama nueva"
+      - "La convierte en un broadcast"
+    correcta: 2
+    explicacion: "El router quita la trama, mira la IP de destino, elige la interfaz de salida y arma una trama nueva con nuevas MAC."

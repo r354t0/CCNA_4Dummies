@@ -1,0 +1,80 @@
+---
+curso: itn
+modulo: 2
+tema: "2.9"
+titulo: Práctica y resumen del módulo
+objetivo: Integrar la configuración básica de un switch y de los dispositivos finales, y repasar el módulo.
+duracion: 15
+practica: [pt-switch, pt-conectividad, cli]
+actividades:
+  - codigo: "2.9.1"
+    tipo: Packet Tracer
+    titulo: Configuración básica del switch y del dispositivo final
+    guia: Lleva una lista con los requisitos del enunciado y marca cada uno al configurarlo. Al final, compara tu running-config con la lista.
+  - codigo: "2.9.2"
+    tipo: Laboratorio
+    titulo: Configuración básica del switch y del dispositivo final (modo físico)
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.9.1 La configuración completa, de un vistazo
+
+```text
+enable
+configure terminal
+ hostname S1
+ no ip domain-lookup
+ enable secret Cl4ss!2026
+ service password-encryption
+ banner motd #Acceso solo para personal autorizado#
+ line console 0
+  password C0ns0la!26
+  login
+ line vty 0 15
+  password Rem0t0!26
+  login
+  transport input telnet ssh
+ interface vlan 1
+  ip address 192.168.1.2 255.255.255.0
+  no shutdown
+ ip default-gateway 192.168.1.1
+ end
+copy running-config startup-config
+```
+
+`no ip domain-lookup` evita que IOS intente resolver por DNS cada comando mal escrito (te ahorra esperas de varios
+segundos en el laboratorio).
+
+## 2.9.2 Lo que aprendiste
+
+| Tema | Lo esencial |
+|---|---|
+| 2.1 Acceso | Shell, kernel y hardware. Consola (fuera de banda), SSH y Telnet (en banda). Emuladores de terminal |
+| 2.2 Navegación | `>` EXEC de usuario, `#` EXEC privilegiado, `(config)#` global y submodos. `enable`, `configure terminal`, `exit`, `end` |
+| 2.3 Comandos | Comando, palabras clave y argumentos. Ayuda con `?`. Mensajes de error. Abreviaturas y teclas rápidas |
+| 2.4 Configuración básica | `hostname`, `enable secret`, contraseñas de consola y VTY con `login`, `service password-encryption`, `banner motd` |
+| 2.5 Guardar | running-config en RAM, startup-config en NVRAM. `copy run start`, `reload`, `erase startup-config` |
+| 2.6 Puertos y direcciones | IP, máscara y gateway. Puertos físicos sin IP; la SVI para administrar |
+| 2.7 Direcciones IP | Estática o DHCP en hosts. `interface vlan 1`, `ip address`, `no shutdown`, `ip default-gateway` |
+| 2.8 Verificar | `show ip interface brief`, `ipconfig` y `ping` |
+
+<Repaso
+  client:visible
+  titulo="Repaso final del módulo"
+  fichas={[
+    { frente: 'Prompt de configuración de línea.', dorso: 'Switch(config-line)#' },
+    { frente: 'Abreviatura de configure terminal.', dorso: 'conf t' },
+    { frente: 'IOS dice «% Ambiguous command». ¿Qué pasó?', dorso: 'Lo escrito coincide con más de un comando: faltan letras.' },
+    { frente: 'Tres reglas de un hostname válido.', dorso: 'Empieza con letra, sin espacios, termina en letra o dígito (solo letras, dígitos y guiones, menos de 64 caracteres).' },
+    { frente: 'Comando que hace que la consola pida la contraseña.', dorso: 'login' },
+    { frente: '¿Qué memoria guarda la configuración en ejecución?', dorso: 'La RAM.' },
+    { frente: '¿Qué le falta a un switch para responder a una PC de otra red?', dorso: 'ip default-gateway' },
+    { frente: 'Comando para ver estado e IP de todas las interfaces.', dorso: 'show ip interface brief' },
+  ]}
+/>
+
+## 2.9.3 Siguiente paso
+
+Haz la **prueba del módulo** y luego el ejercicio de Packet Tracer de la página Práctica: la app te da valores
+distintos cada vez y corrige tu configuración.

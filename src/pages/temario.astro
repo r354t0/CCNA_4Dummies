@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import { BLUEPRINTS, VERSIONES } from '../data/blueprints';
+import { temas, urlTema } from '../lib/teoria';
+import { curso } from '../data/cursos';
+
+const lista = await temas();
+
+const tablas = VERSIONES.map((v) => ({
+  v,
+  clase: v === 'v1.1' ? 'solo-v11' : 'solo-v20',
+  ...BLUEPRINTS[v],
+  dominios: BLUEPRINTS[v].dominios.map((d) => ({
+    ...d,
+    temas: lista.filter((t) => t.data.examen?.[v] === d.numero),
+  })),
+}));
+---
+<Base titulo="Temario del examen" descripcion="Dominios del CCNA 200-301 v1.1 y v2.0 y qué contenido de la app cubre cada uno.">
+  <div class="wrap">
+    <h1>Temario del examen 200-301</h1>
+    <p class="bajada">
+      El examen tiene una sola versión vigente a la vez. La <strong>v1.1</strong> se puede rendir hasta el 2 de febrero
+      de 2027 y la <strong>v2.0</strong> desde el 3 de febrero de 2027. La v2.0 reorganiza el temario en cinco dominios y
+      suma diagnóstico de DNS, troubleshooting de DHCPv4, PoE, Ansible, enfoques de gestión de red, diseño de prompts e
+      IA agéntica para operaciones.
+    </p>
+    <p class="nota">
+      Fuente: temarios oficiales publicados por Cisco. Confirma la versión vigente en la página del examen antes de
+      programar tu fecha.
+    </p>
+
+    {tablas.map((t) => (
+      <section class={t.clase} aria-labelledby={`t-${t.clase}`}>
+        <h2 id={`t-${t.clase}`}>Versión {t.v}: {t.vigencia.toLowerCase()}</h2>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr><th>Dominio</th><th class="num">Peso</th><th>Contenido disponible en la app</th></tr>
+            </thead>
+            <tbody>
+              {t.dominios.map((d) => (
+                <tr>
+                  <td>
+                    <strong>{d.numero}. {d.nombre}</strong>
+                    <span class="original" lang="en">{d.original}</span>
+                  </td>
+                  <td class="num">
+                    <span class="peso" style={`--p:${d.peso * 4}%`}>{d.peso}%</span>
+                  </td>
+                  <td>
+                    {d.temas.length === 0 ? (
+                      <span class="vacio">Aún sin contenido</span>
+                    ) : (
+                      <ul>
+                        {d.temas.map((t) => <li><a href={urlTema(t)}>{curso(t.data.curso).sigla} {t.data.tema} {t.data.titulo}</a></li>)}
+                      </ul>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .bajada { font-size: 1.1rem; max-width: 68ch; }
+  .nota { color: var(--muted); max-width: 68ch; }
+  .tabla-wrap { overflow-x: auto; max-width: 960px; }
+  table { border-collapse: collapse; width: 100%; background: var(--surface); }
+  th, td { border-bottom: 1px solid var(--line); padding: 0.7rem 0.8rem; text-align: left; vertical-align: top; }
+  th { font-family: var(--font-head); font-weight: 600; background: var(--bg); border-bottom-color: var(--line-strong); }
+  .original { display: block; color: var(--muted); font-size: 0.88rem; }
+  .num { width: 7rem; }
+  .peso {
+    display: block; font-family: var(--font-head); font-weight: 700; font-size: 1.15rem;
+    background: linear-gradient(90deg, var(--n3) var(--p), transparent var(--p)) bottom / 100% 4px no-repeat;
+    padding-bottom: 0.3rem;
+  }
+  td ul { margin: 0; padding-left: 1.1rem; }
+  td li + li { margin-top: 0.15rem; }
+  .vacio { color: var(--muted); font-style: italic; }
+</style>

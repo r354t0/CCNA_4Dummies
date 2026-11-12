@@ -1,0 +1,95 @@
+---
+curso: itn
+modulo: 2
+tema: "2.8"
+titulo: Verificar la conectividad
+objetivo: Verificar la conectividad entre dos dispositivos finales.
+duracion: 15
+examen:
+  v1.1: 3
+  v2.0: 3
+practica: [diagnostico, pt-conectividad]
+actividades:
+  - codigo: "2.8.1"
+    tipo: Video
+    titulo: Probar la asignación de interfaces
+  - codigo: "2.8.2"
+    tipo: Video
+    titulo: Probar la conectividad de extremo a extremo
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.8.1 Verificar las interfaces
+
+Antes de probar la conectividad, comprueba que las interfaces estén encendidas y con la dirección correcta. En un
+switch o router:
+
+```text
+S1# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+FastEthernet0/1        unassigned      YES manual up                    up
+FastEthernet0/2        unassigned      YES manual down                  down
+...
+Vlan1                  192.168.1.2     YES manual up                    up
+```
+
+| Columna | Qué te dice |
+|---|---|
+| IP-Address | La IP configurada. En los puertos físicos de un switch es `unassigned`, y es correcto |
+| Status | Capa 1: ¿hay señal? `up`, `down` o `administratively down` (tiene `shutdown`) |
+| Protocol | Capa 2: ¿funciona el enlace? |
+
+## 2.8.2 Probar de extremo a extremo con ping
+
+`ping` envía mensajes de eco y espera las respuestas. Si llegan, hay conectividad entre los dos extremos.
+
+```text
+C:\> ping 192.168.1.2
+
+Pinging 192.168.1.2 with 32 bytes of data:
+
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+
+Ping statistics for 192.168.1.2:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+```
+
+En un switch o router la salida es más corta: cada `!` es una respuesta y cada `.` un tiempo de espera agotado.
+
+```text
+S1# ping 192.168.1.10
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.10, timeout is 2 seconds:
+.!!!!
+Success rate is 80 percent (4/5), round-trip min/avg/max = 0/0/1 ms
+```
+
+<aside class="dato">
+
+El primer `.` es normal: ese primer paquete se pierde mientras el equipo averigua la dirección MAC del destino con
+ARP. Lo verás en el módulo 9.
+
+</aside>
+
+## 2.8.3 Un orden para diagnosticar
+
+Cuando un ping falla, revisa de abajo hacia arriba:
+
+1. **¿Hay enlace?** Status `up` en el puerto del switch. Si dice `administratively down`, falta `no shutdown`.
+2. **¿La configuración IP es correcta?** `ipconfig` en la PC: IP, máscara y gateway de la red correcta.
+3. **¿El destino está bien configurado?** En un switch, la SVI con IP, encendida y con gateway.
+4. **¿Llega al gateway?** Un ping al gateway confirma la red local antes de probar redes remotas.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'En show ip interface brief, ¿qué indica Status «administratively down»?', dorso: 'Que la interfaz tiene el comando shutdown.' },
+    { frente: '¿Por qué un puerto físico de switch aparece «unassigned»?', dorso: 'Porque en un switch de capa 2 los puertos no llevan IP; la IP va en la SVI.' },
+    { frente: 'En un ping de IOS, ¿qué significa «.»?', dorso: 'Que una solicitud no recibió respuesta a tiempo.' },
+    { frente: '¿Por qué suele perderse el primer ping?', dorso: 'Porque el equipo aún está resolviendo la MAC del destino con ARP.' },
+  ]}
+/>

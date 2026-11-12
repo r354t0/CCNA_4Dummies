@@ -1,0 +1,97 @@
+---
+curso: itn
+modulo: 1
+tema: "1.7"
+titulo: Tendencias de red
+objetivo: Explicar cómo BYOD, la colaboración en línea, el video y la computación en la nube cambian la forma de usar la red.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+actividades:
+  - codigo: "1.7.5"
+    tipo: Video
+    titulo: Cisco Webex para reuniones rápidas
+    guia: Observa qué servicios de red usa una sola reunión (voz, video, chat, archivos compartidos) y por qué todos dependen de la QoS que viste en el tema 1.6.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.7.1 Tendencias recientes
+
+Las redes cambian porque cambia la forma en que las usamos. Cuatro tendencias marcan el diseño de las redes actuales:
+BYOD, la colaboración en línea, las comunicaciones por video y la computación en la nube.
+
+## 1.7.2 BYOD: traiga su propio dispositivo
+
+**BYOD** (*bring your own device*) significa que cada persona usa **su propio equipo** (laptop, teléfono, tablet) para
+acceder a la información y a los servicios de la organización, desde cualquier lugar.
+
+- **Ventaja**: más libertad y productividad; la organización compra menos equipos.
+- **Desafío**: la red debe aceptar dispositivos que no controla y protegerse de ellos.
+
+## 1.7.3 Colaboración en línea
+
+Las herramientas de colaboración permiten trabajar en tiempo real sobre el mismo proyecto: documentos compartidos,
+pizarras, mensajería y reuniones. Son parte del día a día en empresas y en la educación.
+
+## 1.7.4 Comunicaciones por video
+
+Videollamadas y videoconferencias reemplazaron gran parte de las reuniones presenciales. Son de las aplicaciones más
+exigentes: necesitan ancho de banda y **muy poco retraso**.
+
+## 1.7.6 Computación en la nube
+
+La **nube** permite guardar archivos y usar aplicaciones en servidores de un **centro de datos** a través de Internet,
+en lugar de tenerlos en el propio equipo. La organización paga por lo que usa y puede crecer sin comprar servidores.
+
+Un **centro de datos** es una instalación con servidores, almacenamiento, energía redundante, climatización y
+seguridad física. Hay cuatro tipos de nube:
+
+<Tarjetas
+  columnas={4}
+  items={[
+    { titulo: 'Pública', texto: 'Servicios disponibles para cualquiera a través de Internet. Pueden ser gratuitos o de pago.', ejemplo: 'Un servicio de almacenamiento en línea.' },
+    { titulo: 'Privada', texto: 'Para una sola organización, como un organismo de gobierno. Puede ser propia o administrada por terceros.', ejemplo: 'La nube interna de un banco.' },
+    { titulo: 'Híbrida', texto: 'Combina partes de dos o más tipos de nube (por ejemplo, privada y pública) que funcionan como una sola.', ejemplo: 'Datos sensibles en privada, el sitio web en pública.' },
+    { titulo: 'Comunitaria', texto: 'Para un grupo de organizaciones con necesidades comunes, como regulaciones de salud o seguridad.', ejemplo: 'Hospitales que comparten una plataforma.' },
+  ]}
+/>
+
+## 1.7.7 Tendencias en el hogar
+
+El **hogar inteligente** integra electrodomésticos, iluminación, cámaras y cerraduras a la red para controlarlos desde
+el celular o programarlos. Es parte del Internet de las cosas.
+
+## 1.7.8 Redes por línea eléctrica (powerline)
+
+Usan el **cableado eléctrico existente** para conectar equipos. Se enchufa un **adaptador** en un tomacorriente y el
+equipo queda en la red, sin cables nuevos. Es útil donde el Wi-Fi no llega bien.
+
+<aside class="ojo">
+
+Powerline **no** necesita cableado eléctrico especial ni reemplaza la red inalámbrica: aprovecha la instalación
+eléctrica que ya existe mediante adaptadores. Es un distractor frecuente en las preguntas.
+
+</aside>
+
+## 1.7.9 Banda ancha inalámbrica
+
+Dos opciones para llegar a Internet sin cable hasta la casa:
+
+- **Proveedor de servicios de Internet inalámbrico (WISP)**: común en zonas rurales. Una antena en el techo apunta a la
+  torre del proveedor.
+- **Servicio de banda ancha inalámbrica móvil**: la misma red celular de los teléfonos (4G, 5G), usada como acceso a
+  Internet para el hogar.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué significa BYOD?', dorso: 'Traiga su propio dispositivo: usar el equipo personal para acceder a la red de la organización.' },
+    { frente: 'Una nube solo para hospitales con las mismas regulaciones. ¿Qué tipo es?', dorso: 'Comunitaria.' },
+    { frente: '¿Qué necesita una red powerline?', dorso: 'Adaptadores enchufados al cableado eléctrico existente.' },
+    { frente: 'Una antena en el techo apunta a la torre de un proveedor rural. ¿Qué servicio es?', dorso: 'WISP: proveedor de servicios de Internet inalámbrico.' },
+    { frente: '¿Qué es un centro de datos?', dorso: 'Una instalación con servidores, almacenamiento, energía y climatización redundantes, y seguridad física.' },
+  ]}
+/>

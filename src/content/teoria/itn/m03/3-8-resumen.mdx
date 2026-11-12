@@ -1,0 +1,40 @@
+---
+curso: itn
+modulo: 3
+tema: "3.8"
+titulo: Resumen del módulo
+objetivo: Repasar las ideas principales del módulo antes de la prueba y del examen de punto de control.
+duracion: 10
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.8.1 Lo que aprendiste
+
+| Tema | Lo esencial |
+|---|---|
+| 3.1 Las reglas | Origen, canal y destino. Codificación, formato y encapsulación, tamaño, sincronización (flujo, tiempo de espera, acceso) y entrega (unicast, multicast, broadcast) |
+| 3.2 Protocolos | Tipos: comunicación, seguridad, enrutamiento, detección de servicios. Funciones: direccionamiento, confiabilidad, flujo, secuencia, errores, interfaz de aplicación |
+| 3.3 Suites | TCP/IP es la suite abierta de Internet. Protocolos por capa: DNS, DHCP, HTTP, SMTP; TCP y UDP; IP, ICMP, OSPF; ARP, Ethernet, WLAN |
+| 3.4 Estándares | ISOC, IAB, IETF (RFC), IRTF, ICANN e IANA para Internet; IEEE, EIA, TIA y UIT-T para electrónica y comunicaciones |
+| 3.5 Modelos | OSI (7 capas, referencia) y TCP/IP (4 capas, protocolo). Cada capa tiene funciones y PDU propias |
+| 3.6 Encapsulamiento | Segmentación, multiplexación y secuencia. Datos, segmento, paquete, trama y bits |
+| 3.7 Acceso a los datos | IP de extremo a extremo, MAC de salto a salto. A otra red, la trama va al gateway |
+
+<Repaso
+  client:visible
+  titulo="Repaso final del módulo"
+  fichas={[
+    { frente: 'Requisito de protocolo que divide los mensajes largos.', dorso: 'El tamaño del mensaje (segmentación).' },
+    { frente: 'Organización que define Ethernet.', dorso: 'El IEEE (802.3).' },
+    { frente: 'Capas OSI que equivalen a «acceso a la red» en TCP/IP.', dorso: 'Enlace de datos y física (2 y 1).' },
+    { frente: 'Orden de las PDU de arriba hacia abajo.', dorso: 'Datos, segmento, paquete, trama, bits.' },
+    { frente: 'Protocolo de transporte sin conexión.', dorso: 'UDP.' },
+    { frente: 'En una red remota, ¿qué MAC de destino usa el host?', dorso: 'La de su gateway predeterminado.' },
+  ]}
+/>
+
+## 3.8.2 Siguiente paso
+
+Haz la **prueba del módulo 3** y, cuando la apruebes, el **examen de punto de control de los módulos 1 a 3**. Mezcla
+preguntas de los tres módulos y te muestra en cuál necesitas repasar.

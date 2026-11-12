@@ -1,0 +1,93 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CURSOS } from '../../data/cursos';
+import { indice, urlModulo } from '../../lib/teoria';
+import { url } from '../../lib/url';
+
+const cursos = await Promise.all(CURSOS.map(async (c) => ({ ...c, mods: await indice(c.id) })));
+---
+<Base titulo="Teórica" descripcion="Teoría del CCNA organizada por los módulos de Cisco Networking Academy.">
+  <div class="wrap">
+    <header class="cab">
+      <h1>Teórica</h1>
+      <p class="bajada">
+        Todo lo que necesitas para la parte teórica del examen, en el mismo orden que los cursos de Cisco Networking
+        Academy. Cada tema trae explicaciones, diagramas, tarjetas de repaso y un «Verifique su comprensión»; cada
+        módulo cierra con una prueba, y cada bloque con un examen de punto de control.
+      </p>
+      <a class="sim" href={url('teorica/simulacro/')}>Hacer un simulacro con preguntas al azar</a>
+    </header>
+
+    {cursos.map((c) => {
+      const disponibles = c.mods.filter((m) => m.disponible);
+      return (
+        <section class="curso" style={`--c:${c.color}`} aria-labelledby={`c-${c.id}`}>
+          <header class="curso-cab">
+            <span class="sigla">{c.sigla}</span>
+            <div>
+              <h2 id={`c-${c.id}`}>{c.titulo}</h2>
+              <p>{c.resumen}</p>
+            </div>
+            <span class="barra" data-barra={disponibles.flatMap((m) => m.claves).join(' ')} hidden={!disponibles.length}>
+              <span class="barra-pista"><span class="barra-relleno"></span></span>
+              <span class="barra-texto" data-barra-texto>0%</span>
+            </span>
+          </header>
+          <ol class="mods">
+            {c.mods.map((m) => (
+              <li class:list={['mod', { off: !m.disponible }]}>
+                {m.disponible ? (
+                  <a href={urlModulo(c.id, m.numero)}>
+                    <span class="mod-num">{m.numero}</span>
+                    <span class="mod-titulo">{m.titulo}</span>
+                    <span class="mod-barra" data-barra={m.claves.join(' ')}>
+                      <span class="barra-pista"><span class="barra-relleno"></span></span>
+                      <span class="barra-texto" data-barra-texto>0%</span>
+                    </span>
+                  </a>
+                ) : (
+                  <div>
+                    <span class="mod-num">{m.numero}</span>
+                    <span class="mod-titulo">{m.titulo}</span>
+                    <span class="pronto">Próximamente</span>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
+    })}
+  </div>
+</Base>
+
+<style>
+  .cab { margin-bottom: 2rem; }
+  .bajada { font-size: 1.15rem; max-width: 64ch; }
+  .sim { font-weight: 600; }
+  .curso { margin-top: 2.5rem; }
+  .curso-cab { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 1rem; align-items: start; margin-bottom: 1rem; }
+  .curso-cab h2 { margin: 0 0 0.2rem; }
+  .curso-cab p { margin: 0; color: var(--muted); max-width: 70ch; }
+  .curso-cab .barra { grid-column: 2; max-width: 420px; }
+  .sigla { background: var(--c); color: #fff; font-family: var(--font-head); font-weight: 700; padding: 0.35rem 0.6rem; border-radius: 5px; margin-top: 0.3rem; }
+  .barra, .mod-barra { display: flex; align-items: center; gap: 0.5rem; }
+  .barra-pista { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .barra-relleno { display: block; height: 100%; width: var(--p, 0%); background: var(--c); }
+  .barra-texto { font-size: 0.8rem; color: var(--muted); min-width: 2.4rem; text-align: right; }
+  .mods { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  .mod { margin: 0; }
+  .mod a, .mod div {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 0.7rem; align-items: start; height: 100%;
+    padding: 0.75rem 0.9rem; border-radius: var(--radius-m); background: var(--surface);
+    border: 1px solid var(--line); text-decoration: none; color: var(--ink);
+  }
+  .mod a { border-left: 4px solid var(--c); }
+  .mod a:hover { border-color: var(--c); }
+  .mod-num { font-family: var(--font-head); font-weight: 700; font-size: 1.3rem; line-height: 1; color: var(--c); min-width: 1.6rem; }
+  .mod-titulo { font-weight: 600; line-height: 1.3; }
+  .mod-barra, .pronto { grid-column: 2; }
+  .off div { border-style: dashed; color: var(--muted); }
+  .off .mod-num { color: var(--muted); }
+  .pronto { font-size: 0.82rem; }
+</style>

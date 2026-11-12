@@ -1,0 +1,135 @@
+// Catálogo de ejercicios de la página Práctica. Cada ejercicio genera un escenario
+// distinto en cada intento y se puede reproducir con su código.
+
+import type { IdCurso } from './cursos';
+
+export type TipoEjercicio = 'Interactivo' | 'Consola IOS' | 'Diagnóstico' | 'Packet Tracer';
+
+export interface Ejercicio {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  tipo: TipoEjercicio;
+  curso: IdCurso;
+  modulos: number[];
+  temas: string[]; // temas de teoría que refuerza
+  ruta: string; // ruta dentro de /practica/
+  minutos: number;
+  /** Archivo de inicio opcional en public/labs/<id>/ (por ejemplo «pt-switch/inicial.pkt»). */
+  archivo?: string;
+}
+
+export const EJERCICIOS: Ejercicio[] = [
+  {
+    id: 'clasificar',
+    titulo: 'Clasifica componentes, redes y tecnologías',
+    descripcion: 'Rondas al azar: dispositivos finales o intermediarios, tipos de red, tecnologías de acceso a Internet y características de una red confiable.',
+    tipo: 'Interactivo',
+    curso: 'itn',
+    modulos: [1],
+    temas: ['1.2', '1.4', '1.5', '1.6', '1.8'],
+    ruta: 'clasificar/',
+    minutos: 5,
+  },
+  {
+    id: 'topologias',
+    titulo: 'Lee un diagrama de topología',
+    descripcion: 'Una topología generada al azar: identifica equipos, medios, interfaces y si es un diagrama físico o lógico.',
+    tipo: 'Interactivo',
+    curso: 'itn',
+    modulos: [1],
+    temas: ['1.2', '1.3'],
+    ruta: 'topologias/',
+    minutos: 5,
+  },
+  {
+    id: 'cli',
+    titulo: 'Consola IOS: configura un switch',
+    descripcion: 'Una consola de switch en el navegador con tareas al azar: modos, nombre, contraseñas, banner, SVI y guardar. Valida cada comando como el verificador de sintaxis.',
+    tipo: 'Consola IOS',
+    curso: 'itn',
+    modulos: [2],
+    temas: ['2.2', '2.3', '2.4', '2.5', '2.7'],
+    ruta: 'cli/',
+    minutos: 15,
+  },
+  {
+    id: 'diagnostico',
+    titulo: 'Diagnóstico: ¿por qué no hay conectividad?',
+    descripcion: 'Una red con una falla al azar. Lee las salidas de ipconfig, ping, show ip interface brief y show running-config y encuentra la causa.',
+    tipo: 'Diagnóstico',
+    curso: 'itn',
+    modulos: [2],
+    temas: ['2.4', '2.6', '2.7', '2.8'],
+    ruta: 'diagnostico/',
+    minutos: 8,
+  },
+  {
+    id: 'pt-switch',
+    titulo: 'Packet Tracer: configuración inicial de un switch',
+    descripcion: 'Implementa en Packet Tracer un escenario con valores al azar, pega la configuración y la app corrige cada requisito.',
+    tipo: 'Packet Tracer',
+    curso: 'itn',
+    modulos: [2],
+    temas: ['2.4', '2.5', '2.7'],
+    ruta: 'packet-tracer/switch-inicial/',
+    minutos: 30,
+  },
+  {
+    id: 'pt-conectividad',
+    titulo: 'Packet Tracer: conectividad básica entre dos switches',
+    descripcion: 'Dos switches y dos PC con direccionamiento al azar. Pega las configuraciones y los ipconfig para que la app los corrija.',
+    tipo: 'Packet Tracer',
+    curso: 'itn',
+    modulos: [2],
+    temas: ['2.4', '2.6', '2.7', '2.8'],
+    ruta: 'packet-tracer/conectividad/',
+    minutos: 40,
+  },
+  {
+    id: 'encapsulacion',
+    titulo: 'Arma la encapsulación',
+    descripcion: 'Elige el orden en que se agregan los encabezados para una aplicación al azar y nombra la PDU de cada capa.',
+    tipo: 'Interactivo',
+    curso: 'itn',
+    modulos: [3],
+    temas: ['3.5', '3.6'],
+    ruta: 'encapsulacion/',
+    minutos: 5,
+  },
+  {
+    id: 'capas',
+    titulo: 'Relaciona capas, protocolos y PDU',
+    descripcion: 'Ubica protocolos, dispositivos, funciones y PDU en la capa correcta del modelo OSI o TCP/IP.',
+    tipo: 'Interactivo',
+    curso: 'itn',
+    modulos: [3],
+    temas: ['3.2', '3.3', '3.5'],
+    ruta: 'capas/',
+    minutos: 5,
+  },
+  {
+    id: 'direcciones',
+    titulo: 'Sigue las direcciones salto a salto',
+    descripcion: 'En una topología al azar, indica las direcciones MAC e IP de origen y destino de la trama en cada enlace.',
+    tipo: 'Interactivo',
+    curso: 'itn',
+    modulos: [3],
+    temas: ['3.7'],
+    ruta: 'direcciones/',
+    minutos: 8,
+  },
+  {
+    id: 'subnetting',
+    titulo: 'Entrenador de subnetting y VLSM',
+    descripcion: 'Ejercicios ilimitados de subredes, máscaras y diseño VLSM. Adelanto del módulo 11.',
+    tipo: 'Interactivo',
+    curso: 'itn',
+    modulos: [11],
+    temas: [],
+    ruta: 'subnetting/',
+    minutos: 10,
+  },
+];
+
+export const ejercicio = (id: string) => EJERCICIOS.find((e) => e.id === id);

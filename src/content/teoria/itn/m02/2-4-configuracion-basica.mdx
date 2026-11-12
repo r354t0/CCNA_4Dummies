@@ -1,0 +1,137 @@
+---
+curso: itn
+modulo: 2
+tema: "2.4"
+titulo: Configuración básica de dispositivos
+objetivo: Configurar un dispositivo IOS con nombre de host, contraseñas y un aviso de inicio de sesión.
+duracion: 30
+examen:
+  v1.1: 5
+  v2.0: 4
+practica: [cli, pt-switch, diagnostico]
+actividades:
+  - codigo: "2.4.7"
+    tipo: Verificador de sintaxis
+    titulo: Configuración básica de dispositivos
+    guia: Hazlo dos veces. La segunda, sin mirar el enunciado más que para los valores. Si lo logras, estás listo para el ejercicio de Packet Tracer de la página Práctica.
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.4.1 Nombres de los dispositivos
+
+El primer comando que se configura es el **nombre de host**. Todos los switches de fábrica se llaman `Switch`; con
+diez switches iguales no sabrías en cuál estás conectado.
+
+```text
+Switch(config)# hostname Sw-Piso2
+Sw-Piso2(config)#
+```
+
+El prompt cambia en cuanto pulsas Enter. Las reglas para un nombre válido:
+
+| Regla | Válido | No válido |
+|---|---|---|
+| Empieza con una letra | `Sw-Piso2` | `2-Sw` |
+| No tiene espacios | `Sw-Piso2` | `Sw Piso2` |
+| Termina con letra o dígito | `Sw-Piso2` | `Sw-Piso-` |
+| Solo letras, dígitos y guiones | `Sw-Piso2` | `Sw_Piso!2` |
+| Menos de 64 caracteres | `Sw-Piso2` | Un nombre de 70 letras |
+
+Para volver al nombre de fábrica: `no hostname`.
+
+## 2.4.2 Pautas para las contraseñas
+
+- Usa **más de ocho caracteres**.
+- Combina **mayúsculas, minúsculas, números y símbolos**.
+- No repitas la misma contraseña en todos los equipos.
+- Evita palabras del diccionario y datos personales.
+
+<aside class="dato">
+
+En los laboratorios de NetAcad se usan contraseñas simples como `cisco` o `class` para ir rápido. En una red real
+serían inaceptables.
+
+</aside>
+
+## 2.4.3 Configuración de contraseñas
+
+Hay tres puntos de acceso que proteger:
+
+| Qué se protege | Comandos |
+|---|---|
+| Acceso al modo EXEC privilegiado | `enable secret` *contraseña* |
+| Consola (acceso al modo EXEC de usuario por cable) | `line console 0`, `password` *contraseña*, `login` |
+| Acceso remoto por Telnet o SSH (líneas VTY) | `line vty 0 15`, `password` *contraseña*, `login` |
+
+<Pasos
+  client:visible
+  titulo="Proteger un switch paso a paso"
+  pasos={[
+    { titulo: 'EXEC privilegiado', texto: 'enable secret protege el paso de EXEC de usuario a EXEC privilegiado y guarda la contraseña con un hash.', codigo: 'Sw-Piso2(config)# enable secret Cl4ss!2026' },
+    { titulo: 'Consola', texto: 'Entras a la línea de consola, defines la contraseña y activas login. Sin login, la contraseña existe pero no se pide.', codigo: 'Sw-Piso2(config)# line console 0\nSw-Piso2(config-line)# password C0ns0la!26\nSw-Piso2(config-line)# login\nSw-Piso2(config-line)# exit' },
+    { titulo: 'Líneas VTY', texto: 'Las líneas virtuales atienden las conexiones remotas. Un switch suele tener 16 (0 a 15). Mismo patrón: password y login.', codigo: 'Sw-Piso2(config)# line vty 0 15\nSw-Piso2(config-line)# password Rem0t0!26\nSw-Piso2(config-line)# login\nSw-Piso2(config-line)# transport input ssh telnet\nSw-Piso2(config-line)# exit' },
+    { titulo: 'Cifrar', texto: 'service password-encryption oculta las contraseñas que estaban en texto plano en la configuración.', codigo: 'Sw-Piso2(config)# service password-encryption' },
+  ]}
+/>
+
+`transport input` define qué protocolos aceptan las líneas VTY: `ssh`, `telnet`, ambos, `all` o `none`. En equipos
+recientes el valor por defecto es `none`, así que hay que indicarlo.
+
+<aside class="ojo">
+
+Si existe `enable password` **y** `enable secret`, IOS usa solo `enable secret`. No configures los dos.
+
+</aside>
+
+## 2.4.4 Cifrado de las contraseñas
+
+En la configuración, las contraseñas de consola y VTY aparecen en **texto plano**:
+
+```text
+line con 0
+ password C0ns0la!26
+ login
+```
+
+Después de `service password-encryption`:
+
+```text
+line con 0
+ password 7 106D591716471E0A4D567C
+ login
+```
+
+El `7` indica el tipo de cifrado. Es **débil** (se revierte en segundos): solo evita que alguien lea las contraseñas
+por encima de tu hombro. Por eso `enable secret` usa un hash más fuerte desde el principio.
+
+## 2.4.5 Mensajes de aviso (banner)
+
+Un **banner MOTD** se muestra a quien intenta conectarse. Advierte que solo el personal autorizado puede entrar, y
+tiene valor legal: un intruso no puede decir que no sabía que estaba prohibido.
+
+```text
+Sw-Piso2(config)# banner motd #Acceso solo para personal autorizado#
+```
+
+El primer carácter después de `motd` es el **delimitador**: el mensaje termina cuando IOS lo vuelve a encontrar. Elige
+uno que no aparezca en el texto (`#`, `$`, `%`).
+
+<aside class="ojo">
+
+Nunca uses la palabra «bienvenido» en un banner: parece una invitación a entrar.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Es válido el nombre «Sw Piso 3»?', dorso: 'No: tiene espacios.' },
+    { frente: '¿Qué comando protege el modo EXEC privilegiado?', dorso: 'enable secret' },
+    { frente: 'Configuraste password en la consola pero no la pide. ¿Qué falta?', dorso: 'El comando login en line console 0.' },
+    { frente: '¿Qué protege line vty 0 15?', dorso: 'El acceso remoto por Telnet o SSH.' },
+    { frente: '¿Qué hace service password-encryption?', dorso: 'Cifra (tipo 7, débil) las contraseñas que estaban en texto plano.' },
+    { frente: '¿Para qué sirve el banner MOTD?', dorso: 'Para advertir que solo el personal autorizado puede acceder.' },
+  ]}
+/>

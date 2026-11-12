@@ -1,0 +1,86 @@
+---
+curso: itn
+modulo: 3
+tema: "3.3"
+titulo: Suites de protocolos
+objetivo: Explicar el propósito de adherirse a una suite de protocolos.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [capas]
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.3.1 Suites de protocolos de red
+
+Una **suite de protocolos** (o pila) es un grupo de protocolos que trabajan juntos para ofrecer un servicio de
+comunicación completo. Cada protocolo se ocupa de una capa: los de arriba se encargan de lo que ve el usuario y los de
+abajo de mover los bits.
+
+## 3.3.2 Evolución de las suites
+
+| Suite | Origen | Situación actual |
+|---|---|---|
+| **TCP/IP** | Estándar abierto del IETF | La suite de Internet. Es la que se usa hoy en casi todas las redes |
+| **OSI** | ISO y UIT | Como suite casi no se usa, pero su **modelo de referencia** de 7 capas es la forma estándar de explicar las redes |
+| AppleTalk | Apple, 1985 | Reemplazada por TCP/IP |
+| Novell NetWare (IPX/SPX) | Novell, 1983 | Reemplazada por TCP/IP |
+
+## 3.3.4 La suite TCP/IP
+
+TCP/IP es **abierta** (cualquiera puede usarla sin pagar licencias) y está **basada en estándares** aprobados por la
+industria. Sus protocolos más importantes:
+
+### Capa de aplicación
+
+| Grupo | Protocolos |
+|---|---|
+| Sistema de nombres | **DNS**: traduce nombres de dominio (www.ejemplo.com) a direcciones IP |
+| Configuración de hosts | **DHCPv4, DHCPv6**: asignan la configuración IP. **SLAAC**: autoconfiguración en IPv6 |
+| Correo | **SMTP** envía correo; **POP3** e **IMAP** lo descargan o sincronizan |
+| Transferencia de archivos | **FTP** (con conexión y autenticación), **SFTP** (por SSH, cifrado), **TFTP** (simple, sin conexión) |
+| Web y servicios | **HTTP** y **HTTPS** (web), **REST** (APIs) |
+
+### Capa de transporte
+
+| Protocolo | Característica |
+|---|---|
+| **TCP** | Orientado a conexión y confiable: confirma la entrega y retransmite lo perdido |
+| **UDP** | Sin conexión y sin confirmación: más rápido y liviano, para lo que no tolera esperas |
+
+### Capa de Internet
+
+| Protocolo | Qué hace |
+|---|---|
+| **IPv4, IPv6** | Encapsula los segmentos en paquetes, con direcciones de origen y destino |
+| **NAT** | Traduce direcciones privadas en públicas |
+| **ICMPv4, ICMPv6** | Mensajes de error y de diagnóstico (lo usa `ping`) |
+| **OSPF, EIGRP, BGP** | Protocolos de enrutamiento |
+
+### Capa de acceso a la red
+
+| Protocolo | Qué hace |
+|---|---|
+| **ARP** | Encuentra la dirección MAC que corresponde a una dirección IPv4 |
+| **Ethernet** | Reglas de cableado y señalización en la LAN |
+| **WLAN (802.11)** | Reglas de la comunicación inalámbrica |
+
+## 3.3.5 El proceso de comunicación TCP/IP
+
+Cuando un servidor web envía una página a un cliente, cada capa agrega su información en orden: los datos HTTP, el
+encabezado TCP, el encabezado IP y, por último, el encabezado y el tráiler Ethernet. El cliente los quita en orden
+inverso. Ese proceso se llama **encapsulación** y lo verás con detalle en el tema 3.6.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué protocolo traduce nombres de dominio en direcciones IP?', dorso: 'DNS.' },
+    { frente: '¿Qué protocolo envía el correo saliente?', dorso: 'SMTP. POP3 e IMAP lo reciben.' },
+    { frente: 'TCP o UDP: ¿cuál confirma la entrega?', dorso: 'TCP.' },
+    { frente: '¿Qué protocolo resuelve una IPv4 en una dirección MAC?', dorso: 'ARP.' },
+    { frente: '¿Qué protocolo transfiere archivos sin conexión ni autenticación?', dorso: 'TFTP.' },
+    { frente: '¿En qué capa de TCP/IP está ICMP?', dorso: 'Internet.' },
+  ]}
+/>

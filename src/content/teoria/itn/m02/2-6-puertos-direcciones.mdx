@@ -1,0 +1,82 @@
+---
+curso: itn
+modulo: 2
+tema: "2.6"
+titulo: Puertos y direcciones
+objetivo: Explicar cómo se comunican los dispositivos a través de los medios de red.
+duracion: 15
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [diagnostico]
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.6.1 Direcciones IP
+
+Para comunicarse por Internet, cada dispositivo final necesita una **dirección IP**. En IPv4 tiene 32 bits escritos
+como cuatro números decimales de 0 a 255 separados por puntos: `192.168.1.10`.
+
+Un host con IPv4 necesita tres datos:
+
+| Dato | Para qué sirve | Ejemplo |
+|---|---|---|
+| **Dirección IPv4** | Identifica al host en la red | `192.168.1.10` |
+| **Máscara de subred** | Indica qué parte de la dirección es la red y cuál el host | `255.255.255.0` |
+| **Gateway predeterminado** | La dirección del router para salir a otras redes | `192.168.1.1` |
+
+**IPv6** usa direcciones de 128 bits, escritas en hexadecimal en ocho grupos separados por dos puntos:
+`2001:db8:acad:1::10`. Lo verás en detalle en el módulo 12.
+
+<Topologia
+  ancho={640}
+  alto={230}
+  titulo="Un host necesita IP, máscara y gateway; el gateway es la interfaz del router en su red"
+  nodos={[
+    { id: 'PC1', tipo: 'pc', x: 90, y: 115, detalle: 'IP 192.168.1.10', detalle2: 'Gateway 192.168.1.1', lado: 'abajo' },
+    { id: 'S1', tipo: 'switch', x: 300, y: 115, detalle: 'SVI 192.168.1.2', lado: 'arriba' },
+    { id: 'R1', tipo: 'router', x: 470, y: 115, detalle: 'G0/0/0 192.168.1.1', lado: 'abajo' },
+    { id: 'Internet', tipo: 'nube', x: 590, y: 115, lado: 'arriba' },
+  ]}
+  enlaces={[
+    { a: 'PC1', b: 'S1', ib: 'F0/1' },
+    { a: 'S1', b: 'R1', ia: 'G0/1', ib: 'G0/0/0' },
+    { a: 'R1', b: 'Internet' },
+  ]}
+/>
+
+## 2.6.2 Interfaces y puertos
+
+Las comunicaciones viajan por **interfaces** conectadas a un medio. Cada medio tiene sus características:
+
+| Medio | Distancia | Ambiente | Velocidad |
+|---|---|---|---|
+| Cobre UTP | Hasta 100 m | Sensible a interferencias | Hasta 10 Gb/s |
+| Fibra óptica | Kilómetros | Inmune a interferencias | Muy alta |
+| Inalámbrico | Decenas de metros | Comparte el aire, puede haber interferencias | Variable |
+
+En un switch de capa 2 hay dos clases de interfaces:
+
+- **Puertos físicos** (`FastEthernet0/1`, `GigabitEthernet0/1`…): conectan equipos. **No llevan dirección IP**: el switch
+  reenvía tramas, no enruta.
+- **Interfaz virtual de switch (SVI)**: una interfaz lógica, sin puerto físico, asociada a una VLAN. Por defecto es la
+  **VLAN 1**. Se le pone una IP para **administrar el switch de forma remota**.
+
+<aside class="clave">
+
+La IP de la SVI no hace falta para que el switch funcione: sin ella sigue conmutando tramas. Solo hace falta para
+**administrarlo** por la red (SSH, Telnet) o hacerle ping.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Tres datos IPv4 que necesita un host para salir de su red.', dorso: 'Dirección IP, máscara de subred y gateway predeterminado.' },
+    { frente: '¿Cuántos bits tiene una dirección IPv6?', dorso: '128 bits.' },
+    { frente: '¿Los puertos físicos de un switch de capa 2 llevan IP?', dorso: 'No. La IP de administración va en la SVI.' },
+    { frente: '¿A qué VLAN está asociada la SVI por defecto?', dorso: 'A la VLAN 1.' },
+  ]}
+/>

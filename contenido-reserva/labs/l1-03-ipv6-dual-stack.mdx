@@ -1,0 +1,168 @@
+---
+titulo: Red dual stack IPv4 e IPv6 con SLAAC
+descripcion: Agrega IPv6 a una red IPv4, deja que las PC se configuren solas con SLAAC y descubre qué pasa cuando el router no envía Router Advertisements.
+nivel: 1
+orden: 3
+duracion: 45
+dificultad: Básica
+herramienta: Packet Tracer
+tipo: Configuración
+examen:
+  v1.1: 1
+  v2.0: 1
+dispositivos: [Router ISR 4331, 2 switches Catalyst 2960, 2 PC, 1 servidor]
+---
+
+import Topologia from '../../src/components/Topologia.tsx';
+
+## Objetivos
+
+- Configurar direcciones IPv6 globales y link-local en un router.
+- Comprobar el papel de `ipv6 unicast-routing` en SLAAC.
+- Configurar hosts con SLAAC y con dirección estática, y verificar la conectividad en ambas versiones de IP.
+
+## Topología
+
+<Topologia
+  ancho={640}
+  alto={350}
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 320, y: 55 },
+    { id: 'S1', tipo: 'switch', x: 150, y: 180, detalle: 'LAN 10' },
+    { id: 'S2', tipo: 'switch', x: 470, y: 180, detalle: 'LAN 20' },
+    { id: 'PC1', tipo: 'pc', x: 150, y: 290 },
+    { id: 'PC2', tipo: 'pc', x: 400, y: 290 },
+    { id: 'SRV', tipo: 'servidor', x: 545, y: 285 },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/0', ib: 'G0/1' },
+    { a: 'R1', b: 'S2', ia: 'G0/0/1', ib: 'G0/1' },
+    { a: 'S1', b: 'PC1', ia: 'F0/1' },
+    { a: 'S2', b: 'PC2', ia: 'F0/1' },
+    { a: 'S2', b: 'SRV', ia: 'F0/2' },
+  ]}
+/>
+
+## Tabla de direccionamiento
+
+| Equipo | Interfaz | IPv4 | IPv6 | Gateway |
+|---|---|---|---|---|
+| R1 | G0/0/0 | 192.168.10.1/24 | 2001:db8:acad:10::1/64 y fe80::1 | No aplica |
+| R1 | G0/0/1 | 192.168.20.1/24 | 2001:db8:acad:20::1/64 y fe80::1 | No aplica |
+| PC1 | NIC | 192.168.10.10/24 | Automática (SLAAC) | 192.168.10.1 y fe80::1 |
+| PC2 | NIC | 192.168.20.10/24 | Automática (SLAAC) | 192.168.20.1 y fe80::1 |
+| SRV | NIC | 192.168.20.100/24 | 2001:db8:acad:20::100/64 | 192.168.20.1 y fe80::1 |
+
+## Parte 1: Armar la red IPv4
+
+1. Arma la topología con cable directo de cobre.
+2. En R1: nombre **R1**, direcciones IPv4 en G0/0/0 y G0/0/1, y enciende ambas interfaces.
+3. Configura IPv4 en PC1, PC2 y SRV. Comprueba con ping que PC1 llega a SRV.
+
+## Parte 2: IPv6 en el router, todavía sin enrutamiento
+
+1. En G0/0/0 y G0/0/1 configura la dirección global de la tabla y la link-local `fe80::1`.
+2. **No** ejecutes todavía `ipv6 unicast-routing`.
+3. En PC1 ve a **Desktop > IP Configuration** y en la sección IPv6 elige **Automatic**.
+
+Anota qué ves en PC1. ¿Obtuvo una dirección global 2001:db8:acad:10::...? ¿Tiene gateway IPv6?
+
+## Parte 3: Habilitar el enrutamiento IPv6
+
+1. En modo de configuración global de R1 ejecuta `ipv6 unicast-routing`.
+2. En PC1 cambia la configuración IPv6 a **Static** y de nuevo a **Automatic** para que pida otra vez la información.
+3. Repite en PC2.
+
+Ahora las PC deben mostrar una dirección global con el prefijo de su LAN y `FE80::1` como gateway.
+
+## Parte 4: Servidor con dirección estática
+
+Configura SRV con la IPv6 estática de la tabla y `fe80::1` como gateway IPv6.
+
+## Verificación
+
+```text
+R1# show ipv6 interface brief
+GigabitEthernet0/0/0   [up/up]
+    FE80::1
+    2001:DB8:ACAD:10::1
+GigabitEthernet0/0/1   [up/up]
+    FE80::1
+    2001:DB8:ACAD:20::1
+GigabitEthernet0/0/2   [administratively down/down]
+    unassigned
+```
+
+```text
+R1# show ipv6 route
+IPv6 Routing Table - 5 entries
+...
+C   2001:DB8:ACAD:10::/64 [0/0]
+     via GigabitEthernet0/0/0, directly connected
+L   2001:DB8:ACAD:10::1/128 [0/0]
+     via GigabitEthernet0/0/0, receive
+C   2001:DB8:ACAD:20::/64 [0/0]
+     via GigabitEthernet0/0/1, directly connected
+L   2001:DB8:ACAD:20::1/128 [0/0]
+     via GigabitEthernet0/0/1, receive
+L   FF00::/8 [0/0]
+     via Null0, receive
+```
+
+En PC1, el comando `ipconfig` debe mostrar una dirección del tipo `2001:DB8:ACAD:10:xxxx:xxFF:FExx:xxxx`: Packet
+Tracer arma el ID de interfaz con EUI-64 a partir de la MAC de la PC. Comprueba la conectividad:
+
+```text
+C:\>ping 2001:db8:acad:20::100
+C:\>ping 192.168.20.100
+```
+
+Ambos pings deben responder: la red funciona en **dual stack**, con las dos versiones de IP en paralelo.
+
+## Qué debiste observar
+
+<details class="solucion">
+<summary>Ver la explicación de la Parte 2</summary>
+
+Sin `ipv6 unicast-routing`, R1 tiene direcciones IPv6 pero **no se comporta como router IPv6**: no reenvía paquetes
+IPv6 ni envía Router Advertisements. Como SLAAC depende de los RA para conocer el prefijo y el gateway, PC1 solo
+pudo armar su dirección link-local (FE80::...) y quedó sin dirección global ni gateway.
+
+Este es un fallo clásico de troubleshooting y una pregunta frecuente del examen.
+
+</details>
+
+## Solución
+
+<details class="solucion">
+<summary>Ver la configuración completa de R1</summary>
+
+```text
+enable
+configure terminal
+hostname R1
+no ip domain-lookup
+ipv6 unicast-routing
+interface gigabitethernet0/0/0
+ description LAN 10
+ ip address 192.168.10.1 255.255.255.0
+ ipv6 address 2001:db8:acad:10::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+interface gigabitethernet0/0/1
+ description LAN 20
+ ip address 192.168.20.1 255.255.255.0
+ ipv6 address 2001:db8:acad:20::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+ end
+copy running-config startup-config
+```
+
+</details>
+
+## Reto adicional
+
+1. Calcula a mano el ID EUI-64 que debería tener PC1 a partir de su MAC (la ves con `ipconfig /all`) y compáralo con
+   el que asignó Packet Tracer.
+2. Ejecuta `show ipv6 neighbors` en R1 después de los pings. ¿Qué protocolo llenó esa tabla y qué reemplaza de IPv4?

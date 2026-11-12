@@ -1,0 +1,135 @@
+---
+curso: itn
+modulo: 3
+tema: "3.7"
+titulo: Acceso a los datos
+objetivo: Explicar cómo los hosts locales acceden a recursos locales y remotos en una red.
+duracion: 30
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [direcciones]
+actividades:
+  - codigo: "3.7.9"
+    tipo: Laboratorio
+    titulo: Instalar Wireshark
+  - codigo: "3.7.10"
+    tipo: Laboratorio
+    titulo: Usar Wireshark para ver el tráfico de la red
+    guia: Captura un ping a un equipo de tu red y otro a un sitio de Internet. En el segundo, verás que la MAC de destino de la trama es la de tu router, no la del sitio. Es exactamente lo que explica este tema.
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.7.1 Dos tipos de direcciones
+
+Las capas de red y de enlace de datos usan direcciones distintas, con funciones distintas:
+
+<div class="duo">
+<div>
+
+#### Dirección de capa 3: IP (lógica)
+
+- Identifica el **origen y el destino finales** del paquete.
+- **No cambia** en todo el recorrido, aunque el paquete cruce muchas redes.
+- Tiene una parte de **red** y una parte de **host**.
+
+</div>
+<div>
+
+#### Dirección de capa 2: MAC (física)
+
+- Identifica las NIC de **un tramo** del recorrido: de qué equipo sale la trama y a qué equipo llega **en esta red**.
+- **Cambia en cada salto**: cada router arma una trama nueva.
+- Está grabada en la NIC: 48 bits en hexadecimal.
+
+</div>
+</div>
+
+## 3.7.3 Dispositivos en la misma red
+
+Si origen y destino están en la **misma red** (misma parte de red en la IP), la trama va **directo** al destino:
+
+<Topologia
+  ancho={620}
+  alto={220}
+  titulo="Misma red: la MAC de destino es la del propio servidor"
+  nodos={[
+    { id: 'PC1', tipo: 'pc', x: 90, y: 100, detalle: '192.168.1.110', detalle2: 'MAC AA-AA', lado: 'abajo' },
+    { id: 'S1', tipo: 'switch', x: 310, y: 100, lado: 'arriba' },
+    { id: 'Servidor', tipo: 'servidor', x: 530, y: 100, detalle: '192.168.1.9', detalle2: 'MAC CC-CC', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'PC1', b: 'S1' },
+    { a: 'S1', b: 'Servidor' },
+  ]}
+/>
+
+| Campo | Valor |
+|---|---|
+| IP de origen | 192.168.1.110 (PC1) |
+| IP de destino | 192.168.1.9 (Servidor) |
+| MAC de origen | AA-AA (PC1) |
+| MAC de destino | **CC-CC (Servidor)** |
+
+Para conocer la MAC del servidor a partir de su IP, PC1 usa **ARP** (en IPv6, ND).
+
+## 3.7.5 Dispositivos en una red remota
+
+Si el destino está en **otra red**, el host no puede entregarle la trama directamente. La envía a su **gateway
+predeterminado**, el router, que la reenvía.
+
+<Topologia
+  ancho={700}
+  alto={240}
+  titulo="Red remota: la MAC de destino es la del router, mientras que la IP de destino es la del servidor"
+  nodos={[
+    { id: 'PC1', tipo: 'pc', x: 70, y: 110, detalle: '192.168.1.110', detalle2: 'MAC AA-AA', lado: 'abajo' },
+    { id: 'R1', tipo: 'router', x: 270, y: 110, detalle: 'G0/0/0 192.168.1.1', detalle2: 'MAC 11-11', lado: 'abajo' },
+    { id: 'R2', tipo: 'router', x: 450, y: 110, detalle: 'G0/0/1 172.16.1.99', detalle2: 'MAC 22-22', lado: 'abajo' },
+    { id: 'Servidor', tipo: 'servidor', x: 630, y: 110, detalle: '172.16.1.99', detalle2: 'MAC CC-CC', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'PC1', b: 'R1', marca: 'Tramo 1', resaltado: true },
+    { a: 'R1', b: 'R2', marca: 'Tramo 2' },
+    { a: 'R2', b: 'Servidor', marca: 'Tramo 3' },
+  ]}
+/>
+
+En el **tramo 1**, la trama que sale de PC1 lleva:
+
+| Campo | Valor | Por qué |
+|---|---|---|
+| IP de origen | 192.168.1.110 (PC1) | Origen final |
+| IP de destino | 172.16.1.99 (Servidor) | Destino final |
+| MAC de origen | AA-AA (PC1) | Quien envía en este tramo |
+| MAC de destino | **11-11 (R1)** | El siguiente salto: el gateway |
+
+En cada tramo siguiente, el router que recibe la trama la **desencapsula**, mira la IP de destino, elige por dónde
+seguir y **arma una trama nueva** con sus propias MAC de origen y la del siguiente equipo como destino. Las IP no
+cambian.
+
+<aside class="clave">
+
+Regla de oro: **las IP son de extremo a extremo; las MAC son de salto a salto.**
+
+</aside>
+
+<aside class="ojo">
+
+Si el gateway predeterminado de un host está mal configurado, el host se comunica bien con su propia red pero no con
+ninguna otra: no sabe a quién entregarle las tramas para redes remotas.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué dirección se mantiene igual en todo el recorrido?', dorso: 'La IP de origen y la de destino.' },
+    { frente: 'PC1 envía a un servidor de otra red. MAC de destino de la trama que sale de PC1.', dorso: 'La MAC del gateway predeterminado (la interfaz del router).' },
+    { frente: 'PC1 envía a un servidor de su misma red. MAC de destino.', dorso: 'La MAC del servidor.' },
+    { frente: '¿Qué protocolo averigua la MAC a partir de una IPv4?', dorso: 'ARP.' },
+    { frente: '¿Qué hace un router con la trama que recibe?', dorso: 'La desencapsula, revisa la IP de destino y arma una trama nueva para el siguiente tramo.' },
+  ]}
+/>

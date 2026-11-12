@@ -1,0 +1,72 @@
+---
+curso: itn
+modulo: 3
+tema: "3.4"
+titulo: Organizaciones de estándares
+objetivo: Explicar el papel de las organizaciones de estándares en el establecimiento de protocolos para la interoperabilidad de redes.
+duracion: 15
+examen:
+  v1.1: 1
+  v2.0: 1
+actividades:
+  - codigo: "3.4.4"
+    tipo: Laboratorio
+    titulo: Investigar los estándares de redes
+    guia: Elige tres organizaciones de la tabla y busca un estándar concreto de cada una (por ejemplo, IEEE 802.3 o el RFC de HTTP). Así recuerdas mejor qué hace cada una.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.4.1 Estándares abiertos
+
+Un **estándar abierto** es una especificación que cualquier fabricante puede implementar. Gracias a ellos:
+
+- Un router de una marca se comunica con el de otra (**interoperabilidad**).
+- Hay **competencia** e innovación, porque nadie tiene el monopolio de la tecnología.
+- El cliente puede **elegir** el equipo que más le convenga.
+
+Las organizaciones de estándares suelen ser **sin fines de lucro e independientes** de los fabricantes.
+
+## 3.4.2 Estándares de Internet
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'ISOC', texto: 'Internet Society: promueve el desarrollo y el uso abierto de Internet en todo el mundo.' },
+    { titulo: 'IAB', texto: 'Internet Architecture Board: supervisa la arquitectura y los estándares de Internet.' },
+    { titulo: 'IETF', texto: 'Internet Engineering Task Force: desarrolla y mantiene los estándares de Internet y TCP/IP. Publica los RFC.' },
+    { titulo: 'IRTF', texto: 'Internet Research Task Force: investiga a largo plazo protocolos, aplicaciones y arquitectura.' },
+    { titulo: 'ICANN', texto: 'Coordina la asignación de direcciones IP, nombres de dominio y otros identificadores.' },
+    { titulo: 'IANA', texto: 'Administra la asignación de direcciones IP, nombres de dominio y números de puerto.' },
+  ]}
+/>
+
+## 3.4.3 Estándares de electrónica y comunicaciones
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'IEEE', texto: 'Instituto de Ingenieros Eléctricos y Electrónicos. Define los estándares de LAN: 802.3 (Ethernet) y 802.11 (Wi-Fi).' },
+    { titulo: 'EIA', texto: 'Electronic Industries Alliance: estándares de cableado, conectores y racks de 19 pulgadas.' },
+    { titulo: 'TIA', texto: 'Telecommunications Industry Association: estándares de equipos de radio, telefonía y cableado estructurado (como T568A y T568B).' },
+    { titulo: 'UIT-T', texto: 'Sector de normalización de la Unión Internacional de Telecomunicaciones: compresión de video, DSL, telefonía.' },
+  ]}
+/>
+
+<aside class="examen">
+
+Asocia **IETF con los RFC** (los estándares de Internet), **IEEE con 802.3 y 802.11** (Ethernet y Wi-Fi) e **IANA/ICANN
+con las direcciones y los nombres**.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué organización publica los RFC?', dorso: 'El IETF.' },
+    { frente: '¿Quién define 802.3 y 802.11?', dorso: 'El IEEE.' },
+    { frente: '¿Qué organización administra los números de puerto?', dorso: 'IANA.' },
+    { frente: 'Ventaja principal de un estándar abierto.', dorso: 'La interoperabilidad entre equipos de distintos fabricantes.' },
+  ]}
+/>

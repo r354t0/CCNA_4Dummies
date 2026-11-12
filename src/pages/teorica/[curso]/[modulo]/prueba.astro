@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import Teoria from '../../../../layouts/Teoria.astro';
+import Examen from '../../../../components/teoria/Examen.tsx';
+import { curso as datosCurso, claveModulo, type IdCurso } from '../../../../data/cursos';
+import { preguntas, vecinos, urlPrueba } from '../../../../lib/teoria';
+
+export async function getStaticPaths() {
+  const bancos = await getCollection('preguntas');
+  return bancos.map((b) => ({ params: { curso: b.data.curso, modulo: String(b.data.modulo) } }));
+}
+
+const cursoId = Astro.params.curso as IdCurso;
+const numero = Number(Astro.params.modulo);
+const c = datosCurso(cursoId);
+const modulo = c.modulos.find((m) => m.numero === numero)!;
+const banco = await preguntas(cursoId, [numero]);
+const { anterior, siguiente } = await vecinos(cursoId, urlPrueba(cursoId, numero));
+const titulo = `Prueba del módulo ${numero}: ${modulo.titulo}`;
+---
+<Teoria titulo={titulo} curso={cursoId} ubicacion={`Módulo ${numero}: ${modulo.titulo} › Prueba del módulo`} anterior={anterior} siguiente={siguiente}>
+  <header class="cab">
+    <p class="sup">{c.sigla} · Módulo {numero}</p>
+    <h1>Prueba del módulo</h1>
+    <p class="bajada">
+      Comprueba si dominas los objetivos del módulo {numero}. Al terminar verás tu puntaje por tema y podrás revisar
+      cada respuesta. Apruébala con 70% o más para completar el módulo.
+    </p>
+  </header>
+  <Examen client:load banco={banco} cantidad={Math.min(15, banco.length)} titulo={titulo} clave={claveModulo(cursoId, numero)} desglose="tema" />
+</Teoria>
+
+<style>
+  .sup { color: var(--muted); margin-bottom: 0.3rem; }
+  .bajada { max-width: var(--measure); font-size: 1.08rem; }
+  .cab { margin-bottom: 1.5rem; }
+</style>

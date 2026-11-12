@@ -1,0 +1,7 @@
+---
+import Practica from '../../layouts/Practica.astro';
+import Encapsular from '../../components/practica/Encapsular.tsx';
+---
+<Practica id="encapsulacion">
+  <Encapsular client:only="react" />
+</Practica>

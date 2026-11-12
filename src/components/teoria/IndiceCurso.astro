@@ -1,0 +1,167 @@
+---
+// Barra lateral de la vista Teórica, inspirada en el esquema de curso de NetAcad:
+// módulos plegables con barra de progreso, temas con su indicador y las evaluaciones.
+import { curso as datosCurso, type IdCurso } from '../../data/cursos';
+import { indice } from '../../lib/teoria';
+import { url } from '../../lib/url';
+
+interface Props {
+  curso: IdCurso;
+  actual?: string; // href de la página abierta
+}
+const { curso: cursoId, actual } = Astro.props;
+const c = datosCurso(cursoId);
+const modulos = await indice(cursoId);
+const contiene = (m: (typeof modulos)[number]) =>
+  m.items.some((i) => i.href === actual) || m.punto?.href === actual;
+---
+<nav class="indice" aria-label={`Esquema del curso ${c.titulo}`} style={`--c:${c.color}`}>
+  <div class="indice-cabecera">
+    <a class="indice-curso" href={url('teorica/')}>
+      <span class="sigla">{c.sigla}</span>
+      <span>{c.titulo}</span>
+    </a>
+    <label class="buscar">
+      <span class="visually-hidden">Buscar en el esquema del curso</span>
+      <input type="search" placeholder="Buscar en el esquema del curso" data-buscar-indice />
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2" /><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+    </label>
+    <a class="simulacro" href={url('teorica/simulacro/')} aria-current={actual === url('teorica/simulacro/') ? 'page' : undefined}>
+      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 16V9M8 16V4M13 16v-6M18 16V7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+      Simulacro de examen
+    </a>
+  </div>
+
+  <ol class="modulos">
+    {modulos.map((m) => (
+      <li class:list={['modulo', { 'modulo-off': !m.disponible }]} data-filtrable>
+        {m.disponible ? (
+          <details open={contiene(m)}>
+            <summary>
+              <span class="modulo-titulo">Módulo {m.numero}: {m.titulo}</span>
+              <span class="barra" data-barra={m.claves.join(' ')} aria-hidden="true">
+                <span class="barra-pista"><span class="barra-relleno"></span></span>
+                <span class="barra-texto" data-barra-texto>0%</span>
+              </span>
+            </summary>
+            <ol class="items">
+              {m.items.map((i) => (
+                <li data-progreso={i.clave} data-filtrable data-texto={`${i.numero} ${i.titulo}`}>
+                  <a href={i.href} aria-current={i.href === actual ? 'page' : undefined} class:list={['item', `item-${i.tipo}`]}>
+                    <span class="item-led" aria-hidden="true"></span>
+                    {i.tipo === 'tema' ? <span class="item-num">{i.numero}</span> : (
+                      <svg class="item-icono" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="4" y="3" width="12" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M7 2.5h6v3H7z" fill="currentColor" /><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.8" fill="none" /></svg>
+                    )}
+                    <span class="item-titulo">{i.titulo}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : (
+          <div class="modulo-pendiente">
+            <span class="modulo-titulo">Módulo {m.numero}: {m.titulo}</span>
+            <span class="pronto">Próximamente</span>
+          </div>
+        )}
+        {m.punto && (
+          <div class:list={['punto', { 'punto-off': !m.punto.disponible }]} data-progreso={m.punto.clave} data-filtrable data-texto={m.punto.titulo}>
+            {m.punto.disponible ? (
+              <a href={m.punto.href} aria-current={m.punto.href === actual ? 'page' : undefined}>
+                <span class="item-led" aria-hidden="true"></span>
+                {m.punto.titulo}
+              </a>
+            ) : (
+              <span>{m.punto.titulo}</span>
+            )}
+          </div>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<script is:inline>
+  (function () {
+    var input = document.querySelector('[data-buscar-indice]');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      document.querySelectorAll('.indice .modulo').forEach(function (m) {
+        var det = m.querySelector('details');
+        var titulo = (m.querySelector('.modulo-titulo') || {}).textContent || '';
+        var visibles = 0;
+        m.querySelectorAll('[data-texto]').forEach(function (li) {
+          var ok = !q || li.dataset.texto.toLowerCase().indexOf(q) >= 0 || titulo.toLowerCase().indexOf(q) >= 0;
+          li.hidden = !ok;
+          if (ok) visibles++;
+        });
+        m.hidden = Boolean(q) && visibles === 0 && titulo.toLowerCase().indexOf(q) < 0;
+        if (det && q && visibles) det.open = true;
+      });
+    });
+  })();
+</script>
+
+<style>
+  .indice { font-size: 0.93rem; }
+  .indice-cabecera { padding: 1rem 1rem 0.75rem; border-bottom: 1px solid var(--line); display: grid; gap: 0.7rem; }
+  .indice-curso { display: flex; align-items: center; gap: 0.6rem; color: var(--ink); text-decoration: none; font-family: var(--font-head); font-weight: 600; font-size: 1.05rem; line-height: 1.2; }
+  .sigla { background: var(--c); color: #fff; font-weight: 700; font-size: 0.8rem; padding: 0.2rem 0.45rem; border-radius: 4px; }
+  .buscar { position: relative; display: block; }
+  .buscar input {
+    width: 100%; font: inherit; font-size: 0.9rem; padding: 0.45rem 2rem 0.45rem 0.6rem;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-s); background: var(--bg); color: var(--ink);
+  }
+  .buscar svg { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .simulacro {
+    display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--ink); text-decoration: none;
+    padding: 0.5rem 0.6rem; border-radius: var(--radius-s); border: 1px solid var(--line);
+  }
+  .simulacro:hover, .simulacro[aria-current='page'] { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, transparent); }
+
+  .modulos, .items { list-style: none; margin: 0; padding: 0; }
+  .modulo { border-bottom: 1px solid var(--line); margin: 0; }
+  .modulo + .modulo { margin-top: 0; }
+  summary {
+    list-style: none; cursor: pointer; padding: 0.8rem 2.4rem 0.7rem 1rem; position: relative;
+    display: grid; gap: 0.45rem;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: ''; position: absolute; right: 1rem; top: 1rem; width: 0.5rem; height: 0.5rem;
+    border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg);
+    transition: transform 0.15s;
+  }
+  details[open] > summary::after { transform: rotate(-135deg); top: 1.2rem; }
+  details[open] > summary { background: color-mix(in srgb, var(--c) 9%, transparent); }
+  .modulo-titulo { font-weight: 600; line-height: 1.3; }
+  .barra { display: flex; align-items: center; gap: 0.5rem; }
+  .barra-pista { flex: 1; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .barra-relleno { display: block; height: 100%; width: var(--p, 0%); background: var(--c); }
+  .barra-texto { font-size: 0.75rem; color: var(--muted); min-width: 2.4rem; text-align: right; }
+
+  .items { padding: 0 0 0.4rem; }
+  .items li { margin: 0; }
+  .item {
+    display: grid; grid-template-columns: 14px auto 1fr; gap: 0.55rem; align-items: baseline;
+    padding: 0.42rem 1rem 0.42rem 1.1rem; color: var(--ink); text-decoration: none; line-height: 1.3;
+    border-left: 3px solid transparent;
+  }
+  .item:hover { background: var(--bg); }
+  .item[aria-current='page'] { border-left-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); font-weight: 600; }
+  .item-led { width: 10px; height: 10px; border-radius: 50%; background: var(--led-off); align-self: center; }
+  [data-hecho='si'] > .item .item-led, [data-hecho='si'] > a .item-led { background: var(--led-on); box-shadow: 0 0 5px var(--led-on); }
+  .item-num { font-family: var(--font-cli); font-size: 0.8rem; color: var(--muted); }
+  .item-icono { color: var(--muted); align-self: center; }
+  .item-prueba .item-titulo { font-weight: 600; }
+
+  .modulo-pendiente { padding: 0.75rem 1rem; display: grid; gap: 0.2rem; color: var(--muted); }
+  .pronto { font-size: 0.8rem; }
+
+  .punto { margin: 0 0.8rem 0.8rem; border: 1px solid var(--c); border-radius: var(--radius-s); font-weight: 600; }
+  .punto a { display: grid; grid-template-columns: 14px 1fr; gap: 0.55rem; align-items: center; padding: 0.55rem 0.7rem; color: var(--ink); text-decoration: none; line-height: 1.3; }
+  .punto a:hover, .punto a[aria-current='page'] { background: color-mix(in srgb, var(--c) 12%, transparent); }
+  .punto-off { border-style: dashed; border-color: var(--line-strong); color: var(--muted); font-weight: 500; }
+  .punto-off span { display: block; padding: 0.55rem 0.7rem; }
+</style>

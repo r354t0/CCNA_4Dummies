@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import Teoria from '../../../../layouts/Teoria.astro';
+import Examen from '../../../../components/teoria/Examen.tsx';
+import { CURSOS, curso as datosCurso, clavePunto, type IdCurso } from '../../../../data/cursos';
+import { preguntas, temas, vecinos, urlPunto } from '../../../../lib/teoria';
+
+export async function getStaticPaths() {
+  const bancos = new Set((await getCollection('preguntas')).map((b) => `${b.data.curso}:${b.data.modulo}`));
+  const conTemas = new Set((await temas()).map((t) => `${t.data.curso}:${t.data.modulo}`));
+  return CURSOS.flatMap((c) =>
+    c.puntosDeControl
+      .filter((p) => {
+        for (let m = p.desde; m <= p.hasta; m++) if (!bancos.has(`${c.id}:${m}`) || !conTemas.has(`${c.id}:${m}`)) return false;
+        return true;
+      })
+      .map((p) => ({ params: { curso: c.id, rango: `${p.desde}-${p.hasta}` } })),
+  );
+}
+
+const cursoId = Astro.params.curso as IdCurso;
+const [desde, hasta] = Astro.params.rango!.split('-').map(Number);
+const c = datosCurso(cursoId);
+const pc = c.puntosDeControl.find((p) => p.desde === desde && p.hasta === hasta)!;
+const mods = Array.from({ length: hasta - desde + 1 }, (_, i) => desde + i);
+const banco = await preguntas(cursoId, mods);
+const { anterior, siguiente } = await vecinos(cursoId, urlPunto(cursoId, desde, hasta));
+const titulos = Object.fromEntries(c.modulos.map((m) => [m.numero, m.titulo]));
+const titulo = `Examen de punto de control: ${pc.titulo}`;
+const cantidad = Math.min(33, banco.length);
+---
+<Teoria titulo={titulo} curso={cursoId} ubicacion={`${c.sigla} › Punto de control, módulos ${desde} a ${hasta}`} anterior={anterior} siguiente={siguiente}>
+  <header class="cab">
+    <p class="sup">{c.sigla} · Módulos {desde} a {hasta}</p>
+    <h1>{titulo}</h1>
+    <p class="bajada">
+      Integra los módulos {mods.join(', ').replace(/, (\d+)$/, ' y $1')}. Son {cantidad} preguntas elegidas al azar y
+      repartidas entre los módulos, con 45 minutos para responder, como un ensayo de lo que te toca en NetAcad. Al
+      final verás tu resultado por módulo.
+    </p>
+  </header>
+  <Examen client:load banco={banco} cantidad={cantidad} titulo={titulo} clave={clavePunto(cursoId, desde, hasta)}
+    desglose="modulo" minutos={45} modulosTitulos={titulos} />
+</Teoria>
+
+<style>
+  .sup { color: var(--muted); margin-bottom: 0.3rem; }
+  .bajada { max-width: var(--measure); font-size: 1.08rem; }
+  .cab { margin-bottom: 1.5rem; }
+</style>

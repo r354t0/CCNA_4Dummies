@@ -1,0 +1,294 @@
+curso: itn
+modulo: 2
+preguntas:
+  - id: itn2-01
+    tema: "2.1"
+    verifique: true
+    p: "¿Qué parte del sistema operativo comunica el software con el hardware del equipo?"
+    opciones: ["Shell", "Kernel", "GUI", "Emulador de terminal"]
+    correcta: 1
+    explicacion: "El kernel administra los recursos del hardware. El shell es la interfaz con el usuario, ya sea gráfica o de línea de comandos."
+  - id: itn2-02
+    tema: "2.1"
+    verifique: true
+    p: "La red de una sucursal está caída y debes revisar la configuración de un switch. ¿Qué método de acceso funciona en esta situación?"
+    opciones: ["SSH", "Telnet", "Consola", "Navegador web"]
+    correcta: 2
+    explicacion: "El puerto de consola es un acceso fuera de banda: no depende de la red. SSH y Telnet necesitan que la red funcione."
+  - id: itn2-03
+    tema: "2.1"
+    p: "¿Por qué se recomienda SSH en lugar de Telnet para administrar equipos?"
+    opciones:
+      - "SSH es más rápido"
+      - "SSH cifra la sesión, incluidas las credenciales"
+      - "SSH no necesita dirección IP"
+      - "Telnet solo funciona por consola"
+    correcta: 1
+    explicacion: "Telnet envía todo en texto plano, incluidos usuario y contraseña. SSH cifra toda la sesión."
+  - id: itn2-04
+    tema: "2.1"
+    p: "¿Cuáles son dos programas de emulación de terminal?"
+    opciones: ["PuTTY", "Wireshark", "Tera Term", "Packet Tracer Activity Wizard", "ipconfig"]
+    correcta: [0, 2]
+    explicacion: "PuTTY, Tera Term y SecureCRT son emuladores de terminal para conectarse por consola, SSH o Telnet. Wireshark es un analizador de tráfico."
+  - id: itn2-05
+    tema: "2.2"
+    verifique: true
+    p: "Un técnico ve el prompt «Router(config-if)#». ¿En qué modo está?"
+    opciones: ["EXEC de usuario", "EXEC privilegiado", "Configuración global", "Configuración de interfaz"]
+    correcta: 3
+    explicacion: "(config-if)# es el submodo de configuración de interfaz. (config)# es global, # es EXEC privilegiado y > es EXEC de usuario."
+  - id: itn2-06
+    tema: "2.2"
+    verifique: true
+    p: "¿Qué comando o combinación de teclas devuelve al usuario directamente al modo EXEC privilegiado desde cualquier modo de configuración?"
+    opciones: ["exit", "disable", "Ctrl+Z", "Ctrl+Shift+6"]
+    correcta: 2
+    explicacion: "Ctrl+Z (o el comando end) vuelve directo a EXEC privilegiado. exit sube un solo nivel."
+  - id: itn2-07
+    tema: "2.2"
+    p: "Un usuario está en «Switch(config-line)#» y escribe exit. ¿En qué modo queda?"
+    opciones: ["EXEC de usuario", "EXEC privilegiado", "Configuración global", "Configuración de interfaz"]
+    correcta: 2
+    explicacion: "exit sube un nivel en la jerarquía: desde un submodo vuelve a configuración global."
+  - id: itn2-08
+    tema: "2.2"
+    p: "¿Qué comando lleva del modo EXEC privilegiado al modo de configuración global?"
+    opciones: ["enable", "configure terminal", "interface vlan 1", "login"]
+    correcta: 1
+    explicacion: "configure terminal (abreviado conf t) entra a configuración global. enable lleva de EXEC de usuario a EXEC privilegiado."
+  - id: itn2-09
+    tema: "2.2"
+    p: "¿Por qué Cisco IOS separa los comandos en modos jerárquicos?"
+    opciones:
+      - "Para ahorrar memoria"
+      - "Por seguridad: controla quién puede consultar y quién puede cambiar la configuración"
+      - "Para que los comandos sean más cortos"
+      - "Porque cada modo usa un protocolo distinto"
+    correcta: 1
+    explicacion: "Cada nivel puede protegerse con su contraseña, de modo que acceder al equipo no implica poder cambiar su configuración."
+  - id: itn2-10
+    tema: "2.3"
+    verifique: true
+    p: "En el comando «show running-config», ¿qué es running-config?"
+    opciones: ["El comando", "Una palabra clave", "Un argumento", "El prompt"]
+    correcta: 1
+    explicacion: "running-config es un parámetro predefinido por IOS, es decir, una palabra clave. Un argumento sería un valor que define el usuario, como una dirección IP."
+  - id: itn2-11
+    tema: "2.3"
+    verifique: true
+    p: "Un técnico escribe un comando y recibe «% Incomplete command.». ¿Qué debe hacer?"
+    opciones:
+      - "Reiniciar el equipo"
+      - "Volver a escribir el comando con ? al final para ver qué falta"
+      - "Ejecutar copy running-config startup-config"
+      - "Pulsar Ctrl+Shift+6"
+    correcta: 1
+    explicacion: "El mensaje indica que faltan palabras clave o argumentos. Con ? después del último elemento IOS muestra qué puede seguir."
+  - id: itn2-12
+    tema: "2.3"
+    p: "¿Qué tecla completa un comando escrito parcialmente?"
+    opciones: ["Enter", "Tab", "Ctrl+C", "Barra espaciadora"]
+    correcta: 1
+    explicacion: "Tab completa el comando o la palabra clave cuando lo escrito la identifica sin ambigüedad."
+  - id: itn2-13
+    tema: "2.3"
+    p: "Una salida larga muestra --More-- al pie. ¿Qué hace la barra espaciadora?"
+    opciones: ["Muestra la línea siguiente", "Muestra la pantalla siguiente", "Termina la salida", "Repite el comando"]
+    correcta: 1
+    explicacion: "La barra espaciadora avanza una pantalla, Enter avanza una línea y cualquier otra tecla vuelve al prompt."
+  - id: itn2-14
+    tema: "2.3"
+    p: "¿Qué indica el mensaje «% Ambiguous command»?"
+    opciones:
+      - "Que el comando no existe"
+      - "Que no se escribieron suficientes caracteres para identificar un único comando"
+      - "Que faltan argumentos"
+      - "Que el usuario no tiene permisos"
+    correcta: 1
+    explicacion: "Lo escrito coincide con varios comandos. Hay que agregar letras hasta que solo coincida uno."
+  - id: itn2-15
+    tema: "2.3"
+    p: "¿Qué combinación de teclas interrumpe un ping o un traceroute que no termina?"
+    opciones: ["Ctrl+Z", "Ctrl+Shift+6", "Ctrl+A", "Tab"]
+    correcta: 1
+    explicacion: "Ctrl+Shift+6 es la secuencia de escape de IOS para abortar procesos en curso."
+  - id: itn2-16
+    tema: "2.4"
+    verifique: true
+    p: "¿Cuáles son dos nombres de host válidos según las pautas de Cisco IOS?"
+    opciones: ["Sw-Lima-01", "2do-Piso", "Router Central", "RT-Cusco3", "Sw_Ventas!"]
+    correcta: [0, 3]
+    explicacion: "Un nombre válido empieza con letra, no tiene espacios, termina en letra o dígito y solo usa letras, dígitos y guiones."
+  - id: itn2-17
+    tema: "2.4"
+    verifique: true
+    p: "Se configuró «password Clase123» en la línea de consola, pero el switch no la pide al conectarse. ¿Qué falta?"
+    opciones: ["enable secret", "login", "service password-encryption", "transport input ssh"]
+    correcta: 1
+    explicacion: "login activa la verificación de la contraseña en la línea. Sin él, la contraseña existe pero no se solicita."
+  - id: itn2-18
+    tema: "2.4"
+    p: "¿Qué comando protege el acceso al modo EXEC privilegiado con una contraseña guardada con hash?"
+    opciones: ["enable password", "enable secret", "line console 0", "login local"]
+    correcta: 1
+    explicacion: "enable secret guarda la contraseña con un hash. enable password la deja en texto plano o con el cifrado débil tipo 7."
+  - id: itn2-19
+    tema: "2.4"
+    p: "¿Qué hace el comando service password-encryption?"
+    opciones:
+      - "Cifra todo el tráfico de administración"
+      - "Cifra las contraseñas que están en texto plano en la configuración"
+      - "Obliga a usar contraseñas de más de ocho caracteres"
+      - "Activa SSH"
+    correcta: 1
+    explicacion: "Aplica un cifrado tipo 7 a las contraseñas en texto plano. Es débil: solo evita que se lean a simple vista."
+  - id: itn2-20
+    tema: "2.4"
+    p: "¿Qué líneas se configuran para proteger el acceso remoto por Telnet o SSH a un switch?"
+    opciones: ["line console 0", "line vty 0 15", "interface vlan 1", "line aux 0"]
+    correcta: 1
+    explicacion: "Las líneas VTY (terminales virtuales) atienden las conexiones remotas. La consola es el acceso físico."
+  - id: itn2-21
+    tema: "2.4"
+    ilustracion: |
+      SW1(config)# enable password Abc123
+      SW1(config)# enable secret Xyz789
+      SW1(config)# line console 0
+      SW1(config-line)# password Con456
+      SW1(config-line)# login
+      SW1(config-line)# line vty 0 15
+      SW1(config-line)# password Vty321
+      SW1(config-line)# login
+    p: "Según la configuración, ¿qué contraseña debe escribir un administrador conectado por consola para pasar al modo EXEC privilegiado?"
+    opciones: ["Abc123", "Xyz789", "Con456", "Vty321"]
+    correcta: 1
+    explicacion: "Si existen enable password y enable secret, IOS usa solo enable secret. Con456 es la que se pide para entrar por consola al modo EXEC de usuario."
+  - id: itn2-22
+    tema: "2.4"
+    p: "¿Para qué sirve un banner MOTD?"
+    opciones:
+      - "Para mostrar la versión de IOS"
+      - "Para advertir que solo el personal autorizado puede acceder"
+      - "Para dar la bienvenida a los visitantes"
+      - "Para mostrar la contraseña de consola"
+    correcta: 1
+    explicacion: "El banner advierte que el acceso no autorizado está prohibido. Nunca debe invitar a entrar."
+  - id: itn2-23
+    tema: "2.5"
+    verifique: true
+    p: "¿Dónde se guarda la configuración de inicio (startup-config)?"
+    opciones: ["RAM", "NVRAM", "Flash", "ROM"]
+    correcta: 1
+    explicacion: "La startup-config está en la NVRAM, que conserva los datos al apagar el equipo. La running-config está en la RAM."
+  - id: itn2-24
+    tema: "2.5"
+    verifique: true
+    p: "Un técnico hizo cambios equivocados en un switch y no los guardó. ¿Cómo vuelve a la configuración guardada?"
+    opciones:
+      - "Ejecuta copy running-config startup-config"
+      - "Ejecuta reload y responde que no guarde los cambios"
+      - "Ejecuta erase startup-config"
+      - "Ejecuta show startup-config"
+    correcta: 1
+    explicacion: "reload reinicia el equipo, que carga la startup-config. Guardar antes copiaría los cambios equivocados."
+  - id: itn2-25
+    tema: "2.5"
+    p: "¿Qué ocurre con los cambios hechos en la running-config si el equipo se apaga sin guardar?"
+    opciones: ["Se guardan solos en la NVRAM", "Se pierden", "Se copian a la flash", "Quedan en la startup-config"]
+    correcta: 1
+    explicacion: "La running-config está en la RAM, que se borra al apagar."
+  - id: itn2-26
+    tema: "2.5"
+    p: "¿Qué dos comandos devuelven un switch a la configuración de fábrica?"
+    opciones: ["erase startup-config", "copy running-config startup-config", "reload", "show running-config", "no hostname"]
+    correcta: [0, 2]
+    explicacion: "Se borra la configuración guardada y se reinicia el equipo: arranca sin startup-config, es decir, con la configuración de fábrica."
+  - id: itn2-27
+    tema: "2.6"
+    verifique: true
+    p: "¿Para qué sirve la dirección IP de la SVI de un switch de capa 2?"
+    opciones:
+      - "Para que el switch pueda reenviar tramas"
+      - "Para administrar el switch de forma remota"
+      - "Para enrutar entre redes"
+      - "Para asignar direcciones a los hosts"
+    correcta: 1
+    explicacion: "El switch conmuta tramas sin necesidad de IP. La IP de la SVI solo hace falta para administrarlo por la red."
+  - id: itn2-28
+    tema: "2.6"
+    p: "¿Cuáles son tres características de una SVI?"
+    opciones:
+      - "No está asociada a ningún puerto físico"
+      - "Está asociada a la VLAN 1 por defecto"
+      - "Permite administrar el switch de forma remota"
+      - "Es un protocolo de seguridad para los puertos"
+      - "Reemplaza al cable de consola"
+    correcta: [0, 1, 2]
+    explicacion: "La SVI es una interfaz virtual, asociada por defecto a la VLAN 1, que permite administrar el switch por la red."
+  - id: itn2-29
+    tema: "2.6"
+    p: "¿Qué dato le permite a un host enviar paquetes a una red distinta de la suya?"
+    opciones: ["La máscara de subred", "El gateway predeterminado", "La dirección MAC", "El nombre de host"]
+    correcta: 1
+    explicacion: "El gateway predeterminado es la dirección del router al que el host envía todo lo que no pertenece a su red."
+  - id: itn2-30
+    tema: "2.7"
+    verifique: true
+    p: "Un administrador configuró la IP en interface vlan 1, pero el switch no responde al ping desde la misma red. ¿Qué comando falta probablemente en la SVI?"
+    opciones: ["ip default-gateway", "no shutdown", "login", "copy running-config startup-config"]
+    correcta: 1
+    explicacion: "Las SVI vienen apagadas. Sin no shutdown la IP está configurada pero la interfaz no funciona."
+  - id: itn2-31
+    tema: "2.7"
+    verifique: true
+    p: "Una PC con Windows configurada por DHCP muestra la dirección 169.254.33.8. ¿Qué indica?"
+    opciones:
+      - "Que recibió una dirección pública"
+      - "Que no obtuvo respuesta de un servidor DHCP"
+      - "Que tiene IPv6 activado"
+      - "Que su gateway es 169.254.0.1"
+    correcta: 1
+    explicacion: "El rango 169.254.0.0/16 (APIPA) lo asigna Windows cuando el cliente DHCP no encuentra servidor."
+  - id: itn2-32
+    tema: "2.7"
+    p: "Un switch con IP 10.1.1.2/24 se administra correctamente desde 10.1.1.50, pero no desde 10.2.2.50, que está en otra red. ¿Qué falta en el switch?"
+    opciones: ["no shutdown en la VLAN 1", "ip default-gateway", "enable secret", "service password-encryption"]
+    correcta: 1
+    explicacion: "Desde su propia red funciona, así que la SVI está bien. Para responder a otra red necesita saber a qué router enviar las respuestas."
+  - id: itn2-33
+    tema: "2.7"
+    p: "¿En qué modo se ejecuta el comando ip default-gateway en un switch?"
+    opciones: ["Configuración de interfaz", "Configuración global", "Configuración de línea", "EXEC privilegiado"]
+    correcta: 1
+    explicacion: "ip default-gateway es un comando de configuración global, no de la interfaz VLAN."
+  - id: itn2-34
+    tema: "2.8"
+    verifique: true
+    p: "¿Qué comando muestra el estado de las interfaces de un switch y la dirección IP configurada en cada una?"
+    opciones: ["ipconfig", "ping", "show ip interface brief", "show version"]
+    correcta: 2
+    explicacion: "show ip interface brief resume IP, estado (capa 1) y protocolo (capa 2) de cada interfaz."
+  - id: itn2-35
+    tema: "2.8"
+    ilustracion: |
+      Interface         IP-Address    OK? Method Status                Protocol
+      FastEthernet0/3   unassigned    YES manual administratively down down
+    p: "Una PC conectada al puerto F0/3 no tiene conectividad. Según la salida, ¿qué debe hacerse?"
+    opciones:
+      - "Asignar una IP a F0/3"
+      - "Ejecutar no shutdown en F0/3"
+      - "Cambiar el cable"
+      - "Configurar ip default-gateway"
+    correcta: 1
+    explicacion: "administratively down indica que el puerto tiene shutdown. Que diga unassigned es normal: los puertos de un switch de capa 2 no llevan IP."
+  - id: itn2-36
+    tema: "2.8"
+    p: "En la salida de ping de un switch Cisco aparece «.!!!!». ¿Qué significa?"
+    opciones:
+      - "Fallaron todos los intentos"
+      - "El primer intento no recibió respuesta y los otros cuatro sí"
+      - "El destino está apagado"
+      - "Hay un bucle en la red"
+    correcta: 1
+    explicacion: "Cada ! es una respuesta y cada . un tiempo de espera agotado. El primer paquete suele perderse mientras se resuelve la MAC con ARP."

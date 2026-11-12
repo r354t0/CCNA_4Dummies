@@ -1,0 +1,156 @@
+---
+// Vista de estudio: barra lateral con el esquema del curso y el contenido a la derecha,
+// con flechas para avanzar o retroceder como en NetAcad.
+import Base from './Base.astro';
+import IndiceCurso from '../components/teoria/IndiceCurso.astro';
+import { curso as datosCurso, type IdCurso } from '../data/cursos';
+
+interface Enlace { href: string; titulo: string }
+interface Props {
+  titulo: string;
+  descripcion?: string;
+  curso: IdCurso;
+  ubicacion: string; // texto de la barra superior, p. ej. «1.2 Componentes de la red»
+  anterior?: Enlace;
+  siguiente?: Enlace;
+}
+const { titulo, descripcion, curso, ubicacion, anterior, siguiente } = Astro.props;
+const c = datosCurso(curso);
+const actual = Astro.url.pathname;
+---
+<Base titulo={titulo} descripcion={descripcion} sinPadding>
+  <div class="estudio" style={`--c:${c.color}`} data-estudio>
+    <aside class="lateral" id="esquema" data-lateral>
+      <IndiceCurso curso={curso} actual={actual} />
+    </aside>
+
+    <div class="principal">
+      <div class="barra-superior">
+        <button type="button" class="alternar" data-alternar-esquema aria-controls="esquema" aria-expanded="true">
+          <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 5h14M3 10h9M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <span class="visually-hidden">Mostrar u ocultar el esquema del curso</span>
+        </button>
+        <span class="ubicacion">{ubicacion}</span>
+      </div>
+
+      {anterior && (
+        <a class="flecha flecha-ant" href={anterior.href} rel="prev" title={anterior.titulo}>
+          <svg viewBox="0 0 20 40" width="14" height="28" aria-hidden="true"><path d="M14 6L5 20l9 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="visually-hidden">Anterior: {anterior.titulo}</span>
+        </a>
+      )}
+      {siguiente && (
+        <a class="flecha flecha-sig" href={siguiente.href} rel="next" title={siguiente.titulo}>
+          <svg viewBox="0 0 20 40" width="14" height="28" aria-hidden="true"><path d="M6 6l9 14-9 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="visually-hidden">Siguiente: {siguiente.titulo}</span>
+        </a>
+      )}
+
+      <div class="hoja">
+        <slot />
+
+        {(anterior || siguiente) && (
+          <nav class="secuencia" aria-label="Navegación entre temas">
+            {anterior ? <a href={anterior.href} rel="prev"><span>Anterior</span>{anterior.titulo}</a> : <span />}
+            {siguiente && <a href={siguiente.href} rel="next" class="sig"><span>Siguiente</span>{siguiente.titulo}</a>}
+          </nav>
+        )}
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script is:inline>
+  (function () {
+    var raiz = document.querySelector('[data-estudio]');
+    var boton = document.querySelector('[data-alternar-esquema]');
+    if (!raiz || !boton) return;
+    var movil = window.matchMedia('(max-width: 960px)');
+    function aplicar(abierto) {
+      raiz.dataset.esquema = abierto ? 'abierto' : 'cerrado';
+      boton.setAttribute('aria-expanded', String(abierto));
+    }
+    var guardado = null;
+    try { guardado = localStorage.getItem('ccna-esquema'); } catch (e) {}
+    aplicar(movil.matches ? false : guardado !== 'cerrado');
+    boton.addEventListener('click', function () {
+      var abierto = raiz.dataset.esquema !== 'abierto';
+      aplicar(abierto);
+      if (!movil.matches) { try { localStorage.setItem('ccna-esquema', abierto ? 'abierto' : 'cerrado'); } catch (e) {} }
+    });
+    // En móvil, el esquema se cierra al elegir un tema.
+    document.querySelector('[data-lateral]').addEventListener('click', function (e) {
+      if (movil.matches && e.target.closest('a')) aplicar(false);
+    });
+    // En móvil, tocar fuera del esquema lo cierra.
+    document.addEventListener('click', function (e) {
+      if (!movil.matches || raiz.dataset.esquema !== 'abierto') return;
+      if (e.target.closest('[data-lateral]') || e.target.closest('[data-alternar-esquema]')) return;
+      aplicar(false);
+    });
+    // Desplaza el índice hasta el tema abierto.
+    var activo = document.querySelector('.lateral [aria-current="page"]');
+    if (activo && !movil.matches) activo.scrollIntoView({ block: 'center' });
+  })();
+</script>
+
+<style>
+  .estudio {
+    display: grid;
+    grid-template-columns: 330px minmax(0, 1fr);
+    min-height: calc(100vh - 65px);
+  }
+  .estudio[data-esquema='cerrado'] { grid-template-columns: 0 minmax(0, 1fr); }
+  .lateral {
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto; overscroll-behavior: contain;
+  }
+  .estudio[data-esquema='cerrado'] .lateral { visibility: hidden; border: 0; }
+
+  .principal { position: relative; min-width: 0; }
+  .barra-superior {
+    position: sticky; top: 0; z-index: 3;
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.55rem 1rem; background: var(--surface); border-bottom: 1px solid var(--line);
+    font-size: 0.95rem;
+  }
+  .alternar {
+    display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; cursor: pointer;
+    border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); color: var(--ink);
+  }
+  .alternar:hover { border-color: var(--ink); }
+  .ubicacion { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .flecha {
+    position: fixed; top: 50%; z-index: 2; transform: translateY(-50%);
+    display: grid; place-items: center; width: 30px; height: 46px;
+    background: var(--surface); color: var(--c); border: 1px solid var(--c); border-radius: var(--radius-s);
+  }
+  .flecha:hover { background: var(--c); color: #fff; }
+  .flecha-ant { left: calc(330px + 10px); }
+  .estudio[data-esquema='cerrado'] .flecha-ant { left: 10px; }
+  .flecha-sig { right: 10px; }
+
+  .hoja { padding: 2rem 56px 4rem; max-width: 980px; margin: 0 auto; }
+
+  .secuencia {
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 3rem;
+  }
+  .secuencia a { display: flex; flex-direction: column; max-width: 34ch; font-weight: 500; }
+  .secuencia a span { color: var(--muted); font-size: 0.85rem; font-weight: 400; }
+  .secuencia .sig { text-align: right; margin-left: auto; }
+
+  @media (max-width: 960px) {
+    .estudio, .estudio[data-esquema='cerrado'] { grid-template-columns: minmax(0, 1fr); }
+    .lateral {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 20; width: min(330px, 88vw); height: auto;
+      box-shadow: 0 0 0 100vmax rgba(10, 16, 24, 0.45);
+    }
+    .estudio[data-esquema='cerrado'] .lateral { display: none; }
+    .flecha { display: none; }
+    .hoja { padding: 1.5rem 16px 3rem; }
+  }
+</style>

@@ -1,0 +1,105 @@
+---
+curso: itn
+modulo: 2
+tema: "2.5"
+titulo: Guardar la configuración
+objetivo: Usar comandos de IOS para guardar la configuración en ejecución.
+duracion: 15
+examen:
+  v1.1: 4
+  v2.0: 4
+practica: [cli, pt-switch]
+actividades:
+  - codigo: "2.5.5"
+    tipo: Packet Tracer
+    titulo: Configurar los ajustes iniciales del switch
+    guia: Antes de terminar, ejecuta show startup-config. Si no ves tus cambios ahí, todavía no guardaste.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.5.1 Archivos de configuración
+
+Un equipo Cisco tiene **dos** configuraciones:
+
+<div class="duo">
+<div>
+
+#### running-config (en ejecución)
+
+- Vive en la **RAM**.
+- Es la que el equipo **está usando ahora**.
+- Cada comando que escribes la cambia **al instante**.
+- **Se pierde** si el equipo se reinicia o se apaga.
+
+</div>
+<div>
+
+#### startup-config (de inicio)
+
+- Vive en la **NVRAM**, que no se borra al apagar.
+- Es la que el equipo **carga al arrancar**.
+- Solo cambia cuando **la guardas**.
+- Si no existe, el equipo arranca con la configuración de fábrica.
+
+</div>
+</div>
+
+```text
+Switch# show running-config
+Switch# show startup-config
+Switch# copy running-config startup-config
+Destination filename [startup-config]?
+Building configuration...
+[OK]
+```
+
+`copy running-config startup-config` se abrevia `copy run start`. En muchos equipos también funciona `write memory`.
+
+## 2.5.2 Modificar la configuración en ejecución
+
+¿Te equivocaste y quieres deshacer **todo** lo que cambiaste desde la última vez que guardaste?
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'Deshacer un comando', texto: 'Escribe el mismo comando con no adelante.', ejemplo: 'no banner motd' },
+    { titulo: 'Volver a lo guardado', texto: 'reload reinicia el equipo y carga la startup-config. Si hay cambios sin guardar, IOS pregunta si quieres guardarlos: responde no.', ejemplo: 'Switch# reload' },
+    { titulo: 'Borrar todo', texto: 'erase startup-config borra la configuración guardada. Al reiniciar, el equipo vuelve a la configuración de fábrica.', ejemplo: 'Switch# erase startup-config' },
+  ]}
+/>
+
+<aside class="ojo">
+
+`reload` deja el equipo fuera de servicio unos minutos. En una red en producción no se reinicia un equipo sin
+planificarlo.
+
+</aside>
+
+## 2.5.4 Capturar la configuración en un archivo de texto
+
+Guardar una copia de la configuración en tu PC sirve como respaldo y como documentación. Con un emulador de terminal:
+
+1. Activa el **registro de sesión** (*logging*) en PuTTY o Tera Term y elige el archivo de texto.
+2. Ejecuta `show running-config` (o `show startup-config`).
+3. Detén el registro: el archivo tiene la configuración completa.
+
+Para restaurarla, se pega el contenido del archivo en el modo de configuración global.
+
+<aside class="clave">
+
+Esto es justo lo que harás en **Práctica › Packet Tracer**: copias la salida de `show running-config` y la pegas en la
+app para que corrija tu configuración.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Dónde se guarda la startup-config?', dorso: 'En la NVRAM.' },
+    { frente: '¿Qué pasa con la running-config al reiniciar sin guardar?', dorso: 'Se pierde: el equipo arranca con la startup-config.' },
+    { frente: 'Comando para guardar la configuración.', dorso: 'copy running-config startup-config' },
+    { frente: '¿Cómo vuelves un switch a la configuración de fábrica?', dorso: 'erase startup-config y después reload.' },
+  ]}
+/>

@@ -15,6 +15,8 @@
   --n3: #2b62b0; /* azul */
   --n4: #7e5233; /* marrón */
   --n5: #2f8fbd; /* celeste, cable de consola */
+  --acento: #d26c12;
+  --acento-suave: #fbeee2;
 
   --led-off: #b9c2ca;
   --led-on: #26a84a;
@@ -54,6 +56,8 @@
   --n3: #5b8fdc;
   --n4: #b0805c;
   --n5: #5bb8e3;
+  --acento: #f08a33;
+  --acento-suave: #3a2a1c;
   --led-off: #3a4653;
   --ok: #5cc98b;
   --ok-bg: #173225;
@@ -176,7 +180,10 @@ html:not([data-examen='v2.0']) .aviso-fuera-v20 { display: none; }
   padding: 0.6rem 0.9rem;
 }
 .prose aside.nota,
-.prose aside.examen {
+.prose aside.examen,
+.prose aside.clave,
+.prose aside.ojo,
+.prose aside.dato {
   background: var(--surface);
   border: 1px solid var(--line);
   border-left: 5px solid var(--c, var(--n3));
@@ -192,3 +199,25 @@ html:not([data-examen='v2.0']) .aviso-fuera-v20 { display: none; }
   font-weight: 700;
   margin-bottom: 0.25rem;
 }
+
+.prose aside.clave { border-left-color: var(--c, var(--n1)); background: color-mix(in srgb, var(--c, var(--n1)) 7%, var(--surface)); }
+.prose aside.ojo { border-left-color: var(--bad); }
+.prose aside.dato { border-left-color: var(--n5); }
+.prose aside.clave::before,
+.prose aside.ojo::before,
+.prose aside.dato::before {
+  display: block;
+  font-family: var(--font-head);
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.prose aside.clave::before { content: 'Idea clave'; color: var(--c, var(--n1)); }
+.prose aside.ojo::before { content: 'Cuidado'; color: var(--bad); }
+.prose aside.dato::before { content: '¿Sabías que…?'; color: var(--n5); }
+
+/* Esquemas comparativos de dos columnas dentro de los temas */
+.prose .duo { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 0 0 1.5rem; }
+.prose .duo > div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 0.8rem 1rem; }
+.prose .duo > div > :first-child { margin-top: 0; }
+.prose .duo > div > :last-child { margin-bottom: 0; }
+.prose .duo h4 { margin: 0 0 0.4rem; }

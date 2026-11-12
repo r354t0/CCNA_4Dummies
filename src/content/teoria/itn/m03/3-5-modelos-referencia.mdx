@@ -1,0 +1,78 @@
+---
+curso: itn
+modulo: 3
+tema: "3.5"
+titulo: Modelos de referencia
+objetivo: Explicar cómo se usan los modelos TCP/IP y OSI para facilitar la estandarización en el proceso de comunicación.
+duracion: 30
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [capas, encapsulacion]
+actividades:
+  - codigo: "3.5.5"
+    tipo: Packet Tracer
+    titulo: Investigar los modelos TCP/IP y OSI en acción
+    guia: "En modo Simulación, haz clic en un sobre de HTTP y abre la pestaña «OSI Model». Verás qué capas procesa cada equipo: el switch llega hasta la capa 2, el servidor hasta la 7."
+---
+
+import ModeloCapas from '../../../../components/teoria/ModeloCapas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.5.1 Beneficios de un modelo en capas
+
+Dividir la comunicación en capas tiene ventajas concretas:
+
+- **Ayuda a diseñar protocolos**: cada uno se ocupa de una función de una capa.
+- **Fomenta la competencia**: equipos de distintos fabricantes funcionan juntos.
+- **Aísla los cambios**: cambiar la tecnología de una capa no obliga a cambiar las demás. Puedes pasar de cable a Wi-Fi
+  sin cambiar el navegador.
+- **Da un lenguaje común** para describir las funciones de la red y diagnosticar problemas.
+
+Hay dos tipos de modelos:
+
+- **Modelo de protocolo**: describe una suite real. **TCP/IP** es el modelo de protocolo de Internet.
+- **Modelo de referencia**: describe qué debe hacer cada capa, sin decir cómo. **OSI** es el modelo de referencia más
+  conocido.
+
+## 3.5.2 y 3.5.3 Los dos modelos
+
+Elige una capa para ver su función, su PDU, sus protocolos y los dispositivos que trabajan en ella.
+
+<ModeloCapas client:visible />
+
+Para recordar las capas de OSI de abajo hacia arriba: **F**ísica, **E**nlace, **R**ed, **T**ransporte, **S**esión,
+**P**resentación, **A**plicación. Una frase posible: «**F**ui **E**n **R**uta **T**ranquilo **S**in **P**erder el
+**A**utobús».
+
+## 3.5.4 Comparación de los modelos
+
+| OSI | TCP/IP | Qué ocurre ahí |
+|---|---|---|
+| 7 Aplicación, 6 Presentación, 5 Sesión | Aplicación | Servicios para el usuario, formato y diálogo |
+| 4 Transporte | Transporte | Comunicación de extremo a extremo, puertos, TCP y UDP |
+| 3 Red | Internet | Direcciones IP y enrutamiento |
+| 2 Enlace de datos, 1 Física | Acceso a la red | Tramas, MAC y transmisión por el medio |
+
+Las capas 1 y 2 de OSI describen procedimientos que TCP/IP **no define**: los toma de otros estándares, como los del
+IEEE. Por eso en el examen se habla de «capa 2» y «capa 3» usando la numeración de OSI.
+
+<aside class="examen">
+
+Los dispositivos se describen por la capa más alta que procesan: un **switch es de capa 2** (lee direcciones MAC) y un
+**router es de capa 3** (lee direcciones IP). Te pueden preguntar a qué capa pertenece un protocolo, un dispositivo o
+una PDU.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Capa OSI que da formato, cifra y comprime.', dorso: 'Capa 6, presentación.' },
+    { frente: 'Capas de OSI que forman la capa de aplicación de TCP/IP.', dorso: 'Aplicación, presentación y sesión (7, 6 y 5).' },
+    { frente: 'PDU de la capa de red.', dorso: 'Paquete.' },
+    { frente: '¿En qué capa trabaja un switch?', dorso: 'Capa 2, enlace de datos.' },
+    { frente: '¿OSI es un modelo de protocolo o de referencia?', dorso: 'De referencia. TCP/IP es de protocolo.' },
+    { frente: 'Beneficio de que las capas estén aisladas.', dorso: 'Cambiar la tecnología de una capa no obliga a cambiar las otras.' },
+  ]}
+/>

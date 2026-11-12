@@ -1,0 +1,49 @@
+---
+// Actividades de NetAcad asociadas al tema. No se publican los archivos de Cisco:
+// se indica qué actividad abrir en el curso y la app aporta su propia guía.
+interface Actividad { codigo: string; tipo: string; titulo: string; guia?: string }
+interface Props { actividades: Actividad[] }
+const { actividades } = Astro.props;
+
+const ICONOS: Record<string, string> = {
+  'Packet Tracer': 'M3 6h14v9H3zM7 18h6M10 15v3',
+  Laboratorio: 'M7 2v6L3 16a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-4-8V2M6 2h8',
+  Video: 'M3 5h10v10H3zM13 9l5-3v8l-5-3',
+  'Actividad de clase': 'M3 4h14v10H8l-4 3v-3H3z',
+  'Verificador de sintaxis': 'M3 4h14v12H3zM6 8l2 2-2 2M10 12h4',
+};
+---
+{actividades.length > 0 && (
+  <section class="actividades" aria-labelledby="act-t">
+    <h2 id="act-t">Actividades en NetAcad</h2>
+    <p class="intro">
+      Estas actividades están en tu curso de Cisco Networking Academy. Ábrelas allí con el número indicado; aquí tienes
+      qué buscar en cada una.
+    </p>
+    <ul>
+      {actividades.map((a) => (
+        <li>
+          <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true">
+            <path d={ICONOS[a.tipo] ?? ICONOS['Laboratorio']} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+          </svg>
+          <div>
+            <p class="act-titulo"><span class="act-cod">{a.codigo}</span> {a.tipo}: {a.titulo}</p>
+            {a.guia && <p class="act-guia">{a.guia}</p>}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .actividades { margin-top: 3rem; padding-top: 0.5rem; border-top: 1px solid var(--line); }
+  .intro { color: var(--muted); max-width: var(--measure); }
+  ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.6rem; }
+  li { margin: 0; display: grid; grid-template-columns: 22px 1fr; gap: 0.8rem; align-items: start;
+    padding: 0.75rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
+  svg { color: var(--c); margin-top: 0.15rem; }
+  .act-titulo { margin: 0; font-weight: 600; }
+  .act-cod { font-family: var(--font-cli); font-size: 0.85rem; color: var(--c); margin-right: 0.2rem; }
+  .act-guia { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
+</style>

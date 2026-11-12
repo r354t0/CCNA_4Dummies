@@ -1,0 +1,282 @@
+curso: itn
+modulo: 1
+preguntas:
+  - id: itn1-01
+    tema: "1.2"
+    verifique: true
+    p: "En una oficina, una PC abre una carpeta compartida que está guardada en otro equipo. ¿Qué papel cumple la PC que abre la carpeta?"
+    opciones: ["Cliente", "Servidor", "Dispositivo intermediario", "Medio de red"]
+    correcta: 0
+    explicacion: "La PC que solicita el recurso es el cliente. El equipo que guarda y comparte la carpeta actúa como servidor de archivos."
+  - id: itn1-02
+    tema: "1.2"
+    verifique: true
+    p: "¿Cuáles de los siguientes son dispositivos intermediarios?"
+    opciones: ["Switch", "Impresora de red", "Router", "Servidor web", "Tablet"]
+    correcta: [0, 2]
+    explicacion: "Switches y routers conectan dispositivos y redes. Impresoras, servidores y tablets son dispositivos finales: allí empieza o termina la comunicación."
+  - id: itn1-03
+    tema: "1.2"
+    verifique: true
+    p: "¿Cuál es una desventaja de una red entre pares (peer-to-peer)?"
+    opciones:
+      - "Requiere un servidor dedicado costoso"
+      - "No tiene administración centralizada"
+      - "Es difícil de configurar"
+      - "Solo funciona con cables de fibra"
+    correcta: 1
+    explicacion: "En una red entre pares cada equipo se administra por separado. Por eso es poco segura y no escala, aunque es barata y fácil de armar."
+  - id: itn1-04
+    tema: "1.2"
+    p: "¿Qué criterio NO se usa normalmente para elegir el medio de red?"
+    opciones:
+      - "La distancia que debe cubrir"
+      - "El entorno donde se instalará"
+      - "La marca del sistema operativo de las PC"
+      - "El costo de instalación"
+    correcta: 2
+    explicacion: "Los criterios son distancia, entorno, cantidad de datos y velocidad, y costo. El sistema operativo de los hosts no influye en el medio."
+  - id: itn1-05
+    tema: "1.2"
+    p: "¿Qué función cumple un dispositivo intermediario?"
+    opciones:
+      - "Originar los datos que se envían por la red"
+      - "Regenerar y retransmitir las señales de datos"
+      - "Ser el destino final de los mensajes"
+      - "Mostrar la información al usuario"
+    correcta: 1
+    explicacion: "Los intermediarios regeneran señales, mantienen rutas, avisan errores, eligen caminos alternativos, priorizan y filtran tráfico. Originar y recibir datos es tarea de los dispositivos finales."
+  - id: itn1-06
+    tema: "1.1"
+    verifique: true
+    p: "¿Cuál es la red más grande del mundo, formada por millones de redes interconectadas?"
+    opciones: ["Una WAN corporativa", "Internet", "Una intranet", "La red telefónica pública"]
+    correcta: 1
+    explicacion: "Internet es una colección mundial de redes interconectadas. Las WAN corporativas e intranets son mucho más pequeñas y privadas."
+  - id: itn1-07
+    tema: "1.1"
+    p: "Un estudiante de una zona rural sigue el mismo curso en línea que uno de la capital. ¿Qué idea del tema ilustra este caso?"
+    opciones:
+      - "Las redes eliminan barreras de distancia y de horario"
+      - "Las redes solo sirven para el entretenimiento"
+      - "Las redes rurales usan protocolos distintos"
+      - "La educación en línea no necesita una red"
+    correcta: 0
+    explicacion: "Las redes permiten acceder a los mismos recursos sin importar dónde está la persona: eliminan límites de distancia y horario."
+  - id: itn1-08
+    tema: "1.3"
+    verifique: true
+    p: "Un diagrama muestra los nombres de las interfaces de cada router y las direcciones IP de cada red. ¿Qué tipo de diagrama es?"
+    opciones: ["Topología física", "Topología lógica", "Diagrama de rack", "Plano del edificio"]
+    correcta: 1
+    explicacion: "El diagrama lógico muestra dispositivos, puertos y el esquema de direccionamiento. El físico muestra la ubicación real de los equipos."
+  - id: itn1-09
+    tema: "1.3"
+    verifique: true
+    p: "¿Qué término describe el hardware que conecta una laptop a la red?"
+    opciones: ["Interfaz de router", "NIC", "Puerto de consola", "Medio de red"]
+    correcta: 1
+    explicacion: "La NIC (tarjeta de interfaz de red) es el componente físico que conecta un dispositivo a la red, por cable o inalámbricamente."
+  - id: itn1-10
+    tema: "1.3"
+    p: "¿Qué información es propia de una topología física?"
+    opciones:
+      - "Las direcciones IP de los hosts"
+      - "La sala y el rack donde está cada equipo"
+      - "Las máscaras de subred"
+      - "Los nombres de las VLAN"
+    correcta: 1
+    explicacion: "La topología física indica dónde está instalado cada equipo y por dónde pasa el cableado. Direcciones, máscaras y VLAN son información lógica."
+  - id: itn1-11
+    tema: "1.4"
+    verifique: true
+    p: "¿Qué característica describe a una LAN?"
+    opciones:
+      - "Une redes de distintas ciudades"
+      - "La administra un proveedor de servicios"
+      - "Cubre un área limitada y la administra una sola organización"
+      - "Siempre usa enlaces satelitales"
+    correcta: 2
+    explicacion: "Una LAN cubre un área pequeña (casa, edificio, campus) y está bajo el control de una sola organización o persona."
+  - id: itn1-12
+    tema: "1.4"
+    verifique: true
+    p: "Una empresa permite que sus proveedores consulten el estado de los pedidos en un portal con acceso controlado. ¿Qué tipo de red es?"
+    opciones: ["Intranet", "Extranet", "Internet", "LAN doméstica"]
+    correcta: 1
+    explicacion: "La extranet da acceso seguro y controlado a personas externas que trabajan con la organización. La intranet es solo para los miembros."
+  - id: itn1-13
+    tema: "1.4"
+    p: "¿Qué organización desarrolla y mantiene los estándares técnicos de Internet?"
+    opciones: ["ICANN", "IETF", "IEEE", "ISO"]
+    correcta: 1
+    explicacion: "El IETF publica los estándares de Internet en documentos llamados RFC. ICANN coordina la asignación de direcciones IP y nombres de dominio."
+  - id: itn1-14
+    tema: "1.4"
+    p: "¿Cuáles son características de una WAN?"
+    opciones:
+      - "Une LAN separadas geográficamente"
+      - "Siempre la administra la misma organización que la usa"
+      - "Normalmente la administran uno o varios proveedores de servicios"
+      - "Ofrece más ancho de banda que cualquier LAN"
+      - "Solo cubre un edificio"
+    correcta: [0, 2]
+    explicacion: "Las WAN conectan LAN distantes y suelen estar a cargo de proveedores de servicios. Sus enlaces suelen ser más lentos que los de una LAN."
+  - id: itn1-15
+    tema: "1.4"
+    p: "¿Qué tipo de red usa una pequeña oficina de contabilidad que funciona en la casa de su dueño?"
+    opciones: ["SOHO", "WAN", "Extranet", "Red mundial"]
+    correcta: 0
+    explicacion: "SOHO significa oficina pequeña u oficina en el hogar: pocas personas y recursos compartidos, normalmente con un router inalámbrico."
+  - id: itn1-16
+    tema: "1.5"
+    verifique: true
+    p: "¿Qué tecnología de acceso a Internet usa el mismo cable coaxial que la televisión?"
+    opciones: ["DSL", "Cable", "Satelital", "Dial-up"]
+    correcta: 1
+    explicacion: "El acceso por cable lo ofrecen los proveedores de televisión por cable: la señal de Internet viaja por el mismo cable coaxial."
+  - id: itn1-17
+    tema: "1.5"
+    verifique: true
+    p: "¿Qué opción de conexión es típicamente empresarial y no doméstica?"
+    opciones: ["ADSL", "Dial-up", "Línea arrendada dedicada", "Celular"]
+    correcta: 2
+    explicacion: "La línea arrendada dedicada es un circuito reservado en la red del proveedor para unir sedes. Las otras opciones son comunes en hogares."
+  - id: itn1-18
+    tema: "1.5"
+    p: "¿Qué significa que una conexión ADSL sea asimétrica?"
+    opciones:
+      - "Que solo funciona de noche"
+      - "Que la velocidad de descarga es mayor que la de subida"
+      - "Que la subida y la bajada tienen la misma velocidad"
+      - "Que requiere dos líneas telefónicas"
+    correcta: 1
+    explicacion: "En ADSL se descarga más rápido de lo que se sube, lo que conviene a los usuarios domésticos. SDSL, en cambio, es simétrico."
+  - id: itn1-19
+    tema: "1.5"
+    p: "¿Qué describe una red convergente?"
+    opciones:
+      - "Una red separada para cada tipo de servicio"
+      - "Una red que lleva voz, video y datos por la misma infraestructura"
+      - "Una red que solo usa fibra óptica"
+      - "Una red sin conexión a Internet"
+    correcta: 1
+    explicacion: "La red convergente une voz, video y datos en una sola infraestructura con las mismas reglas y estándares."
+  - id: itn1-20
+    tema: "1.5"
+    p: "Una familia vive en una zona rural sin cable ni DSL. ¿Qué opción tiene más probabilidades de darle acceso a Internet?"
+    opciones: ["Metro Ethernet", "Satelital", "Línea arrendada dedicada", "SDSL"]
+    correcta: 1
+    explicacion: "El acceso satelital llega a zonas sin otra infraestructura, siempre que la antena tenga línea de vista despejada al satélite."
+  - id: itn1-21
+    tema: "1.6"
+    verifique: true
+    p: "¿Qué tipo de tráfico necesita más calidad de servicio (QoS)?"
+    opciones: ["Correo electrónico", "Descarga de un archivo", "Videoconferencia", "Navegación web"]
+    correcta: 2
+    explicacion: "La videoconferencia es muy sensible al retraso: si sus paquetes esperan, la imagen y el sonido se cortan. El correo y las descargas toleran demoras."
+  - id: itn1-22
+    tema: "1.6"
+    verifique: true
+    p: "¿Qué característica de una red confiable se logra con caminos redundantes y conmutación de paquetes?"
+    opciones: ["Escalabilidad", "Tolerancia a fallas", "Confidencialidad", "Calidad de servicio"]
+    correcta: 1
+    explicacion: "Con varios caminos y paquetes que pueden tomar rutas distintas, la red sigue funcionando aunque falle un enlace: eso es tolerancia a fallas."
+  - id: itn1-23
+    tema: "1.6"
+    p: "¿Qué permite que una red sea escalable?"
+    opciones:
+      - "Usar protocolos y estándares aceptados"
+      - "Usar equipos de un solo fabricante sin documentación"
+      - "Desactivar la calidad de servicio"
+      - "Tener una sola ruta entre dos puntos"
+    correcta: 0
+    explicacion: "Una red diseñada con estándares acepta equipos y usuarios nuevos sin afectar a los actuales."
+  - id: itn1-24
+    tema: "1.6"
+    p: "¿Cuáles son tres objetivos de la seguridad de la información?"
+    opciones: ["Confidencialidad", "Escalabilidad", "Integridad", "Redundancia", "Disponibilidad"]
+    correcta: [0, 2, 4]
+    explicacion: "La tríada CIA: confidencialidad, integridad y disponibilidad. Escalabilidad y redundancia son características de diseño, no objetivos de seguridad."
+  - id: itn1-25
+    tema: "1.6"
+    p: "Un banco cifra las transacciones que viajan por Internet. ¿Qué objetivo de seguridad protege principalmente?"
+    opciones: ["Disponibilidad", "Confidencialidad", "Escalabilidad", "Tolerancia a fallas"]
+    correcta: 1
+    explicacion: "El cifrado impide que terceros lean los datos: protege la confidencialidad."
+  - id: itn1-26
+    tema: "1.7"
+    verifique: true
+    p: "¿Qué describe mejor el concepto BYOD?"
+    opciones:
+      - "La empresa entrega a cada empleado el mismo modelo de laptop"
+      - "Los usuarios acceden a la red de la organización con sus propios dispositivos"
+      - "Solo se permiten equipos con cable"
+      - "Los servidores se alojan en la nube"
+    correcta: 1
+    explicacion: "BYOD significa traiga su propio dispositivo: cada persona usa su equipo personal para acceder a la información y servicios."
+  - id: itn1-27
+    tema: "1.7"
+    verifique: true
+    p: "¿Qué afirmación describe correctamente una red por línea eléctrica (powerline)?"
+    opciones:
+      - "Requiere instalar cableado eléctrico especial"
+      - "Conecta equipos mediante un adaptador enchufado al cableado eléctrico existente"
+      - "Reemplaza a los puntos de acceso inalámbricos"
+      - "Solo funciona en edificios empresariales"
+    correcta: 1
+    explicacion: "Powerline aprovecha la instalación eléctrica que ya existe: basta un adaptador en un tomacorriente."
+  - id: itn1-28
+    tema: "1.7"
+    p: "Varias municipalidades comparten una plataforma en la nube diseñada para cumplir las mismas normas. ¿Qué tipo de nube es?"
+    opciones: ["Pública", "Privada", "Híbrida", "Comunitaria"]
+    correcta: 3
+    explicacion: "La nube comunitaria la usan organizaciones con necesidades o regulaciones comunes."
+  - id: itn1-29
+    tema: "1.7"
+    p: "¿Qué tipo de nube combina partes de una nube privada y de una pública?"
+    opciones: ["Comunitaria", "Híbrida", "Pública", "Personal"]
+    correcta: 1
+    explicacion: "La nube híbrida combina dos o más tipos de nube que funcionan como un solo sistema."
+  - id: itn1-30
+    tema: "1.7"
+    p: "¿Qué es un WISP?"
+    opciones:
+      - "Un proveedor que da acceso a Internet de forma inalámbrica, común en zonas rurales"
+      - "Un tipo de cable de fibra óptica"
+      - "Un protocolo de seguridad para Wi-Fi"
+      - "Un servidor de correo"
+    correcta: 0
+    explicacion: "WISP significa proveedor de servicios de Internet inalámbrico: una antena en el cliente se conecta a la torre del proveedor."
+  - id: itn1-31
+    tema: "1.8"
+    verifique: true
+    p: "¿Qué amenaza aprovecha una vulnerabilidad de software antes de que el fabricante publique una corrección?"
+    opciones: ["Ataque de día cero", "Spyware", "Denegación de servicio", "Robo de identidad"]
+    correcta: 0
+    explicacion: "El ataque de día cero ocurre el mismo día en que la vulnerabilidad se conoce, cuando todavía no existe un parche."
+  - id: itn1-32
+    tema: "1.8"
+    verifique: true
+    p: "¿Qué solución de seguridad permite a un teletrabajador acceder de forma segura a la red de su empresa?"
+    opciones: ["Antivirus", "VPN", "Spyware", "Powerline"]
+    correcta: 1
+    explicacion: "Una red privada virtual (VPN) crea un túnel cifrado entre el teletrabajador y la red de la empresa."
+  - id: itn1-33
+    tema: "1.8"
+    p: "¿Cuáles son dos soluciones de seguridad propias de una red empresarial, además de las de un hogar?"
+    opciones: ["Sistema de prevención de intrusiones (IPS)", "Antivirus", "Listas de control de acceso (ACL)", "Contraseña del Wi-Fi", "Navegador actualizado"]
+    correcta: [0, 2]
+    explicacion: "Las empresas suman firewalls dedicados, ACL, IPS y VPN a las protecciones básicas como el antivirus."
+  - id: itn1-34
+    tema: "1.8"
+    p: "Un atacante satura el servidor web de una tienda para que los clientes no puedan comprar. ¿Qué tipo de amenaza es?"
+    opciones: ["Robo de identidad", "Denegación de servicio (DoS)", "Spyware", "Troyano"]
+    correcta: 1
+    explicacion: "La denegación de servicio busca que un servicio deje de responder a los usuarios legítimos."
+  - id: itn1-35
+    tema: "1.9"
+    p: "¿Qué examen otorga la certificación CCNA?"
+    opciones: ["100-490", "200-301", "350-401", "210-260"]
+    correcta: 1
+    explicacion: "El CCNA se obtiene aprobando el examen 200-301, que combina preguntas teóricas con simulaciones."

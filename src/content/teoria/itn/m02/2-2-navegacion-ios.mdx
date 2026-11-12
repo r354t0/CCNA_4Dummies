@@ -1,0 +1,85 @@
+---
+curso: itn
+modulo: 2
+tema: "2.2"
+titulo: Navegación del IOS
+objetivo: Explicar cómo moverse por Cisco IOS para configurar dispositivos de red.
+duracion: 20
+examen:
+  v1.1: 4
+  v2.0: 4
+practica: [cli]
+actividades:
+  - codigo: "2.2.7"
+    tipo: Verificador de sintaxis
+    titulo: Navegar entre los modos de IOS
+    guia: Antes de escribir cada comando, mira el prompt y di en voz alta en qué modo estás. Es el hábito que evita la mayoría de los errores.
+---
+
+import ModosIOS from '../../../../components/teoria/ModosIOS.tsx';
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.2.1 Modos de comando principales
+
+IOS separa los comandos en **modos** jerárquicos, por seguridad: no cualquiera que entre al equipo puede cambiar su
+configuración. El **prompt** (lo que aparece antes del cursor) te dice siempre en qué modo estás.
+
+| Modo | Prompt | Qué permite |
+|---|---|---|
+| **EXEC de usuario** | `Switch>` | Comandos de consulta limitados. Es el modo en que entras |
+| **EXEC privilegiado** | `Switch#` | Todos los comandos de consulta y administración, y la entrada a configuración |
+
+## 2.2.2 Modo de configuración y submodos
+
+Para cambiar la configuración entras al **modo de configuración global** con `configure terminal`. Desde ahí puedes
+entrar a **submodos** que configuran una parte concreta del equipo:
+
+| Submodo | Prompt | Cómo se entra |
+|---|---|---|
+| Configuración de línea | `Switch(config-line)#` | `line console 0`, `line vty 0 15` |
+| Configuración de interfaz | `Switch(config-if)#` | `interface vlan 1`, `interface fastethernet0/1` |
+
+## 2.2.4 Moverse entre modos
+
+<ModosIOS />
+
+<Pasos
+  client:visible
+  titulo="Recorrido completo por los modos"
+  pasos={[
+    { titulo: 'Entrar', texto: 'Al conectarte quedas en EXEC de usuario.', codigo: 'Switch>' },
+    { titulo: 'enable', texto: 'Pasas a EXEC privilegiado. Si hay enable secret, te pide la contraseña.', codigo: 'Switch> enable\nSwitch#' },
+    { titulo: 'configure terminal', texto: 'Entras a configuración global. Se puede abreviar conf t.', codigo: 'Switch# configure terminal\nEnter configuration commands, one per line.  End with CNTL/Z.\nSwitch(config)#' },
+    { titulo: 'Un submodo', texto: 'Entras a configurar la línea de consola.', codigo: 'Switch(config)# line console 0\nSwitch(config-line)#' },
+    { titulo: 'exit', texto: 'Subes un solo nivel: vuelves a configuración global.', codigo: 'Switch(config-line)# exit\nSwitch(config)#' },
+    { titulo: 'Otro submodo', texto: 'Desde configuración global también puedes saltar directo de un submodo a otro escribiendo el comando del nuevo submodo.', codigo: 'Switch(config)# interface vlan 1\nSwitch(config-if)# line vty 0 15\nSwitch(config-line)#' },
+    { titulo: 'end', texto: 'Vuelves directo a EXEC privilegiado desde cualquier modo de configuración. Equivale a Ctrl+Z.', codigo: 'Switch(config-line)# end\nSwitch#' },
+    { titulo: 'disable', texto: 'Bajas de EXEC privilegiado a EXEC de usuario.', codigo: 'Switch# disable\nSwitch>' },
+  ]}
+/>
+
+<aside class="ojo">
+
+`exit` y `end` no son lo mismo: `exit` sube **un** nivel; `end` vuelve **directo** a EXEC privilegiado. En EXEC de
+usuario, `exit` cierra la sesión.
+
+</aside>
+
+<aside class="examen">
+
+Te pueden mostrar un prompt y preguntar en qué modo estás, o pedirte el comando para pasar de un modo a otro.
+Memoriza los cuatro prompts: `>`, `#`, `(config)#` y `(config-xxx)#`.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué modo indica el prompt Switch#?', dorso: 'EXEC privilegiado.' },
+    { frente: 'Comando para ir de EXEC de usuario a EXEC privilegiado.', dorso: 'enable' },
+    { frente: 'Estás en (config-if)#. ¿Qué te deja directo en Switch#?', dorso: 'end o Ctrl+Z.' },
+    { frente: 'Estás en (config-line)#. ¿Adónde te lleva exit?', dorso: 'A configuración global, (config)#.' },
+    { frente: '¿Para qué separa IOS los comandos en modos?', dorso: 'Por seguridad: hay que pasar por cada nivel (y sus contraseñas) para poder cambiar la configuración.' },
+  ]}
+/>

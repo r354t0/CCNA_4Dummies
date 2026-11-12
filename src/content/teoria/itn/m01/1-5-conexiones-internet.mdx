@@ -1,0 +1,135 @@
+---
+curso: itn
+modulo: 1
+tema: "1.5"
+titulo: Conexiones a Internet
+objetivo: Explicar cómo se conectan a Internet las LAN y las WAN.
+duracion: 20
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [clasificar]
+actividades:
+  - codigo: "1.5.5"
+    tipo: Packet Tracer
+    titulo: Representación de la red
+    guia: Recorre la topología pasando el cursor sobre cada equipo para ver su tipo. Antes de abrir cada pregunta, anota cuáles son finales y cuáles intermediarios; así practicas lo del tema 1.2.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.5.1 Tecnologías de acceso a Internet
+
+Para llegar a Internet, casas y empresas contratan un **proveedor de servicios de Internet (ISP)**. Las opciones
+dependen del ISP y de la ubicación, y no son las mismas para un hogar que para una empresa.
+
+## 1.5.2 Hogares y oficinas pequeñas
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Cable', texto: 'Los datos viajan por el mismo cable coaxial de la televisión por cable. Alto ancho de banda y siempre conectado.' },
+    { titulo: 'DSL', texto: 'Usa la línea telefónica. En casas suele ser ADSL (asimétrico): se descarga más rápido de lo que se sube.' },
+    { titulo: 'Fibra óptica', texto: 'Alta velocidad, simétrica en muchos planes (misma subida y bajada). Cada vez más común en ciudades.' },
+    { titulo: 'Celular', texto: 'Usa la red de telefonía móvil (4G, 5G). Funciona donde haya cobertura; el rendimiento depende del equipo y la antena.' },
+    { titulo: 'Satelital', texto: 'Llega a zonas sin otra opción. La antena necesita línea de vista despejada hacia el satélite.' },
+    { titulo: 'Dial-up', texto: 'Módem sobre una línea telefónica. Muy barato y muy lento: hoy casi solo como respaldo.' },
+  ]}
+/>
+
+## 1.5.3 Empresas
+
+Las empresas necesitan más ancho de banda, **conexiones dedicadas** y servicios administrados por el proveedor.
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'Líneas arrendadas dedicadas', texto: 'Circuitos reservados dentro de la red del proveedor que unen sedes lejanas. Se pagan por mes o año, se use o no el enlace.' },
+    { titulo: 'Metro Ethernet', texto: 'También llamada Ethernet WAN: lleva la tecnología de las LAN a la red del proveedor para unir sedes de una ciudad.' },
+    { titulo: 'DSL empresarial', texto: 'Por ejemplo SDSL (simétrico): las mismas velocidades de subida y bajada.' },
+    { titulo: 'Satelital y fibra', texto: 'El satélite cubre lugares sin cableado; la fibra ofrece la mayor velocidad, simétrica.' },
+  ]}
+/>
+
+<div class="duo">
+<div>
+
+#### Hogar y SOHO
+
+Cable, DSL (ADSL), fibra, celular, satelital, dial-up.
+
+</div>
+<div>
+
+#### Empresa
+
+Líneas arrendadas dedicadas, Metro Ethernet, DSL empresarial (SDSL), satelital, fibra.
+
+</div>
+</div>
+
+<aside class="examen">
+
+Asocia **«asimétrico»** con ADSL de hogar y **«simétrico»** con SDSL empresarial. Y recuerda que la **línea arrendada
+dedicada** es la que une sedes con un circuito reservado.
+
+</aside>
+
+## 1.5.4 La red convergente
+
+Antes, una empresa tenía **tres redes separadas**: una para la telefonía, otra para el video y otra para los datos.
+Cada una con sus cables, sus equipos, sus reglas y su personal.
+
+Una **red convergente** lleva voz, video y datos **por la misma infraestructura**, con las mismas reglas y los mismos
+estándares.
+
+<figure class="convergencia">
+  <svg viewBox="0 0 640 220" role="img" aria-labelledby="conv-t">
+    <title id="conv-t">Antes: tres redes separadas para teléfono, video y datos. Ahora: una sola red convergente que lleva los tres</title>
+    <text x="150" y="22" text-anchor="middle" class="c-t">Antes: redes separadas</text>
+    <g class="c-red c-voz"><rect x="30" y="40" width="240" height="40" rx="6" /><text x="150" y="65" text-anchor="middle">Red telefónica</text></g>
+    <g class="c-red c-video"><rect x="30" y="95" width="240" height="40" rx="6" /><text x="150" y="120" text-anchor="middle">Red de video</text></g>
+    <g class="c-red c-datos"><rect x="30" y="150" width="240" height="40" rx="6" /><text x="150" y="175" text-anchor="middle">Red de datos</text></g>
+    <path d="M300 115 H340" class="c-flecha" />
+    <path d="M332 108 L342 115 L332 122" class="c-flecha" />
+    <text x="490" y="22" text-anchor="middle" class="c-t">Ahora: una red convergente</text>
+    <rect x="370" y="40" width="240" height="150" rx="10" class="c-una" />
+    <g class="c-flujo c-voz"><rect x="395" y="70" width="190" height="22" rx="11" /><text x="490" y="85" text-anchor="middle">voz</text></g>
+    <g class="c-flujo c-video"><rect x="395" y="104" width="190" height="22" rx="11" /><text x="490" y="119" text-anchor="middle">video</text></g>
+    <g class="c-flujo c-datos"><rect x="395" y="138" width="190" height="22" rx="11" /><text x="490" y="153" text-anchor="middle">datos</text></g>
+  </svg>
+</figure>
+
+<style>{`
+  .convergencia { margin: 0 0 1.5rem; max-width: 640px; }
+  .convergencia svg { width: 100%; height: auto; display: block; }
+  .convergencia .c-t { font-family: var(--font-head); font-weight: 700; font-size: 15px; fill: var(--ink); }
+  .convergencia text { font-size: 13px; fill: var(--ink); }
+  .convergencia .c-red rect { fill: var(--surface); stroke-width: 2; }
+  .convergencia .c-voz rect { stroke: var(--n1); }
+  .convergencia .c-video rect { stroke: var(--n2); }
+  .convergencia .c-datos rect { stroke: var(--n3); }
+  .convergencia .c-flujo.c-voz rect { fill: color-mix(in srgb, var(--n1) 22%, var(--surface)); }
+  .convergencia .c-flujo.c-video rect { fill: color-mix(in srgb, var(--n2) 22%, var(--surface)); }
+  .convergencia .c-flujo.c-datos rect { fill: color-mix(in srgb, var(--n3) 22%, var(--surface)); }
+  .convergencia .c-una { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+  .convergencia .c-flecha { stroke: var(--muted); stroke-width: 2.5; fill: none; stroke-linecap: round; }
+`}</style>
+
+<aside class="clave">
+
+Una red convergente ahorra equipos y personal, pero obliga a **priorizar** el tráfico: una llamada de voz no puede
+esperar detrás de una descarga. Eso es la calidad de servicio (QoS), que verás en el tema siguiente.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué tecnología de hogar usa el cable de la televisión?', dorso: 'Cable (por cable coaxial).' },
+    { frente: '¿Qué significa que ADSL sea asimétrico?', dorso: 'Que la velocidad de descarga es mayor que la de subida.' },
+    { frente: 'Una empresa necesita unir dos sedes con un circuito reservado. ¿Qué contrata?', dorso: 'Una línea arrendada dedicada.' },
+    { frente: '¿Qué es una red convergente?', dorso: 'Una sola red que lleva voz, video y datos con las mismas reglas y estándares.' },
+  ]}
+/>

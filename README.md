@@ -1,34 +1,69 @@
 # CCNA 4Dummies
 
-App web para repasar el **CCNA 200-301**, desde los fundamentos hasta automatización, combinando teoría breve con
-laboratorios en **Packet Tracer** y **GNS3**.
+App web para preparar el **CCNA 200-301**, desde los fundamentos hasta lo avanzado. Igual que el examen, tiene dos
+partes: **Teórica** y **Práctica**.
 
 **Sitio:** https://r354t0.github.io/CCNA_4Dummies/
 
-## Qué incluye
+## Teórica
 
-- **Ruta de estudio en cinco niveles**, cada uno identificado con un color de cable UTP.
-- **Lecciones** con la teoría justa, comandos de IOS y notas «Para el examen».
-- **Laboratorios** con topología, tabla de direccionamiento, tareas, salidas `show` esperadas, solución y reto
-  adicional. Los de troubleshooting esconden fallas reales que hay que encontrar.
-- **Quiz** al final de cada lección, con la explicación de cada respuesta.
-- **Entrenador de subnetting** con ejercicios ilimitados de subredes, máscaras y VLSM.
-- **Ambas versiones del examen**: el selector v1.1 / v2.0 marca qué temas entran en cada una. La v1.1 se puede rendir
-  hasta el 2 de febrero de 2027 y la v2.0 desde el 3 de febrero de 2027.
-- **Progreso** guardado en el navegador del alumno, sin cuentas.
+Sigue el índice de los cursos de Cisco Networking Academy (ITN, SRWE y ENSA), con explicaciones, diagramas y
+preguntas propios:
+
+- **Temas** con esquemas, animaciones (encapsulamiento, modelos OSI y TCP/IP, modos de IOS), tarjetas de repaso y
+  avisos «Para el examen».
+- **Verifique su comprensión** al final de cada tema.
+- **Prueba del módulo** (15 preguntas al azar) y **examen de punto de control** por bloque de módulos, con
+  cronómetro, navegación entre preguntas, resultado por objetivo y revisión de cada respuesta.
+- **Simulacro de examen**: eliges módulos, cantidad de preguntas y cronómetro.
+- Barra lateral con el esquema del curso, buscador y progreso por tema.
+
+## Práctica
+
+Cada ejercicio genera un escenario al azar con un código (por ejemplo `K7Q2-M4XA`). El mismo código reproduce el
+mismo escenario, así que alumno e instructor pueden ver exactamente el mismo ejercicio.
+
+| Tipo | Ejercicios |
+|---|---|
+| Interactivo | Clasificar componentes y tipos de red, leer topologías, encapsular, capas OSI/TCP-IP, direcciones salto a salto, subnetting |
+| Consola IOS | Switch Catalyst 2960 simulado en el navegador: modos, abreviaturas, `?`, Tab, contraseñas, banner, SVI, guardado |
+| Diagnóstico | Una red con una falla al azar: el alumno lee `ipconfig`, `ping`, `show ip interface brief` y `show running-config` y encuentra la causa |
+| Packet Tracer | El alumno implementa el escenario en Packet Tracer, pega `show startup-config`, `ipconfig` y `ping`, y la app corrige cada requisito |
+
+### Ejercicios de Packet Tracer: entrega y revisión
+
+1. El alumno abre el ejercicio y recibe un escenario con su código, topología, tabla de direccionamiento y valores.
+2. Lo implementa en Packet Tracer.
+3. Pega (o sube como `.txt`) las salidas que se piden. La app las lee, descifra las contraseñas tipo 7, comprueba el
+   hash del `enable secret` y marca cada requisito.
+4. Descarga el **informe** (`.txt`) y se lo envía al instructor.
+5. El instructor abre el mismo ejercicio, usa **Revisar un informe** y la app vuelve a corregir las salidas originales
+   (y avisa si el encabezado del informe fue editado). Con el código ve también la solución.
+
+No es un sistema antitrampas: un alumno con experiencia podría escribir las salidas a mano. Para una evaluación
+formal, pide además el archivo `.pkt`.
+
+## Versiones del examen
+
+El selector v1.1 / v2.0 marca qué temas entran en cada versión. La v1.1 se puede rendir hasta el 2 de febrero de 2027
+y la v2.0 desde el 3 de febrero de 2027.
 
 ## Estado
 
-| Nivel | Tema | Estado |
-|---|---|---|
-| 1 | Fundamentos de red | 6 lecciones y 4 laboratorios |
-| 2 | Switching y acceso | 7 lecciones y 5 laboratorios |
-| 3 | Enrutamiento IP | En preparación |
-| 4 | Servicios y seguridad | En preparación |
-| 5 | Automatización, IA y operación | En preparación |
+| Curso | Módulos con contenido |
+|---|---|
+| ITN · Introducción a las redes | 1 a 3, con pruebas y el examen de punto de control 1–3 |
+| SRWE · Switching, enrutamiento y redes inalámbricas | En preparación |
+| ENSA · Redes empresariales, seguridad y automatización | En preparación |
 
-Los archivos `.pkt` de los laboratorios se agregan a medida que se construyen. Ver
-[docs/CREAR-LABS.md](docs/CREAR-LABS.md).
+Las lecciones y laboratorios escritos antes de la reorganización están en `contenido-reserva/` y se integrarán en su
+módulo.
+
+## Material de Cisco
+
+El repositorio es público. **No se suben** textos, capturas, preguntas ni archivos `.pka`/`.pdf` de Networking Academy:
+el contenido sigue su índice, pero las explicaciones, diagramas y preguntas son propios. Las actividades de NetAcad se
+mencionan por su número (por ejemplo, «2.9.1 Packet Tracer») con una guía propia.
 
 ## Desarrollo
 
@@ -40,24 +75,23 @@ npm run dev      # vista previa en http://localhost:4321/CCNA_4Dummies/
 npm run build    # genera el sitio estático en dist/
 ```
 
-Estructura:
-
 ```
-src/content/lecciones/nivel-N/   lecciones en MDX
-src/content/labs/                laboratorios en MDX
-src/data/blueprints.ts           dominios y pesos del examen v1.1 y v2.0
-src/data/niveles.ts              niveles de la ruta y temario previsto
-src/components/                  topología, quiz, entrenador de subnetting
-public/labs/<id>/                archivos .pkt / .pka / .gns3project
-docs/                            guía para crear labs, plantilla y plan del proyecto
+src/content/teoria/<curso>/mNN/   temas en MDX (uno por archivo)
+src/content/preguntas/            bancos de preguntas por módulo (YAML)
+src/data/cursos.ts                cursos, módulos y puntos de control
+src/data/practica.ts              catálogo de ejercicios de Práctica
+src/components/teoria/            evaluación (verifique, pruebas, simulacro) y recursos didácticos
+src/components/practica/          ejercicios de Práctica
+src/lib/ios/                      consola IOS simulada, cifrado tipo 7, MD5-crypt y lector de configuraciones
+src/lib/pt/                       escenarios y corrección de los ejercicios de Packet Tracer
+public/labs/<id>/                 archivos .pkt de inicio (opcionales)
+contenido-reserva/                material anterior a la reorganización
+docs/                             guías para agregar contenido y plan del proyecto
 ```
 
-## Publicación
-
-Cada push a `main` publica el sitio con GitHub Actions. La primera vez hay que activarlo en
-**Settings > Pages > Build and deployment > Source: GitHub Actions**.
+Cada push a `main` publica el sitio con GitHub Actions.
 
 ## Aviso
 
-CCNA y Cisco son marcas de Cisco Systems, Inc. Este proyecto no está afiliado a Cisco. No se distribuyen imágenes de
-Cisco IOS: los laboratorios de GNS3 requieren imágenes propias con licencia.
+CCNA, Cisco, Packet Tracer y Networking Academy son marcas de Cisco Systems, Inc. Este proyecto no está afiliado a
+Cisco. El progreso del alumno se guarda solo en su navegador.

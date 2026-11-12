@@ -1,0 +1,70 @@
+---
+curso: itn
+modulo: 3
+tema: "3.6"
+titulo: Encapsulamiento de datos
+objetivo: Explicar cómo la encapsulación de datos permite transmitirlos a través de la red.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [encapsulacion]
+---
+
+import Encapsulacion from '../../../../components/teoria/Encapsulacion.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.6.1 Segmentación del mensaje
+
+Enviar un video entero como un solo bloque bloquearía el medio para todos los demás. Por eso los datos se dividen en
+partes pequeñas: **segmentación**. Tiene dos ventajas:
+
+- **Multiplexación**: las partes de muchas conversaciones distintas se intercalan en el mismo medio. Nadie lo acapara.
+- **Eficiencia**: si una parte se pierde o se daña, solo se retransmite esa parte, no el mensaje completo.
+
+## 3.6.2 Secuenciación
+
+Las partes pueden llegar por caminos distintos y en desorden. TCP **numera** cada segmento para que el destino los
+reordene y detecte si falta alguno.
+
+## 3.6.3 Unidades de datos del protocolo (PDU)
+
+A medida que los datos bajan por las capas, cada protocolo les agrega información de control. La forma que tiene el
+dato en cada capa se llama **PDU** y tiene un nombre propio:
+
+| Capa (TCP/IP) | PDU |
+|---|---|
+| Aplicación | **Datos** |
+| Transporte | **Segmento** (TCP) o datagrama (UDP) |
+| Internet | **Paquete** |
+| Acceso a la red | **Trama** |
+| (medio físico) | **Bits** |
+
+Una regla para recordarlo: **D-S-P-T-B**, «**D**e **S**u **P**ropia **T**rama, **B**its».
+
+## 3.6.4 y 3.6.5 Encapsulación y desencapsulación
+
+<Encapsulacion client:visible />
+
+- **Encapsulación**: el emisor agrega encabezados de arriba hacia abajo. El tráiler (FCS) solo lo agrega la capa de
+  enlace de datos, al final de la trama.
+- **Desencapsulación**: el receptor quita los encabezados de abajo hacia arriba y entrega a cada capa lo que le
+  corresponde.
+
+<aside class="ojo">
+
+El orden importa y es una pregunta clásica. Al **enviar**: datos, luego encabezado de transporte, luego encabezado IP y
+por último encabezado y tráiler de enlace. Al **recibir**, el mismo orden al revés.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué ventaja de la segmentación permite intercalar varias conversaciones?', dorso: 'La multiplexación.' },
+    { frente: 'PDU de la capa de transporte con TCP.', dorso: 'Segmento.' },
+    { frente: '¿Qué capa agrega un tráiler?', dorso: 'La de enlace de datos (el FCS de la trama).' },
+    { frente: 'Orden de encapsulación de un mensaje web.', dorso: 'Datos HTTP → encabezado TCP → encabezado IP → encabezado y tráiler Ethernet.' },
+    { frente: '¿Qué permite a TCP reordenar los segmentos al llegar?', dorso: 'Los números de secuencia.' },
+  ]}
+/>

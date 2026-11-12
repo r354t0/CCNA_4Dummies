@@ -1,0 +1,124 @@
+---
+curso: itn
+modulo: 3
+tema: "3.1"
+titulo: Las reglas
+objetivo: Describir los tipos de reglas necesarias para que la comunicación sea exitosa.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+actividades:
+  - codigo: "3.1.1"
+    tipo: Video
+    titulo: Dispositivos en una burbuja
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.1.2 Fundamentos de la comunicación
+
+Toda comunicación, entre personas o entre computadoras, tiene tres elementos:
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Origen', texto: 'Quien envía el mensaje.', icono: 'pc' },
+    { titulo: 'Canal', texto: 'El medio por el que viaja el mensaje.', icono: 'switch' },
+    { titulo: 'Destino', texto: 'Quien recibe e interpreta el mensaje.', icono: 'servidor' },
+  ]}
+/>
+
+## 3.1.3 Protocolos de comunicación
+
+Para que el mensaje se entienda, origen y destino tienen que seguir las mismas reglas: los **protocolos**. Definen
+cómo se envía, se transmite y se recibe el mensaje. Igual que dos personas necesitan hablar el mismo idioma, dos
+dispositivos necesitan el mismo protocolo.
+
+## 3.1.4 Establecimiento de reglas
+
+Cualquier comunicación necesita acuerdos sobre:
+
+- Un **emisor y un receptor identificados**.
+- Un **idioma y una gramática** comunes.
+- La **velocidad y el momento** de la entrega.
+- La **confirmación** de que el mensaje llegó.
+
+## 3.1.5 Requisitos de los protocolos de red
+
+En las redes, esos acuerdos se traducen en seis requisitos:
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Codificación', texto: 'Convertir la información en un formato transmisible: bits, y luego señales eléctricas, luz u ondas. El receptor la decodifica.' },
+    { titulo: 'Formato y encapsulación', texto: 'El mensaje sigue una estructura acordada. Encapsular es colocar el mensaje dentro de otro formato, como una carta en un sobre con remitente y destinatario.' },
+    { titulo: 'Tamaño', texto: 'Los mensajes largos se dividen en partes más pequeñas (tramas) con un tamaño mínimo y máximo.' },
+    { titulo: 'Sincronización', texto: 'Control de flujo, tiempo de espera de respuesta y método de acceso al medio.' },
+    { titulo: 'Opciones de entrega', texto: 'Unicast, multicast o broadcast según a cuántos destinos va el mensaje.' },
+    { titulo: 'Confirmación', texto: 'Algunos protocolos piden acuse de recibo para cada mensaje.' },
+  ]}
+/>
+
+## 3.1.9 Sincronización del mensaje
+
+| Concepto | Qué controla | Analogía |
+|---|---|---|
+| **Control de flujo** | Cuánta información se envía y a qué velocidad, para no saturar al receptor | Hablar a un ritmo que el otro pueda seguir |
+| **Tiempo de espera de respuesta** | Cuánto espera un host una respuesta antes de reintentar o desistir | Repetir la pregunta si nadie contesta |
+| **Método de acceso** | Cuándo puede un dispositivo enviar por un medio compartido, para evitar colisiones | No hablar todos a la vez en una reunión |
+
+## 3.1.10 Opciones de entrega del mensaje
+
+<Topologia
+  ancho={660}
+  alto={180}
+  titulo="Unicast: un destino. Multicast: un grupo. Broadcast: todos."
+  nodos={[
+    { id: 'A', tipo: 'pc', x: 60, y: 80, etiqueta: 'Origen', lado: 'abajo' },
+    { id: 'B', tipo: 'pc', x: 175, y: 80, etiqueta: 'Destino', lado: 'abajo', resaltado: true },
+    { id: 'C', tipo: 'pc', x: 290, y: 80, etiqueta: 'Origen', lado: 'abajo' },
+    { id: 'D', tipo: 'pc', x: 385, y: 40, etiqueta: 'Grupo', lado: 'derecha', resaltado: true },
+    { id: 'E', tipo: 'pc', x: 385, y: 130, etiqueta: 'Grupo', lado: 'derecha', resaltado: true },
+    { id: 'F', tipo: 'pc', x: 500, y: 80, etiqueta: 'Origen', lado: 'abajo' },
+    { id: 'G', tipo: 'pc', x: 610, y: 25, etiqueta: 'Todos', lado: 'derecha', resaltado: true },
+    { id: 'H', tipo: 'pc', x: 610, y: 135, etiqueta: 'Todos', lado: 'derecha', resaltado: true },
+  ]}
+  enlaces={[
+    { a: 'A', b: 'B', marca: 'unicast', resaltado: true },
+    { a: 'C', b: 'D', resaltado: true },
+    { a: 'C', b: 'E', resaltado: true },
+    { a: 'F', b: 'G', resaltado: true },
+    { a: 'F', b: 'H', resaltado: true },
+  ]}
+/>
+
+| Opción | Destinos | Ejemplo |
+|---|---|---|
+| **Unicast** | Uno a uno | Tu PC pide una página a un servidor web |
+| **Multicast** | Uno a un grupo | Una transmisión de video para los equipos suscritos |
+| **Broadcast** | Uno a todos los de la red | Una PC que pregunta «¿quién tiene esta IP?» (ARP) |
+
+<aside class="ojo">
+
+**IPv6 no usa broadcast.** Lo reemplaza con multicast, como verás en el módulo 12.
+
+</aside>
+
+## 3.1.11 Los íconos de nodo
+
+En los diagramas de este y otros cursos, un círculo o un ícono genérico de nodo representa a cualquier dispositivo
+final. Lo importante no es el equipo concreto, sino el papel que cumple en la comunicación.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Tres elementos de toda comunicación.', dorso: 'Origen, canal y destino.' },
+    { frente: '¿Qué es la codificación?', dorso: 'Convertir la información en un formato transmisible (bits y señales).' },
+    { frente: '¿Qué evita el control de flujo?', dorso: 'Que el emisor sature al receptor enviando más rápido de lo que puede procesar.' },
+    { frente: 'Un mensaje a todos los equipos de la red se llama…', dorso: 'Broadcast.' },
+    { frente: '¿Qué opción de entrega no existe en IPv6?', dorso: 'El broadcast.' },
+  ]}
+/>

@@ -1,0 +1,161 @@
+---
+curso: itn
+modulo: 1
+tema: "1.2"
+titulo: Componentes de la red
+objetivo: Explicar cómo se usan los dispositivos host y los dispositivos intermediarios en una red.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [clasificar, topologias]
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+Toda red, desde la de tu casa hasta Internet, se arma con tres tipos de componentes:
+
+<div class="duo">
+<div>
+
+#### Dispositivos finales
+
+Donde empieza o termina la comunicación: PC, laptops, teléfonos, impresoras, servidores, cámaras.
+
+</div>
+<div>
+
+#### Dispositivos intermediarios
+
+Los que conectan a los finales y deciden por dónde va cada mensaje: switches, routers, puntos de acceso, firewalls.
+
+</div>
+<div>
+
+#### Medios
+
+El camino físico por el que viajan los datos: cobre, fibra óptica o el aire (inalámbrico).
+
+</div>
+</div>
+
+## 1.2.1 Funciones de host
+
+Un **host** es cualquier dispositivo final que participa directamente en la comunicación. Cada host se identifica en
+la red por una **dirección**: cuando envía un mensaje, usa la dirección del destino para indicar a quién va.
+
+Según lo que hace, un host puede ser:
+
+- **Cliente**: pide información o servicios. Tu navegador es un cliente cuando abre una página.
+- **Servidor**: tiene un software que entrega información o servicios a los clientes.
+
+| Tipo de servidor | Qué ofrece | Cliente típico |
+|---|---|---|
+| Correo electrónico | Recibe, guarda y entrega mensajes | Outlook, la app de correo del celular |
+| Web | Páginas web | Navegador |
+| Archivos | Carpetas y archivos compartidos | Explorador de archivos |
+
+Un mismo equipo puede correr varios programas de servidor a la vez, y también ser cliente de otros servicios.
+
+## 1.2.2 Redes entre pares (peer-to-peer)
+
+En redes muy pequeñas, como una casa, un mismo equipo puede ser cliente y servidor al mismo tiempo: comparte una
+impresora con los demás mientras navega por Internet. A eso se le llama **red entre pares** o **P2P**.
+
+<Topologia
+  ancho={560}
+  alto={200}
+  titulo="Red entre pares: dos PC conectadas directamente que comparten una impresora"
+  nodos={[
+    { id: 'PC1', tipo: 'pc', x: 110, y: 85, detalle: 'Comparte la impresora' },
+    { id: 'PC2', tipo: 'pc', x: 330, y: 85, detalle: 'Usa la impresora' },
+    { id: 'Impresora', tipo: 'impresora', x: 470, y: 85 },
+  ]}
+  enlaces={[
+    { a: 'PC1', b: 'PC2' },
+    { a: 'PC1', b: 'Impresora' },
+  ]}
+/>
+
+| Ventajas | Desventajas |
+|---|---|
+| Fácil de configurar | Sin administración centralizada |
+| Poco compleja | Poco segura |
+| Barata: no necesita servidores ni equipos de red dedicados | No escala: con muchos equipos se vuelve un caos |
+| Sirve para tareas simples como compartir una impresora | Todos los equipos actúan como cliente y servidor, lo que puede volverlos lentos |
+
+## 1.2.3 Dispositivos finales
+
+Son la interfaz entre las personas y la red. El mensaje **se origina** en un dispositivo final, viaja por la red y
+**llega** a otro dispositivo final.
+
+<Tarjetas
+  columnas={4}
+  items={[
+    { titulo: 'Computadoras', texto: 'PC y laptops de usuarios.', icono: 'pc' },
+    { titulo: 'Servidores', texto: 'Ofrecen servicios a los clientes.', icono: 'servidor' },
+    { titulo: 'Teléfonos IP', texto: 'Llamadas de voz sobre la red de datos.', icono: 'telefono' },
+    { titulo: 'Impresoras de red', texto: 'Compartidas por varios usuarios.', icono: 'impresora' },
+    { titulo: 'Dispositivos móviles', texto: 'Teléfonos inteligentes y tablets.', icono: 'tablet' },
+    { titulo: 'Laptops', texto: 'Se conectan por cable o Wi-Fi.', icono: 'laptop' },
+  ]}
+/>
+
+También son dispositivos finales las cámaras de seguridad, los terminales de pago, los sensores y cualquier
+equipo del **Internet de las cosas** que envíe o reciba datos.
+
+## 1.2.4 Dispositivos intermediarios
+
+Conectan los dispositivos finales a la red y unen redes entre sí. Usan la dirección del destino, junto con lo que
+saben de la red, para decidir **por dónde enviar** cada mensaje.
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Switch', texto: 'Conecta los equipos de una misma red local (LAN) y envía cada trama solo al puerto del destino.', icono: 'switch' },
+    { titulo: 'Router', texto: 'Une redes distintas y elige el mejor camino entre ellas. Es la puerta de salida de una LAN.', icono: 'router' },
+    { titulo: 'Router inalámbrico', texto: 'Combina router, switch y punto de acceso en un solo equipo. Es el típico de casas y oficinas pequeñas.', icono: 'router-inalambrico' },
+    { titulo: 'Punto de acceso', texto: 'Conecta dispositivos inalámbricos a la red cableada.', icono: 'ap' },
+    { titulo: 'Firewall', texto: 'Filtra el tráfico según reglas de seguridad para proteger la red.', icono: 'firewall' },
+  ]}
+/>
+
+Funciones que cumplen los dispositivos intermediarios:
+
+1. **Regenerar y retransmitir** las señales de comunicación.
+2. **Mantener información** sobre las rutas que existen en la red.
+3. **Avisar** a otros dispositivos de errores y fallas de comunicación.
+4. **Elegir caminos alternativos** cuando un enlace falla.
+5. **Clasificar y priorizar** mensajes según su tipo (por ejemplo, la voz antes que una descarga).
+6. **Permitir o bloquear** tráfico según la configuración de seguridad.
+
+## 1.2.5 Medios de red
+
+El medio es el canal por el que viaja el mensaje. Hay tres tipos, y cada uno codifica los datos de forma distinta:
+
+| Medio | Cómo viajan los datos | Dónde se usa |
+|---|---|---|
+| Hilos de metal (cobre) | Impulsos eléctricos | Cableado de oficinas y casas (UTP) |
+| Fibra óptica | Pulsos de luz | Enlaces largos y de alta velocidad, entre edificios y ciudades |
+| Inalámbrico | Ondas electromagnéticas | Wi-Fi, redes celulares, satélite |
+
+Para elegir el medio, se tienen en cuenta cuatro criterios:
+
+1. **Distancia máxima** que puede cubrir con éxito.
+2. **Entorno** donde se instalará (interferencias, humedad, exterior).
+3. **Cantidad de datos y velocidad** que debe transmitir.
+4. **Costo** del medio y de su instalación.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Cliente o servidor? Una laptop que abre una página web.', dorso: 'Cliente: solicita el servicio. El que entrega la página es el servidor web.' },
+    { frente: '¿Final o intermediario? Un teléfono IP.', dorso: 'Final: allí empieza y termina la llamada.' },
+    { frente: '¿Final o intermediario? Un punto de acceso inalámbrico.', dorso: 'Intermediario: conecta los equipos inalámbricos a la red cableada.' },
+    { frente: '¿Cuál es la principal desventaja de una red entre pares?', dorso: 'No tiene administración centralizada, es poco segura y no escala.' },
+    { frente: '¿Qué medio usa pulsos de luz?', dorso: 'La fibra óptica.' },
+    { frente: 'Menciona dos funciones de un dispositivo intermediario.', dorso: 'Regenerar señales, mantener rutas, avisar errores, buscar caminos alternativos, priorizar tráfico, filtrar según seguridad.' },
+  ]}
+/>

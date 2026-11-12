@@ -1,0 +1,114 @@
+---
+curso: itn
+modulo: 2
+tema: "2.1"
+titulo: Acceso a Cisco IOS
+objetivo: Explicar cómo se accede a un dispositivo con Cisco IOS para configurarlo.
+duracion: 20
+examen:
+  v1.1: 4
+  v2.0: 4
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.1.1 Sistemas operativos
+
+Todo dispositivo final o de red necesita un **sistema operativo (SO)**. Lo puedes imaginar en tres capas:
+
+<figure class="capas-so">
+  <svg viewBox="0 0 420 240" role="img" aria-labelledby="so-t">
+    <title id="so-t">El usuario interactúa con el shell, el shell con el kernel y el kernel con el hardware</title>
+    <circle cx="210" cy="120" r="112" class="so-shell" />
+    <circle cx="210" cy="120" r="74" class="so-kernel" />
+    <circle cx="210" cy="120" r="38" class="so-hw" />
+    <text x="210" y="124" text-anchor="middle" class="so-t">Hardware</text>
+    <text x="210" y="70" text-anchor="middle" class="so-t">Kernel</text>
+    <text x="210" y="30" text-anchor="middle" class="so-t">Shell</text>
+  </svg>
+</figure>
+
+<style>{`
+  .capas-so { margin: 0 0 1.25rem; max-width: 300px; }
+  .capas-so svg { width: 100%; height: auto; display: block; }
+  .capas-so .so-shell { fill: color-mix(in srgb, var(--n3) 12%, var(--surface)); stroke: var(--n3); stroke-width: 2; }
+  .capas-so .so-kernel { fill: color-mix(in srgb, var(--n2) 16%, var(--surface)); stroke: var(--n2); stroke-width: 2; }
+  .capas-so .so-hw { fill: color-mix(in srgb, var(--n1) 22%, var(--surface)); stroke: var(--n1); stroke-width: 2; }
+  .capas-so .so-t { font-family: var(--font-head); font-weight: 700; font-size: 15px; fill: var(--ink); }
+`}</style>
+
+| Capa | Qué hace |
+|---|---|
+| **Shell** | La interfaz con el usuario: lo que ves y donde escribes los comandos |
+| **Kernel** | Comunica el software con el hardware y reparte recursos (memoria, procesador) |
+| **Hardware** | La parte física: procesador, memoria, puertos |
+
+El shell puede ser una **interfaz gráfica (GUI)**, con ventanas e íconos, o una **interfaz de línea de comandos
+(CLI)**, donde escribes texto. Los equipos de red de Cisco se administran sobre todo por CLI.
+
+## 2.1.2 GUI frente a CLI
+
+Las GUI son intuitivas, pero dependen de que la interfaz gráfica funcione y de que estén conectadas a la red. La CLI
+es más ligera, funciona por consola aunque la red esté caída y permite automatizar tareas. Por eso los profesionales
+de redes trabajan en CLI, y el CCNA la evalúa.
+
+## 2.1.3 Propósito del sistema operativo
+
+El sistema operativo de los switches y routers de Cisco se llama **Cisco IOS** (*Internetwork Operating System*).
+Hay versiones distintas según el modelo y la función del equipo, pero la estructura de comandos es la misma. El
+archivo de IOS se guarda en la **memoria flash** del equipo.
+
+## 2.1.4 Métodos de acceso
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Consola', texto: 'Puerto físico de administración fuera de banda. Funciona aunque la red esté caída o el equipo no tenga configuración. Es el acceso del primer día.', ejemplo: 'Cable de consola de la PC al puerto Console.' },
+    { titulo: 'SSH', texto: 'Acceso remoto por la red, en banda, con toda la sesión cifrada. Es el método recomendado.', ejemplo: 'ssh -l admin 192.168.1.2' },
+    { titulo: 'Telnet', texto: 'Acceso remoto por la red, en banda, pero sin cifrar: usuario y contraseña viajan en texto plano. Solo para laboratorio.', ejemplo: 'telnet 192.168.1.2' },
+  ]}
+/>
+
+<Topologia
+  ancho={620}
+  alto={220}
+  titulo="Acceso por consola (fuera de banda) y por SSH a través de la red (en banda)"
+  nodos={[
+    { id: 'PC-Admin', tipo: 'laptop', x: 90, y: 110, detalle: 'Emulador de terminal', lado: 'abajo' },
+    { id: 'S1', tipo: 'switch', x: 320, y: 110, lado: 'arriba' },
+    { id: 'PC-Remota', tipo: 'pc', x: 540, y: 110, detalle: 'Cliente SSH', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'PC-Admin', b: 'S1', tipo: 'consola', ia: 'USB/RS-232', ib: 'Console' },
+    { a: 'S1', b: 'PC-Remota', ia: 'F0/5', marca: 'SSH por la red' },
+  ]}
+/>
+
+<aside class="dato">
+
+Algunos routers tienen además un **puerto auxiliar (AUX)** para conectar un módem y administrarlos por línea
+telefónica. Hoy casi no se usa.
+
+</aside>
+
+## 2.1.5 Programas de emulación de terminal
+
+Para conectarte por consola, SSH o Telnet necesitas un **emulador de terminal** en la PC. Los más conocidos son
+**PuTTY**, **Tera Term** y **SecureCRT**. En Packet Tracer, la PC tiene su propia **Terminal** (para la consola) y su
+**Command Prompt** (para SSH y Telnet).
+
+Valores habituales para la consola de un equipo Cisco: 9600 baudios, 8 bits de datos, sin paridad, 1 bit de parada y
+sin control de flujo.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué capa del sistema operativo usa el usuario para dar instrucciones?', dorso: 'El shell (por GUI o por CLI).' },
+    { frente: 'La red está caída. ¿Cómo entras al switch?', dorso: 'Por el puerto de consola, que es fuera de banda.' },
+    { frente: '¿Por qué SSH en lugar de Telnet?', dorso: 'Porque SSH cifra toda la sesión; Telnet envía todo en texto plano.' },
+    { frente: 'Dos emuladores de terminal.', dorso: 'PuTTY, Tera Term o SecureCRT.' },
+    { frente: '¿Dónde se guarda el archivo de IOS?', dorso: 'En la memoria flash del equipo.' },
+  ]}
+/>

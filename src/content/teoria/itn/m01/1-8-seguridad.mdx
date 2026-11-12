@@ -1,0 +1,96 @@
+---
+curso: itn
+modulo: 1
+tema: "1.8"
+titulo: Seguridad de la red
+objetivo: Identificar algunas amenazas y soluciones de seguridad básicas para todas las redes.
+duracion: 20
+examen:
+  v1.1: 5
+  v2.0: 4
+practica: [clasificar]
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Topologia from '../../../../components/Topologia.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.8.1 Amenazas de seguridad
+
+Las amenazas pueden venir de **afuera** (atacantes en Internet) o de **adentro** (empleados descuidados o
+malintencionados, equipos perdidos o infectados). Las internas son especialmente peligrosas: el atacante ya está
+dentro y conoce la red.
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Virus, gusanos y troyanos', texto: 'Software malicioso que se instala en un equipo y daña, roba o se propaga. El gusano se replica solo por la red.' },
+    { titulo: 'Spyware y adware', texto: 'Recopila información del usuario sin su permiso o muestra publicidad no deseada.' },
+    { titulo: 'Ataque de día cero', texto: 'Aprovecha una vulnerabilidad el mismo día en que se descubre, antes de que exista un parche.' },
+    { titulo: 'Actores de amenazas', texto: 'Personas que atacan dispositivos y redes por dinero, ideología o diversión.' },
+    { titulo: 'Denegación de servicio (DoS)', texto: 'Satura un equipo o servicio para que deje de responder a los usuarios legítimos.' },
+    { titulo: 'Intercepción y robo de datos', texto: 'Captura información privada en tránsito o la extrae de la red de una organización.' },
+    { titulo: 'Robo de identidad', texto: 'Roba credenciales o datos personales para hacerse pasar por otra persona.' },
+  ]}
+/>
+
+## 1.8.2 Soluciones de seguridad
+
+No existe una sola solución: se usan **varias capas** de protección. Si una falla, las otras siguen protegiendo.
+
+<Topologia
+  ancho={660}
+  alto={210}
+  titulo="Seguridad en capas: el firewall filtra en el borde y cada equipo tiene su propia protección"
+  nodos={[
+    { id: 'Internet', tipo: 'nube', x: 70, y: 100, lado: 'abajo' },
+    { id: 'Firewall', tipo: 'firewall', x: 220, y: 100, detalle: 'Filtra en el borde', lado: 'abajo' },
+    { id: 'R1', tipo: 'router', x: 360, y: 100, detalle: 'ACL', lado: 'abajo' },
+    { id: 'S1', tipo: 'switch', x: 480, y: 100, lado: 'arriba' },
+    { id: 'PC', tipo: 'pc', x: 600, y: 100, detalle: 'Antivirus', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'Internet', b: 'Firewall' },
+    { a: 'Firewall', b: 'R1' },
+    { a: 'R1', b: 'S1' },
+    { a: 'S1', b: 'PC' },
+  ]}
+/>
+
+<div class="duo">
+<div>
+
+#### Hogar y oficina pequeña
+
+- **Antivirus y antispyware** en cada equipo.
+- **Firewall** básico, incluido en el router inalámbrico o en el sistema operativo.
+
+</div>
+<div>
+
+#### Empresa (además de lo anterior)
+
+- **Firewall dedicado** con funciones avanzadas.
+- **Listas de control de acceso (ACL)** que filtran tráfico.
+- **Sistemas de prevención de intrusiones (IPS)** que detectan y bloquean ataques, incluso de día cero.
+- **Redes privadas virtuales (VPN)** para que los trabajadores remotos entren de forma segura.
+
+</div>
+</div>
+
+<aside class="clave">
+
+La seguridad depende también de las personas: contraseñas robustas, actualizaciones al día y cuidado con los
+correos sospechosos. En el módulo 16 profundizarás en todo esto.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué amenaza aprovecha una vulnerabilidad antes de que exista el parche?', dorso: 'El ataque de día cero.' },
+    { frente: '¿Qué hace un ataque DoS?', dorso: 'Satura un servicio o equipo para que no responda a los usuarios legítimos.' },
+    { frente: '¿Qué solución permite a un teletrabajador entrar seguro a la red de la empresa?', dorso: 'Una VPN.' },
+    { frente: 'Dos soluciones de seguridad básicas para el hogar.', dorso: 'Antivirus/antispyware y firewall.' },
+  ]}
+/>

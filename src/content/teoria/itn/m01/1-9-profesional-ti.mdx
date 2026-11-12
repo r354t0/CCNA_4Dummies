@@ -1,0 +1,51 @@
+---
+curso: itn
+modulo: 1
+tema: "1.9"
+titulo: El profesional de TI
+objetivo: Explicar las oportunidades laborales en el área de redes.
+duracion: 10
+actividades:
+  - codigo: "1.9.3"
+    tipo: Laboratorio
+    titulo: Investigue las oportunidades laborales en TI y redes
+    guia: Busca tres ofertas reales en tu ciudad y anota qué certificaciones y habilidades piden. Compáralas con los dominios del examen CCNA en la página Temario del examen.
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+
+## 1.9.1 CCNA
+
+La certificación **Cisco Certified Network Associate (CCNA)** demuestra que conoces las tecnologías fundamentales de
+redes y que sabes configurarlas. Es reconocida en todo el mundo y suele ser el primer paso de una carrera en redes.
+
+Se obtiene aprobando un solo examen, el **200-301**, que combina preguntas de conceptos con simulaciones donde
+configuras equipos. Por eso esta app separa la **Teórica** de la **Práctica**: necesitas las dos.
+
+| Versión del examen | Vigencia | Dominios |
+|---|---|---|
+| v1.1 | Hasta el 2 de febrero de 2027 | 6 dominios, de fundamentos de red a automatización |
+| v2.0 | Desde el 3 de febrero de 2027 | 5 dominios, incluida IA aplicada a la operación de redes |
+
+El temario completo, con lo que cubre cada tema de la app, está en la página **Temario del examen**.
+
+## 1.9.2 Empleos en redes
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Técnico de soporte', texto: 'Atiende incidentes de usuarios, configura equipos y diagnostica problemas de conectividad.' },
+    { titulo: 'Administrador de redes', texto: 'Mantiene en funcionamiento la red de una organización: switches, routers, Wi-Fi y servicios.' },
+    { titulo: 'Ingeniero de redes', texto: 'Diseña e implementa redes, define la arquitectura y planifica el crecimiento.' },
+    { titulo: 'Analista de ciberseguridad', texto: 'Protege la red, supervisa amenazas y responde a incidentes.' },
+    { titulo: 'Ingeniero de nube', texto: 'Diseña y opera la conectividad hacia centros de datos y servicios en la nube.' },
+    { titulo: 'Automatización de redes', texto: 'Programa la configuración y supervisión de la red con APIs y herramientas como Ansible.' },
+  ]}
+/>
+
+<aside class="dato">
+
+El CCNA es la base de certificaciones más avanzadas como CCNP y de especialidades en seguridad, nube y
+automatización. Lo que aprendes en ITN sirve en todas ellas.
+
+</aside>
