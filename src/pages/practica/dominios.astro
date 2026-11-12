@@ -1,0 +1,7 @@
+---
+import Practica from '../../layouts/Practica.astro';
+import ContarDominios from '../../components/practica/ContarDominios.tsx';
+---
+<Practica id="dominios">
+  <ContarDominios client:only="react" />
+</Practica>

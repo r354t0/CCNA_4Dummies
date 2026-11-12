@@ -14,6 +14,7 @@ const c = datosCurso(cursoId);
 const modulos = await indice(cursoId);
 const contiene = (m: (typeof modulos)[number]) =>
   m.items.some((i) => i.href === actual) || m.punto?.href === actual;
+import { ejerciciosDeModulo, urlPracticaModulo } from '../../lib/navegacion';
 ---
 <nav class="indice" aria-label={`Esquema del curso ${c.titulo}`} style={`--c:${c.color}`}>
   <div class="indice-cabecera">
@@ -56,6 +57,15 @@ const contiene = (m: (typeof modulos)[number]) =>
                   </a>
                 </li>
               ))}
+              {ejerciciosDeModulo(cursoId, m.numero).length > 0 && (
+                <li data-filtrable data-texto={`Práctica del módulo ${m.numero}`}>
+                  <a href={urlPracticaModulo(cursoId, m.numero)} class="item item-practica">
+                    <span class="item-led" aria-hidden="true"></span>
+                    <svg class="item-icono" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M5.5 7.5l2.5 2-2.5 2M10 11.5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    <span class="item-titulo">Práctica del módulo ({ejerciciosDeModulo(cursoId, m.numero).length} ejercicios)</span>
+                  </a>
+                </li>
+              )}
             </ol>
           </details>
         ) : (
@@ -155,6 +165,9 @@ const contiene = (m: (typeof modulos)[number]) =>
   .item-num { font-family: var(--font-cli); font-size: 0.8rem; color: var(--muted); }
   .item-icono { color: var(--muted); align-self: center; }
   .item-prueba .item-titulo { font-weight: 600; }
+  .item-practica { color: var(--n2) !important; }
+  .item-practica .item-titulo { font-weight: 600; }
+  .item-practica .item-led { visibility: hidden; }
 
   .modulo-pendiente { padding: 0.75rem 1rem; display: grid; gap: 0.2rem; color: var(--muted); }
   .pronto { font-size: 0.8rem; }

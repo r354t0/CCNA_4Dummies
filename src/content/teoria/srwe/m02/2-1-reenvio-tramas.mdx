@@ -1,0 +1,117 @@
+---
+curso: srwe
+modulo: 2
+tema: "2.1"
+titulo: Reenvío de tramas
+objetivo: Explicar cómo se reenvían las tramas en una red conmutada.
+duracion: 30
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [tabla-mac]
+actividades:
+  - codigo: "2.1.4"
+    tipo: Video
+    titulo: Tablas de direcciones MAC en los switches
+  - codigo: "2.1.8"
+    tipo: Actividad de clase
+    titulo: ¡El switch!
+---
+
+import TablaMAC from '../../../../components/teoria/TablaMAC.tsx';
+import Trama from '../../../../components/teoria/Trama.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.1.1 Switching en la red
+
+*Conmutar* (*switch*) significa decidir por dónde sale algo según por dónde entró y hacia dónde va. Un switch de capa 2
+toma esa decisión con **una sola tabla**: la tabla de direcciones MAC (también llamada tabla CAM). No mira la IP ni
+nada de capas superiores.
+
+## 2.1.2 La tabla de direcciones MAC
+
+Cada entrada relaciona una **dirección MAC** con el **puerto** por el que se llega a ella. El switch la llena solo,
+observando el tráfico: no hay que configurar nada.
+
+```text
+S1# show mac address-table
+          Mac Address Table
+-------------------------------------------
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+   1    0050.0f2a.5b31    DYNAMIC     Fa0/1
+   1    0050.0f9c.10de    DYNAMIC     Fa0/4
+```
+
+## 2.1.3 Aprender y reenviar
+
+Con cada trama que entra, el switch hace dos cosas:
+
+1. **Aprende**: mira la **MAC de origen**. Si no está en la tabla, la agrega con el puerto de entrada. Si ya estaba,
+   renueva su temporizador (en Catalyst, 5 minutos por defecto); si el equipo se movió a otro puerto, actualiza la
+   entrada.
+2. **Reenvía**: mira la **MAC de destino**:
+   - Si es **unicast conocida**, la envía solo por el puerto de la tabla.
+   - Si es **unicast desconocida**, **difusión** o **multidifusión**, la **inunda**: la envía por todos los puertos
+     menos por el que entró.
+   - Si el destino está en el mismo puerto por el que entró, la **descarta** (filtra).
+
+Recorre el ejemplo trama por trama:
+
+<TablaMAC client:visible />
+
+<aside class="examen">
+
+Para aprender se usa la MAC de **origen**; para decidir el reenvío, la MAC de **destino**. Es la pregunta más repetida
+de este módulo.
+
+</aside>
+
+## 2.1.4 Métodos de reenvío
+
+Hay dos formas de decidir cuándo empezar a reenviar una trama:
+
+<Trama
+  client:visible
+  titulo="¿Cuánto lee el switch antes de reenviar?"
+  campos={[
+    { nombre: 'Preámbulo y SFD', tam: '8 B', texto: 'Sincroniza al receptor. El switch no lo almacena como parte de la trama.' },
+    { nombre: 'MAC destino', tam: '6 B', texto: 'Hacia dónde va la trama. Con el método de corte rápido, el switch decide aquí mismo.' },
+    { nombre: 'MAC origen', tam: '6 B', texto: 'De dónde viene. Es la que el switch aprende.' },
+    { nombre: 'Tipo', tam: '2 B', texto: 'Qué protocolo viaja dentro (0x0800 IPv4, 0x86DD IPv6).' },
+    { nombre: 'Datos', tam: '46–1500 B', texto: 'El paquete de capa 3. Con el método libre de fragmentos, el switch espera a recibir los primeros 64 bytes de la trama.', peso: 4 },
+    { nombre: 'FCS', tam: '4 B', texto: 'La suma de verificación (CRC). Solo el método de almacenamiento y reenvío la comprueba.' },
+  ]}
+  modos={[
+    { nombre: 'Almacenamiento y reenvío', hasta: 5, texto: 'Recibe la trama completa y comprueba el CRC. Si hay error, la descarta. Es el método de los switches Cisco actuales y el único que permite QoS y conectar puertos de velocidades distintas.' },
+    { nombre: 'Corte: avance rápido', hasta: 1, texto: 'Reenvía en cuanto lee la MAC de destino. Es la latencia más baja, pero reenvía también las tramas dañadas.' },
+    { nombre: 'Corte: libre de fragmentos', hasta: 4, texto: 'Espera los primeros 64 bytes, donde ocurre la mayoría de los errores y las colisiones, antes de reenviar. Es un punto intermedio.' },
+  ]}
+/>
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'Almacenamiento y reenvío', texto: 'Comprueba errores (CRC) y descarta las tramas dañadas. Permite almacenamiento en búfer y QoS. Es el método de los switches Cisco.' },
+    { titulo: 'Método de corte', texto: 'Empieza a reenviar antes de recibir la trama completa. Menos latencia, pero propaga errores. Variantes: avance rápido y libre de fragmentos.' },
+  ]}
+/>
+
+<aside class="dato">
+
+El **almacenamiento en búfer** permite que un switch con almacenamiento y reenvío conecte un puerto de 1 Gb/s con uno
+de 100 Mb/s: guarda la trama y la entrega al ritmo del puerto de salida.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué MAC aprende el switch?', dorso: 'La MAC de origen de cada trama, asociada al puerto de entrada.' },
+    { frente: 'Unicast con destino que no está en la tabla', dorso: 'Se inunda por todos los puertos menos el de entrada.' },
+    { frente: '¿Qué método comprueba el CRC?', dorso: 'Almacenamiento y reenvío.' },
+    { frente: 'Avance rápido', dorso: 'Método de corte que reenvía al leer la MAC de destino. Menor latencia.' },
+    { frente: 'Libre de fragmentos', dorso: 'Método de corte que espera los primeros 64 bytes antes de reenviar.' },
+  ]}
+/>

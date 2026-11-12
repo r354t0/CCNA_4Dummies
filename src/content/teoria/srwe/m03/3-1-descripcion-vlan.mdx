@@ -1,0 +1,93 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.1"
+titulo: Descripción general de las VLAN
+objetivo: Explicar el propósito de las VLAN en una red conmutada.
+duracion: 25
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [difusion-vlan]
+actividades:
+  - codigo: "3.1.4"
+    tipo: Packet Tracer
+    titulo: ¿Quién escucha la difusión?
+    guia: "Antes de enviar cada difusión en modo Simulación, anota qué PC crees que la recibirán. Compara tu predicción con lo que muestra Packet Tracer."
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.1.1 ¿Qué es una VLAN?
+
+Una **VLAN** (*LAN virtual*) agrupa puertos de uno o varios switches en una red lógica, sin importar dónde estén los
+equipos. Cada VLAN:
+
+- es un **dominio de difusión** propio;
+- suele corresponder a **una subred IP** propia;
+- no se comunica con otras VLAN sin un **router** o un switch de capa 3.
+
+<Topologia
+  ancho={700}
+  alto={260}
+  titulo="Un switch, tres VLAN: la difusión de PC1 solo llega a PC4"
+  nodos={[
+    { id: 'S1', tipo: 'switch', x: 350, y: 70, lado: 'arriba' },
+    { id: 'PC1', tipo: 'pc', x: 80, y: 190, detalle: 'VLAN 10 Docentes', lado: 'abajo', resaltado: true },
+    { id: 'PC2', tipo: 'pc', x: 200, y: 190, detalle: 'VLAN 20 Alumnos', lado: 'abajo' },
+    { id: 'PC3', tipo: 'pc', x: 320, y: 190, detalle: 'VLAN 30 Invitados', lado: 'abajo' },
+    { id: 'PC4', tipo: 'pc', x: 440, y: 190, detalle: 'VLAN 10 Docentes', lado: 'abajo', resaltado: true },
+    { id: 'PC5', tipo: 'pc', x: 560, y: 190, detalle: 'VLAN 20 Alumnos', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'S1', b: 'PC1', ia: 'F0/1', resaltado: true },
+    { a: 'S1', b: 'PC2', ia: 'F0/2' },
+    { a: 'S1', b: 'PC3', ia: 'F0/3' },
+    { a: 'S1', b: 'PC4', ia: 'F0/4', resaltado: true },
+    { a: 'S1', b: 'PC5', ia: 'F0/5' },
+  ]}
+/>
+
+## 3.1.2 Ventajas de las VLAN
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Dominios de difusión más pequeños', texto: 'Las difusiones de una VLAN no molestan a las demás: menos tráfico innecesario.' },
+    { titulo: 'Seguridad', texto: 'Los equipos con datos sensibles quedan separados del resto.' },
+    { titulo: 'Menor costo', texto: 'No hace falta comprar un switch por cada red.' },
+    { titulo: 'Mejor rendimiento', texto: 'Menos difusiones significa menos trabajo para cada equipo.' },
+    { titulo: 'Administración sencilla', texto: 'Mover a un usuario de red es cambiar un comando, no un cable.' },
+    { titulo: 'Agrupar por función', texto: 'Por departamento o rol, aunque estén en edificios distintos.' },
+  ]}
+/>
+
+## 3.1.3 Tipos de VLAN
+
+| Tipo | Para qué sirve |
+|---|---|
+| **VLAN predeterminada** | La VLAN 1. Al arrancar, todos los puertos están en ella. No se puede borrar ni renombrar, y por seguridad no conviene usarla |
+| **VLAN de datos** | Lleva el tráfico de los usuarios (también se le llama VLAN de usuario) |
+| **VLAN nativa** | En una troncal 802.1Q, la VLAN cuyo tráfico viaja **sin etiqueta**. Por defecto es la VLAN 1; se recomienda cambiarla a una VLAN sin uso |
+| **VLAN de administración** | La que usas para acceder al switch (su SVI). Por defecto la VLAN 1; mejor una dedicada, como la 99 |
+| **VLAN de voz** | Separada para el tráfico de telefonía IP, que necesita ancho de banda asegurado, prioridad y poca demora (menos de 150 ms) |
+
+<aside class="ojo">
+
+En la VLAN 1 viaja por defecto el tráfico de control de capa 2 (CDP, STP, VTP, DTP…). Por eso la buena práctica es
+**sacar** a los usuarios, la administración y la VLAN nativa de la VLAN 1.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué es cada VLAN en términos de difusión?', dorso: 'Un dominio de difusión independiente.' },
+    { frente: '¿Pueden comunicarse dos VLAN sin router?', dorso: 'No. Hace falta enrutamiento entre VLAN (módulo 4).' },
+    { frente: '¿Qué tiene de especial la VLAN 1?', dorso: 'Es la predeterminada: todos los puertos empiezan en ella y no se puede borrar.' },
+    { frente: 'VLAN nativa', dorso: 'La VLAN que viaja sin etiquetar por una troncal 802.1Q.' },
+    { frente: 'Demora máxima recomendada para la voz', dorso: 'Menos de 150 ms.' },
+  ]}
+/>

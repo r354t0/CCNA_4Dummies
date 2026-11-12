@@ -1,0 +1,53 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.0"
+titulo: Introducción
+objetivo: Configurar dispositivos con los parámetros iniciales y verificar redes conectadas directamente.
+duracion: 10
+actividades:
+  - codigo: "1.0.4"
+    tipo: Video
+    titulo: Introducción a Cisco Packet Tracer
+  - codigo: "1.0.5"
+    tipo: Packet Tracer
+    titulo: Exploración de los modos lógico y físico
+    guia: "En el modo físico se ven los racks, los cables y los puertos reales. Fíjate en qué módulo de cada equipo va cada interfaz: te ayudará a no confundir G0/0/0 con G0/0/1 en el examen."
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+
+Empieza el segundo curso. En ITN configuraste un switch con lo básico; ahora vas a dejarlo listo para una red real
+(puertos, acceso remoto seguro con **SSH**) y a configurar tu primer **router** con IPv4 e IPv6.
+
+## 1.0.1 ¿Por qué estudiar este módulo?
+
+Un switch recién salido de la caja funciona sin configurar, pero no se puede administrar de forma remota ni segura. Un
+router, en cambio, no reenvía nada hasta que configuras sus interfaces. Este módulo cierra ese hueco y te da los
+comandos de verificación que vas a usar durante todo el CCNA.
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Switch', icono: 'switch', texto: 'Arranque, SVI de administración, velocidad y dúplex de los puertos, errores de interfaz.' },
+    { titulo: 'Acceso remoto', icono: 'laptop', texto: 'Por qué Telnet ya no sirve y cómo configurar SSH paso a paso.' },
+    { titulo: 'Router', icono: 'router', texto: 'Interfaces IPv4 e IPv6, loopback y verificación de las redes conectadas.' },
+  ]}
+/>
+
+## 1.0.2 Qué vas a aprender
+
+| Tema | Objetivo |
+|---|---|
+| 1.1 Configuración inicial de un switch | Configurar los parámetros iniciales de un switch Cisco |
+| 1.2 Configurar los puertos de un switch | Configurar puertos de switch para requisitos de red |
+| 1.3 Acceso remoto seguro | Configurar la administración segura de un switch |
+| 1.4 Configuración básica de un router | Configurar los parámetros básicos de un router con CLI de IOS |
+| 1.5 Verificar redes conectadas directamente | Verificar la tabla de enrutamiento y el estado de las interfaces |
+
+<aside class="clave">
+
+Si no tienes Packet Tracer, descárgalo desde tu cuenta de Networking Academy (tema 1.0.3). Todo el curso usa la versión
+8.2 o superior.
+
+</aside>

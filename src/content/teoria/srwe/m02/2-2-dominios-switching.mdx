@@ -1,0 +1,76 @@
+---
+curso: srwe
+modulo: 2
+tema: "2.2"
+titulo: Dominios de switching
+objetivo: Comparar un dominio de colisión con un dominio de difusión.
+duracion: 25
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [dominios]
+---
+
+import Dominios from '../../../../components/teoria/Dominios.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.2.1 Dominios de colisión
+
+Un **dominio de colisión** es el conjunto de dispositivos cuyas tramas pueden chocar entre sí. Pasaba con los hubs:
+todos compartían el mismo medio en semidúplex.
+
+En un switch, **cada puerto es un dominio de colisión** distinto. Y si el puerto funciona en dúplex completo, ya no hay
+colisiones posibles en ese segmento. Si un puerto negocia semidúplex (porque el otro extremo es un hub, por ejemplo),
+ese segmento vuelve a ser un dominio de colisión real.
+
+## 2.2.2 Dominios de difusión
+
+Un **dominio de difusión** es el conjunto de dispositivos que reciben una trama de difusión (`FF-FF-FF-FF-FF-FF`)
+enviada por cualquiera de ellos. Un switch reenvía las difusiones por todos sus puertos, así que **los switches no
+separan dominios de difusión**: varios switches unidos forman un solo dominio. Los separa un dispositivo de capa 3,
+como un **router** (y, en el próximo módulo, las **VLAN**).
+
+Cambia la vista y cuenta los dominios de esta red:
+
+<Dominios client:visible />
+
+| Dispositivo | ¿Separa dominios de colisión? | ¿Separa dominios de difusión? |
+|---|---|---|
+| Hub | No | No |
+| Switch | Sí, cada puerto | No (salvo con VLAN) |
+| Router | Sí, cada interfaz | Sí, cada interfaz |
+
+<aside class="examen">
+
+Para contar: **colisión** = un dominio por cada puerto activo de switch o de router (un hub y todo lo que cuelga de él
+cuentan como uno). **Difusión** = un dominio por cada interfaz de router que tiene una red detrás (o por cada VLAN).
+
+</aside>
+
+## 2.2.3 Alivio de la congestión
+
+Los switches reducen la congestión de una LAN gracias a varias características:
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Alta densidad de puertos', texto: 'Muchos puertos en una caja: menos switches, menos cables y menos costo.' },
+    { titulo: 'Búferes grandes', texto: 'Guardan tramas cuando el puerto de salida está ocupado en lugar de descartarlas.' },
+    { titulo: 'Puertos rápidos', texto: '1, 10, 40 y 100 Gb/s para enlaces troncales y servidores.' },
+    { titulo: 'Conmutación interna rápida', texto: 'Un backplane con capacidad suficiente para que todos los puertos transmitan a la vez.' },
+    { titulo: 'Bajo costo por puerto', texto: 'Cada usuario tiene su propio puerto y su propio dominio de colisión.' },
+    { titulo: 'Dúplex completo', texto: 'Sin colisiones y con el doble de ancho de banda efectivo.' },
+  ]}
+/>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Un switch de 24 puertos con todos conectados. ¿Cuántos dominios de colisión?', dorso: '24, uno por puerto.' },
+    { frente: 'El mismo switch, sin VLAN. ¿Cuántos dominios de difusión?', dorso: 'Uno.' },
+    { frente: '¿Qué dispositivo separa dominios de difusión?', dorso: 'Un router (o un dispositivo de capa 3). También las VLAN.' },
+    { frente: '¿Hay colisiones en un puerto en dúplex completo?', dorso: 'No.' },
+    { frente: 'Un hub con 4 PC conectado a un puerto de switch', dorso: 'El hub y las 4 PC comparten un solo dominio de colisión.' },
+  ]}
+/>

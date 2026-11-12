@@ -1,0 +1,97 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.6"
+titulo: Práctica y resumen del módulo
+objetivo: Integrar la configuración básica de switches y routers y repasar el módulo.
+duracion: 20
+practica: [pt-router, cli-ssh, diag-interfaces]
+actividades:
+  - codigo: "1.6.1"
+    tipo: Packet Tracer
+    titulo: Implementar una red pequeña
+    guia: "Arma primero la tabla de direccionamiento en papel. Configura los dispositivos en el orden router, switches y PC, y prueba la conectividad desde cada PC al final."
+  - codigo: "1.6.2"
+    tipo: Laboratorio
+    titulo: Configurar los ajustes básicos del router
+  - codigo: "1.6.2"
+    tipo: Packet Tracer
+    titulo: Configurar los ajustes básicos del router (modo físico)
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.6.1 Router y switch, lado a lado
+
+<div class="duo">
+
+<div>
+
+#### Switch de capa 2
+
+```text
+interface vlan 99
+ ip address 172.17.99.11 255.255.255.0
+ no shutdown
+ip default-gateway 172.17.99.1
+!
+interface fa0/1
+ duplex full
+ speed 100
+```
+
+</div>
+
+<div>
+
+#### Router
+
+```text
+ipv6 unicast-routing
+interface g0/0/0
+ description LAN de PC1
+ ip address 192.168.10.1 255.255.255.0
+ ipv6 address 2001:db8:acad:10::1/64
+ no shutdown
+interface loopback 0
+ ip address 10.0.0.1 255.255.255.0
+```
+
+</div>
+
+</div>
+
+Y en los dos, SSH:
+
+```text
+hostname R1
+ip domain-name ccna4dummies.lab
+crypto key generate rsa general-keys modulus 1024
+username admin secret Adm1n!2026
+ip ssh version 2
+line vty 0 4
+ transport input ssh
+ login local
+```
+
+## 1.6.2 Lo que aprendiste
+
+| Tema | Lo esencial |
+|---|---|
+| 1.1 Configuración inicial | POST, boot loader, IOS. `boot system`. LED y botón Mode. SVI con `ip default-gateway` |
+| 1.2 Puertos | Dúplex completo y semidúplex. `duplex`, `speed`, `mdix auto`. `show interfaces`: CRC, runts, giants, colisiones tardías |
+| 1.3 Acceso remoto seguro | Telnet en texto plano; SSH cifra. Dominio, claves RSA, usuario local, `login local`, `transport input ssh`, `ip ssh version 2` |
+| 1.4 Router | Configuración básica, `ipv6 unicast-routing`, interfaces en doble pila, `no shutdown`, loopback |
+| 1.5 Verificación | `show ip interface brief`, `show ip route` (rutas C y L), `show ipv6 interface`, filtros `\|`, historial |
+
+<Repaso
+  client:visible
+  titulo="Repaso rápido del módulo"
+  fichas={[
+    { frente: 'Orden de arranque del switch', dorso: 'POST, boot loader, CPU, sistema de archivos de la flash, carga de IOS.' },
+    { frente: 'Colisiones tardías en un puerto', dorso: 'Revisa el dúplex en ambos extremos.' },
+    { frente: 'Requisitos previos de crypto key generate rsa', dorso: 'Un hostname distinto del predeterminado e ip domain-name.' },
+    { frente: 'La interfaz no aparece en show ip route', dorso: 'No está up/up: falta no shutdown o hay un problema físico.' },
+    { frente: 'ipv6 unicast-routing', dorso: 'Hace que el router reenvíe IPv6 y envíe anuncios RA.' },
+  ]}
+/>

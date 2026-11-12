@@ -3,14 +3,17 @@
 
 import type { NodoTopo, EnlaceTopo } from '../../components/Topologia';
 import { Azar } from '../azar';
-import { leerConfig, leerIpconfig, leerPing, vtyCumple, type ConfigLeida, type IpLeida, type PingLeido } from '../ios/analizador';
+import { leerConfig, leerIpconfig, leerPing, vtyCumple, normalizarIpv6, type ConfigLeida, type IpLeida, type PingLeido } from '../ios/analizador';
 import { verificarMd5crypt } from '../ios/md5crypt';
 
-export type IdPT = 'pt-switch' | 'pt-conectividad';
+import { routerBasico, vlanTroncal, routerOnAStick } from './escenariosSrwe';
+
+export type IdPT = 'pt-switch' | 'pt-conectividad' | 'pt-router' | 'pt-vlan' | 'pt-roas';
+export const IDS_PT: IdPT[] = ['pt-switch', 'pt-conectividad', 'pt-router', 'pt-vlan', 'pt-roas'];
 
 export interface Evidencia {
   dispositivo: string;
-  tipo: 'switch' | 'pc';
+  tipo: 'switch' | 'pc' | 'router';
   pide: string[]; // comandos que el alumno debe ejecutar y copiar
 }
 
@@ -19,9 +22,10 @@ export interface FilaDireccion { dispositivo: string; interfaz: string; ip: stri
 export interface Leidas {
   switches: Record<string, ConfigLeida | null>;
   pcs: Record<string, { ip: IpLeida; pings: PingLeido[] } | null>;
+  textos: Record<string, string>;
 }
 
-type Evaluacion = { ok: boolean; detalle?: string };
+export type Evaluacion = { ok: boolean; detalle?: string };
 
 export interface Requisito {
   id: string;
@@ -45,35 +49,38 @@ export interface CasoPT {
   solucion: { dispositivo: string; texto: string }[];
 }
 
-const NOMBRES = ['Ventas', 'Piso2', 'Lab3', 'Aula5', 'Bodega', 'Admin', 'Recepcion', 'Norte', 'Sur', 'Caja', 'Soporte', 'Planta'];
+export const NOMBRES = ['Ventas', 'Piso2', 'Lab3', 'Aula5', 'Bodega', 'Admin', 'Recepcion', 'Norte', 'Sur', 'Caja', 'Soporte', 'Planta'];
 const PALABRAS = ['Cisco', 'Andes', 'Ruta', 'Nodo', 'Trama', 'Puerto', 'Lima', 'Cusco', 'Rack', 'Enlace', 'Bit', 'Capa'];
-const FRASES = ['Solo personal autorizado', 'Acceso restringido', 'Prohibido el acceso no autorizado', 'Uso exclusivo del area de TI', 'Acceso monitoreado: solo personal autorizado'];
-const MASCARA = '255.255.255.0';
+export const FRASES = ['Solo personal autorizado', 'Acceso restringido', 'Prohibido el acceso no autorizado', 'Uso exclusivo del area de TI', 'Acceso monitoreado: solo personal autorizado'];
+export const MASCARA = '255.255.255.0';
 
-const clave = (az: Azar) => `${az.elegir(PALABRAS)}${az.entero(10, 99)}${az.elegir(['!', '#', '$', '*'])}`;
+export const clave = (az: Azar) => `${az.elegir(PALABRAS)}${az.entero(10, 99)}${az.elegir(['!', '#', '$', '*'])}`;
 
-function red(az: Azar) {
+export function red(az: Azar) {
   const tipo = az.entero(0, 2);
   if (tipo === 0) return `192.168.${az.entero(1, 254)}`;
   if (tipo === 1) return `172.${az.entero(16, 31)}.${az.entero(0, 254)}`;
   return `10.${az.entero(0, 254)}.${az.entero(0, 254)}`;
 }
 
-const normal = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+export const normal = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/** Compara direcciones IPv4 o IPv6 escritas de distintas formas. */
+export const mismaDir = (a: string | undefined, b: string) => !!a && (a.includes(':') || b.includes(':') ? normalizarIpv6(a) === normalizarIpv6(b) : a === b);
 
 // ---------- Requisitos reutilizables ----------
 
-function sinEvidencia(l: Leidas, d: string): Evaluacion | null {
+export function sinEvidencia(l: Leidas, d: string): Evaluacion | null {
   if (l.switches[d] === undefined && l.pcs[d] === undefined) return { ok: false, detalle: `Falta la salida de ${d}.` };
   if (l.switches[d] === null || l.pcs[d] === null) return { ok: false, detalle: `Falta la salida de ${d}.` };
   return null;
 }
 
 /** Envuelve una comprobación de switch: si no hay salida, el requisito queda «falta». */
-const enSw = (d: string, f: (c: ConfigLeida) => Evaluacion) => (l: Leidas): Evaluacion => sinEvidencia(l, d) ?? f(l.switches[d]!);
-const enPc = (d: string, f: (p: { ip: IpLeida; pings: PingLeido[] }) => Evaluacion) => (l: Leidas): Evaluacion => sinEvidencia(l, d) ?? f(l.pcs[d]!);
+export const enSw = (d: string, f: (c: ConfigLeida) => Evaluacion) => (l: Leidas): Evaluacion => sinEvidencia(l, d) ?? f(l.switches[d]!);
+export const enPc = (d: string, f: (p: { ip: IpLeida; pings: PingLeido[] }) => Evaluacion) => (l: Leidas): Evaluacion => sinEvidencia(l, d) ?? f(l.pcs[d]!);
 
-interface DatosSwitch {
+export interface DatosSwitch {
   nodo: string;
   hostname: string;
   secreto: string;
@@ -87,7 +94,7 @@ interface DatosSwitch {
   apagar?: string;
 }
 
-function requisitosSwitch(s: DatosSwitch): Requisito[] {
+export function requisitosSwitch(s: DatosSwitch): Requisito[] {
   const d = s.nodo;
   const r: Requisito[] = [
     {
@@ -179,7 +186,7 @@ function requisitosSwitch(s: DatosSwitch): Requisito[] {
   return r;
 }
 
-function requisitosPc(d: string, ip: string, gw: string, pings: { destino: string; nombre: string }[]): Requisito[] {
+export function requisitosPc(d: string, ip: string, gw: string, pings: { destino: string; nombre: string }[]): Requisito[] {
   return [
     {
       id: `${d}-ip`, dispositivo: d, texto: `La PC tiene la IP ${ip} y la máscara ${MASCARA}.`,
@@ -198,7 +205,7 @@ function requisitosPc(d: string, ip: string, gw: string, pings: { destino: strin
     ...pings.map(({ destino, nombre }) => ({
       id: `${d}-ping-${nombre}`, dispositivo: d, texto: `El ping de ${d} a ${nombre} (${destino}) tiene respuesta.`,
       evaluar: enPc(d, (p) => {
-        const v = p.pings.filter((x) => x.destino === destino);
+        const v = p.pings.filter((x) => mismaDir(x.destino, destino));
         if (!v.length) return { ok: false, detalle: `No encontramos un ping a ${destino} en la salida.` };
         return v.some((x) => x.recibidos > 0) ? { ok: true } : { ok: false, detalle: `El ping a ${destino} no recibió respuestas.` };
       }),
@@ -206,7 +213,7 @@ function requisitosPc(d: string, ip: string, gw: string, pings: { destino: strin
   ];
 }
 
-function scriptSwitch(s: DatosSwitch): string {
+export function scriptSwitch(s: DatosSwitch): string {
   const l = ['enable', 'configure terminal', `hostname ${s.hostname}`];
   if (s.domainLookup === false) l.push('no ip domain-lookup');
   l.push(`enable secret ${s.secreto}`, 'line console 0', ` password ${s.pCon}`, ' login', ' exit', 'line vty 0 15', ` password ${s.pVty}`, ' login', ' exit');
@@ -218,7 +225,7 @@ function scriptSwitch(s: DatosSwitch): string {
   return l.join('\n');
 }
 
-const scriptPc = (ip: string, gw: string, pings: string[]) =>
+export const scriptPc = (ip: string, gw: string, pings: string[]) =>
   [`Desktop > IP Configuration (Static)`, `  IPv4 Address : ${ip}`, `  Subnet Mask  : ${MASCARA}`, `  Default Gateway: ${gw}`, '', 'Desktop > Command Prompt', '  ipconfig', ...pings.map((p) => `  ping ${p}`)].join('\n');
 
 const pasosSwitch = (s: DatosSwitch, nombre = s.nodo) => {
@@ -238,7 +245,7 @@ const pasosSwitch = (s: DatosSwitch, nombre = s.nodo) => {
   return p;
 };
 
-const abrev = (i: string) => i.replace('FastEthernet', 'F').replace('GigabitEthernet', 'G');
+export const abrev = (i: string) => i.replace('FastEthernet', 'F').replace('GigabitEthernet', 'G');
 
 // ---------- Plantilla 1: configuración inicial de un switch ----------
 
@@ -381,21 +388,27 @@ function conectividad(codigo: string): CasoPT {
 }
 
 export function generarPT(id: IdPT, codigo: string): CasoPT {
-  return id === 'pt-switch' ? switchInicial(codigo) : conectividad(codigo);
+  switch (id) {
+    case 'pt-switch': return switchInicial(codigo);
+    case 'pt-conectividad': return conectividad(codigo);
+    case 'pt-router': return routerBasico(codigo);
+    case 'pt-vlan': return vlanTroncal(codigo);
+    case 'pt-roas': return routerOnAStick(codigo);
+  }
 }
 
 // ---------- Corrección ----------
 
-function leerPc(texto: string) {
+export function leerPc(texto: string) {
   const pings = texto.split(/(?=Pinging |Haciendo ping a )/i).filter((t) => /^(Pinging|Haciendo ping a)/i.test(t)).map(leerPing);
   return { ip: leerIpconfig(texto), pings };
 }
 
 export function corregir(caso: CasoPT, textos: Record<string, string>): Resultado[] {
-  const l: Leidas = { switches: {}, pcs: {} };
+  const l: Leidas = { switches: {}, pcs: {}, textos };
   for (const e of caso.evidencias) {
     const t = (textos[e.dispositivo] ?? '').trim();
-    if (e.tipo === 'switch') l.switches[e.dispositivo] = t ? leerConfig(t) : null;
+    if (e.tipo !== 'pc') l.switches[e.dispositivo] = t ? leerConfig(t) : null;
     else l.pcs[e.dispositivo] = t ? leerPc(t) : null;
   }
   return caso.requisitos.map((r) => {
@@ -458,7 +471,7 @@ export function leerInforme(texto: string): DatosInforme | null {
   if (i < 0 || f < i) return null;
   try {
     const d = JSON.parse(deBase64(texto.slice(i + INICIO.length, f).replace(/\s+/g, '')));
-    if (d?.v !== 1 || (d.ej !== 'pt-switch' && d.ej !== 'pt-conectividad') || typeof d.codigo !== 'string' || typeof d.textos !== 'object') return null;
+    if (d?.v !== 1 || !IDS_PT.includes(d.ej) || typeof d.codigo !== 'string' || typeof d.textos !== 'object') return null;
     const declarado = texto.match(/Resultado\s*:\s*(\d+)\/(\d+)/);
     if (declarado) { d.ok = Number(declarado[1]); d.total = Number(declarado[2]); }
     return d as DatosInforme;

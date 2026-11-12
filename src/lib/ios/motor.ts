@@ -7,6 +7,7 @@ import { cifrar7, hash5 } from './tipo7';
 export interface Linea {
   password?: string;
   login: boolean;
+  loginLocal?: boolean;
   transport?: string;
   execTimeout?: [number, number];
   loggingSync: boolean;
@@ -18,6 +19,17 @@ export interface Interfaz {
   mascara?: string;
   shutdown: boolean;
   descripcion?: string;
+  // Capa 2 (SRWE)
+  modo?: 'access' | 'trunk' | 'dynamic auto' | 'dynamic desirable'; // sin valor = dynamic auto
+  accesoVlan?: number;
+  vozVlan?: number;
+  nativa?: number;
+  permitidas?: number[]; // sin valor = todas
+  nonegotiate?: boolean;
+  trustCos?: boolean;
+  duplex?: 'full' | 'half';
+  speed?: '10' | '100' | '1000';
+  sinMdix?: boolean;
 }
 
 export interface Config {
@@ -31,10 +43,15 @@ export interface Config {
   con: Linea;
   vty: [Linea, Linea]; // vty 0 4 y vty 5 15, como los muestra un 2960
   ifs: Interfaz[];
+  dominio?: string;
+  usuarios?: { nombre: string; secreto?: string; password?: string; privilegio?: number }[];
+  sshVersion?: number;
 }
 
-type Modo = 'user' | 'priv' | 'config' | 'if' | 'line';
-type Espera = null | 'inicio' | 'clave-login' | 'clave-enable' | 'banner' | 'copiar' | 'guardar-reload' | 'confirmar-reload' | 'confirmar-erase';
+export interface Vlan { id: number; nombre: string }
+
+type Modo = 'user' | 'priv' | 'config' | 'if' | 'line' | 'vlan';
+type Espera = null | 'rsa-bits' | 'inicio' | 'clave-login' | 'clave-enable' | 'banner' | 'copiar' | 'guardar-reload' | 'confirmar-reload' | 'confirmar-erase';
 
 export function configInicial(): Config {
   const ifs: Interfaz[] = [];
@@ -85,6 +102,18 @@ const AYUDA: Record<string, string> = {
   address: 'Set the IP address of an interface', shutdown: 'Shutdown the selected interface', description: 'Interface specific description',
   fastethernet: 'FastEthernet IEEE 802.3', gigabitethernet: 'GigabitEthernet IEEE 802.3z', vlan: 'Catalyst Vlans',
   interfaces: 'Interface status and configuration', clock: 'Display the system clock',
+  switchport: 'Set switching mode characteristics', mode: 'Set trunking mode of the interface', access: 'Set access mode characteristics of the interface',
+  trunk: 'Set trunking characteristics of the interface', dynamic: 'Set trunking mode to dynamically negotiate access or trunk mode',
+  auto: 'Set trunking mode dynamic negotiation parameter to AUTO', desirable: 'Set trunking mode dynamic negotiation parameter to DESIRABLE',
+  native: 'Set trunking native characteristics when interface is in trunking mode', allowed: 'Set allowed VLAN characteristics when interface is in trunking mode',
+  nonegotiate: 'Device will not engage in negotiation protocol on this interface', voice: 'Voice appliance attributes',
+  name: 'Ascii name of the VLAN', crypto: 'Encryption module', key: 'Long term key operations', generate: 'Generate new keys',
+  rsa: 'Generate RSA keys', zeroize: 'Remove keys', 'general-keys': 'Generate a general purpose RSA key pair for signing and encryption',
+  modulus: 'Provide number of modulus bits on the command line', 'domain-name': 'Define the default domain name',
+  username: 'Establish User Name Authentication', privilege: 'Set user privilege level', local: 'Local password checking',
+  duplex: 'Configure duplex operation.', full: 'Force full duplex operation', half: 'Force half-duplex operation',
+  speed: 'Configure speed operation.', mdix: 'Set Media Dependent Interface with Crossover', range: 'interface range command',
+  mls: 'mls interface commands', qos: 'qos command keyword', trust: 'trust keyword', cos: 'cos keyword',
 };
 
 function sig(texto: string): Tok[] {
@@ -136,6 +165,11 @@ const E: Entrada[] = [
   { modos: ['priv'], sig: sig('reload'), run: (sw) => sw.pedirReload() },
   { modos: ['priv'], sig: sig('erase startup-config'), run: (sw) => { sw.espera = 'confirmar-erase'; return ok('Erasing the nvram filesystem will remove all configuration files! Continue? [confirm]'); } },
   { modos: ['user', 'priv'], sig: sig('ping <A.B.C.D|Ping destination address>'), run: (sw, a) => sw.ping(a[0]) },
+  { modos: ['user', 'priv'], sig: sig('show ip ssh'), run: (sw) => sw.showIpSsh() },
+  { modos: ['user', 'priv'], sig: sig('show vlan brief'), run: (sw) => sw.showVlanBrief() },
+  { modos: ['user', 'priv'], sig: sig('show vlan'), run: (sw) => sw.showVlanBrief() },
+  { modos: ['user', 'priv'], sig: sig('show interfaces trunk'), run: (sw) => sw.showTrunk() },
+  { modos: ['user', 'priv'], sig: sig('show interfaces <WORD|Interface> switchport'), run: (sw, a) => sw.showSwitchport(a[0]) },
 
   // Configuración global
   { modos: ['config'], sig: sig('hostname <WORD|This system\'s network name>'), run: (sw, a) => sw.ponerHostname(a[0]) },
@@ -158,18 +192,33 @@ const E: Entrada[] = [
   { modos: ['config'], sig: sig('interface fastethernet <x/y|FastEthernet interface number>'), run: (sw, a) => sw.entrarIf('FastEthernet', a[0]) },
   { modos: ['config'], sig: sig('interface gigabitethernet <x/y|GigabitEthernet interface number>'), run: (sw, a) => sw.entrarIf('GigabitEthernet', a[0]) },
   { modos: ['config'], sig: sig('interface vlan <1-4094|Vlan interface number>'), run: (sw, a) => sw.entrarIf('Vlan', a[0]) },
+  { modos: ['config'], sig: sig('interface range <LINE|Interface range, for example fa0/1 - 5>'), run: (sw, a) => sw.entrarRango(a[0]) },
+  { modos: ['config'], sig: sig('vlan <LINE|ISL VLAN IDs 1-4094>'), run: (sw, a) => sw.entrarVlan(a[0]) },
+  { modos: ['config'], sig: sig('no vlan <LINE|ISL VLAN IDs 1-4094>'), run: (sw, a) => sw.borrarVlan(a[0]) },
+  { modos: ['config'], sig: sig('ip domain-name <WORD|Default domain name>'), run: (sw, a) => { sw.cfg.dominio = a[0]; } },
+  { modos: ['config'], sig: sig('no ip domain-name'), run: (sw) => { sw.cfg.dominio = undefined; } },
+  { modos: ['config'], sig: sig('crypto key generate rsa general-keys modulus <360-4096|size of the key modulus>'), run: (sw, a) => sw.generarRsa(Number(a[0])) },
+  { modos: ['config'], sig: sig('crypto key generate rsa'), run: (sw) => sw.pedirRsa() },
+  { modos: ['config'], sig: sig('crypto key zeroize rsa'), run: (sw) => sw.borrarRsa() },
+  { modos: ['config'], sig: sig('ip ssh version <1-2|Protocol version>'), run: (sw, a) => sw.versionSsh(Number(a[0])) },
+  { modos: ['config'], sig: sig('no ip ssh version'), run: (sw) => { sw.cfg.sshVersion = undefined; } },
+  { modos: ['config'], sig: sig('username <WORD|User name> privilege <0-15|User privilege level> secret <LINE|The UNENCRYPTED (cleartext) user secret>'), run: (sw, a) => sw.usuario(a[0], { secreto: a[2], privilegio: Number(a[1]) }) },
+  { modos: ['config'], sig: sig('username <WORD|User name> secret <LINE|The UNENCRYPTED (cleartext) user secret>'), run: (sw, a) => sw.usuario(a[0], { secreto: a[1] }) },
+  { modos: ['config'], sig: sig('username <WORD|User name> password <LINE|The UNENCRYPTED (cleartext) user password>'), run: (sw, a) => sw.usuario(a[0], { password: a[1] }) },
+  { modos: ['config'], sig: sig('no username <WORD|User name>'), run: (sw, a) => { sw.cfg.usuarios = (sw.cfg.usuarios ?? []).filter((u) => u.nombre !== a[0]); } },
 
   // Comunes a los modos de configuración
-  { modos: ['config', 'if', 'line'], sig: sig('end'), run: (sw) => { sw.modo = 'priv'; return ok('%SYS-5-CONFIG_I: Configured from console by console'); } },
+  { modos: ['config', 'if', 'line', 'vlan'], sig: sig('end'), run: (sw) => { sw.modo = 'priv'; return ok('%SYS-5-CONFIG_I: Configured from console by console'); } },
   { modos: ['config'], sig: sig('exit'), run: (sw) => { sw.modo = 'priv'; return ok('%SYS-5-CONFIG_I: Configured from console by console'); } },
-  { modos: ['if', 'line'], sig: sig('exit'), run: (sw) => { sw.modo = 'config'; } },
-  { modos: ['config', 'if', 'line'], sig: sig('do <LINE|Exec Command>'), run: (sw, a) => sw.hacerDo(a[0]) },
+  { modos: ['if', 'line', 'vlan'], sig: sig('exit'), run: (sw) => { sw.modo = 'config'; } },
+  { modos: ['config', 'if', 'line', 'vlan'], sig: sig('do <LINE|Exec Command>'), run: (sw, a) => sw.hacerDo(a[0]) },
 
   // Línea
   { modos: ['line'], sig: sig('password <LINE|The UNENCRYPTED (cleartext) line password>'), run: (sw, a) => sw.enLineas((l) => { l.password = a[0]; }) },
   { modos: ['line'], sig: sig('no password'), run: (sw) => sw.enLineas((l) => { l.password = undefined; }) },
-  { modos: ['line'], sig: sig('login'), run: (sw) => sw.enLineas((l) => { l.login = true; }, true) },
-  { modos: ['line'], sig: sig('no login'), run: (sw) => sw.enLineas((l) => { l.login = false; }) },
+  { modos: ['line'], sig: sig('login'), run: (sw) => sw.enLineas((l) => { l.login = true; l.loginLocal = false; }, true) },
+  { modos: ['line'], sig: sig('login local'), run: (sw) => sw.enLineas((l) => { l.login = true; l.loginLocal = true; }) },
+  { modos: ['line'], sig: sig('no login'), run: (sw) => sw.enLineas((l) => { l.login = false; l.loginLocal = false; }) },
   { modos: ['line'], sig: sig('logging synchronous'), run: (sw) => sw.enLineas((l) => { l.loggingSync = true; }) },
   { modos: ['line'], sig: sig('no logging synchronous'), run: (sw) => sw.enLineas((l) => { l.loggingSync = false; }) },
   { modos: ['line'], sig: sig('exec-timeout <0-35791|Timeout in minutes> <0-2147483|Timeout in seconds>'), run: (sw, a) => sw.enLineas((l) => { l.execTimeout = [Number(a[0]), Number(a[1])]; }) },
@@ -189,6 +238,38 @@ const E: Entrada[] = [
   { modos: ['if'], sig: sig('no shutdown'), run: (sw) => sw.apagar(false) },
   { modos: ['if'], sig: sig('description <LINE|Up to 240 characters describing this interface>'), run: (sw, a) => { sw.ifActual().descripcion = a[0]; } },
   { modos: ['if'], sig: sig('no description'), run: (sw) => { sw.ifActual().descripcion = undefined; } },
+
+  // VLAN
+  { modos: ['vlan'], sig: sig('name <WORD|The ascii name for the VLAN>'), run: (sw, a) => sw.nombrarVlan(a[0]) },
+  { modos: ['vlan'], sig: sig('no name'), run: (sw) => sw.nombrarVlan(null) },
+
+  // Puertos de switch
+  { modos: ['if'], sig: sig('switchport mode access'), run: (sw) => sw.enPuertos((i) => { i.modo = 'access'; }) },
+  { modos: ['if'], sig: sig('switchport mode trunk'), run: (sw) => sw.enPuertos((i) => { i.modo = 'trunk'; }) },
+  { modos: ['if'], sig: sig('switchport mode dynamic auto'), run: (sw) => sw.modoDinamico('dynamic auto') },
+  { modos: ['if'], sig: sig('switchport mode dynamic desirable'), run: (sw) => sw.modoDinamico('dynamic desirable') },
+  { modos: ['if'], sig: sig('no switchport mode'), run: (sw) => sw.enPuertos((i) => { i.modo = undefined; }) },
+  { modos: ['if'], sig: sig('switchport access vlan <1-4094|VLAN ID of the VLAN when this port is in access mode>'), run: (sw, a) => sw.vlanAcceso(Number(a[0])) },
+  { modos: ['if'], sig: sig('no switchport access vlan'), run: (sw) => sw.enPuertos((i) => { i.accesoVlan = undefined; }) },
+  { modos: ['if'], sig: sig('switchport voice vlan <1-4094|Vlan for voice traffic>'), run: (sw, a) => sw.vlanVoz(Number(a[0])) },
+  { modos: ['if'], sig: sig('no switchport voice vlan'), run: (sw) => sw.enPuertos((i) => { i.vozVlan = undefined; }) },
+  { modos: ['if'], sig: sig('switchport trunk native vlan <1-4094|VLAN ID of the native VLAN when this port is in trunking mode>'), run: (sw, a) => sw.enPuertos((i) => { i.nativa = Number(a[0]) === 1 ? undefined : Number(a[0]); }) },
+  { modos: ['if'], sig: sig('no switchport trunk native vlan'), run: (sw) => sw.enPuertos((i) => { i.nativa = undefined; }) },
+  { modos: ['if'], sig: sig('switchport trunk allowed vlan <LINE|VLAN IDs of the allowed VLANs when this port is in trunking mode>'), run: (sw, a) => sw.permitidas(a[0]) },
+  { modos: ['if'], sig: sig('no switchport trunk allowed vlan'), run: (sw) => sw.enPuertos((i) => { i.permitidas = undefined; }) },
+  { modos: ['if'], sig: sig('switchport nonegotiate'), run: (sw) => sw.noNegociar(true) },
+  { modos: ['if'], sig: sig('no switchport nonegotiate'), run: (sw) => sw.noNegociar(false) },
+  { modos: ['if'], sig: sig('mls qos trust cos'), run: (sw) => sw.enPuertos((i) => { i.trustCos = true; }) },
+  { modos: ['if'], sig: sig('no mls qos trust'), run: (sw) => sw.enPuertos((i) => { i.trustCos = false; }) },
+  { modos: ['if'], sig: sig('duplex full'), run: (sw) => sw.enPuertos((i) => { i.duplex = 'full'; }) },
+  { modos: ['if'], sig: sig('duplex half'), run: (sw) => sw.enPuertos((i) => { i.duplex = 'half'; }) },
+  { modos: ['if'], sig: sig('duplex auto'), run: (sw) => sw.enPuertos((i) => { i.duplex = undefined; }) },
+  { modos: ['if'], sig: sig('speed 10'), run: (sw) => sw.enPuertos((i) => { i.speed = '10'; }) },
+  { modos: ['if'], sig: sig('speed 100'), run: (sw) => sw.enPuertos((i) => { i.speed = '100'; }) },
+  { modos: ['if'], sig: sig('speed 1000'), run: (sw) => sw.velocidadGiga() },
+  { modos: ['if'], sig: sig('speed auto'), run: (sw) => sw.enPuertos((i) => { i.speed = undefined; }) },
+  { modos: ['if'], sig: sig('mdix auto'), run: (sw) => sw.enPuertos((i) => { i.sinMdix = undefined; }) },
+  { modos: ['if'], sig: sig('no mdix auto'), run: (sw) => sw.enPuertos((i) => { i.sinMdix = true; }) },
 ];
 
 // ---------- Motor ----------
@@ -204,6 +285,10 @@ export class Switch {
   modo: Modo = 'user';
   lineas: ('con' | 'vty0' | 'vty1')[] = [];
   iface = '';
+  ifaces: string[] = [];
+  vlanSel: number[] = [];
+  vlans: Vlan[]; // vlan.dat: no forma parte de la configuración
+  rsa: number | null; // bits de las claves RSA (NVRAM)
   espera: Espera = 'inicio';
   intentos = 0;
   historial: string[] = [];
@@ -213,8 +298,10 @@ export class Switch {
   vecinos: string[]; // IP de equipos que responden ping en la red del switch
   visitados = new Set<Modo>();
 
-  constructor(opciones: { config?: Config; startup?: Config | null; conectados?: string[]; vecinos?: string[] } = {}) {
+  constructor(opciones: { config?: Config; startup?: Config | null; conectados?: string[]; vecinos?: string[]; vlans?: Vlan[]; rsa?: number } = {}) {
     this.cfg = opciones.config ? clonar(opciones.config) : configInicial();
+    this.vlans = opciones.vlans ? clonar(opciones.vlans) : [];
+    this.rsa = opciones.rsa ?? null;
     this.startup = opciones.startup === undefined ? null : opciones.startup && clonar(opciones.startup);
     this.conectados = new Set(opciones.conectados ?? ['FastEthernet0/1', 'GigabitEthernet0/1']);
     this.vecinos = opciones.vecinos ?? [];
@@ -222,10 +309,11 @@ export class Switch {
 
   prompt(): string {
     if (this.espera === 'clave-login' || this.espera === 'clave-enable') return 'Password: ';
+    if (this.espera === 'rsa-bits') return 'How many bits in the modulus [512]: ';
     if (this.espera === 'inicio' || this.espera === 'banner') return '';
     if (this.espera) return '';
     const h = this.cfg.hostname;
-    return { user: `${h}>`, priv: `${h}#`, config: `${h}(config)#`, if: `${h}(config-if)#`, line: `${h}(config-line)#` }[this.modo];
+    return { user: `${h}>`, priv: `${h}#`, config: `${h}(config)#`, if: this.ifaces.length > 1 ? `${h}(config-if-range)#` : `${h}(config-if)#`, line: `${h}(config-line)#`, vlan: `${h}(config-vlan)#` }[this.modo];
   }
 
   guardado(): boolean {
@@ -245,6 +333,13 @@ export class Switch {
       case 'clave-login': return this.validarLogin(texto);
       case 'clave-enable': return this.validarEnable(texto);
       case 'banner': return { salida: this.seguirBanner(texto) };
+      case 'rsa-bits': {
+        this.espera = null;
+        const t = texto.trim();
+        const bits = t === '' ? 512 : Number(t);
+        if (!/^\d*$/.test(t) || bits < 360 || bits > 4096) return { salida: ['% You must choose a key modulus between 360 and 4096'] };
+        return { salida: this.generarRsa(bits, true) };
+      }
       case 'copiar':
         this.espera = null;
         if (texto.trim() && !'startup-config'.startsWith(texto.trim())) return { salida: ['%Error opening flash:' + texto.trim() + ' (No such file or directory)'] };
@@ -384,7 +479,7 @@ export class Switch {
     const largo = this.prompt().length;
     let r = this.analizar(linea, this.modo);
     // En un submodo, IOS acepta los comandos de configuración global y sale del submodo.
-    if ('error' in r && (this.modo === 'if' || this.modo === 'line')) {
+    if ('error' in r && (this.modo === 'if' || this.modo === 'line' || this.modo === 'vlan')) {
       const g = this.analizar(linea, 'config');
       if ('ok' in g && g.ok) { this.modo = 'config'; r = g; }
     }
@@ -410,7 +505,7 @@ export class Switch {
     const toks = this.tokens(linea);
     const previos = sinEspacio ? toks.slice(0, -1) : toks;
     const parcial = sinEspacio ? toks[toks.length - 1].t.toLowerCase() : '';
-    const modos: Modo[] = this.modo === 'if' || this.modo === 'line' ? [this.modo, 'config'] : [this.modo];
+    const modos: Modo[] = this.modo === 'if' || this.modo === 'line' || this.modo === 'vlan' ? [this.modo, 'config'] : [this.modo];
     const opciones = new Map<string, string>();
     let cr = false;
     for (const modo of modos) {
@@ -445,7 +540,7 @@ export class Switch {
     const toks = this.tokens(linea);
     const ultimo = toks[toks.length - 1];
     const previos = toks.slice(0, -1);
-    const modos: Modo[] = this.modo === 'if' || this.modo === 'line' ? [this.modo, 'config'] : [this.modo];
+    const modos: Modo[] = this.modo === 'if' || this.modo === 'line' || this.modo === 'vlan' ? [this.modo, 'config'] : [this.modo];
     const palabras = new Set<string>();
     for (const modo of modos) {
       let cand = this.entradasDe(modo);
@@ -514,7 +609,275 @@ export class Switch {
     }
     if (!i) return ["% Invalid input detected at '^' marker."];
     this.iface = i.nombre;
+    this.ifaces = [i.nombre];
     this.modo = 'if';
+  }
+
+  /** interface range fa0/1 - 5 (también fa0/1-5 y listas separadas por comas). */
+  entrarRango(texto: string): string[] | void {
+    const nombres: string[] = [];
+    for (const parte of texto.split(',')) {
+      const m = parte.trim().match(/^([a-zA-Z]+)\s*(\d+)\/(\d+)\s*(?:-\s*(\d+))?$/);
+      if (!m) return ["% Invalid input detected at '^' marker."];
+      const tipo = 'fastethernet'.startsWith(m[1].toLowerCase()) ? 'FastEthernet' : 'gigabitethernet'.startsWith(m[1].toLowerCase()) ? 'GigabitEthernet' : null;
+      if (!tipo) return ["% Invalid input detected at '^' marker."];
+      const desde = Number(m[3]), hasta = m[4] ? Number(m[4]) : desde;
+      if (hasta < desde) return ['% Invalid range'];
+      for (let n = desde; n <= hasta; n++) {
+        const i = this.cfg.ifs.find((x) => x.nombre === `${tipo}${m[2]}/${n}`);
+        if (!i) return ['% Interface range not valid'];
+        nombres.push(i.nombre);
+      }
+    }
+    this.ifaces = nombres;
+    this.iface = nombres[0];
+    this.modo = 'if';
+  }
+
+  /** Aplica un cambio a la interfaz o al rango actual. Los comandos switchport no existen en una SVI. */
+  enPuertos(f: (i: Interfaz) => void): string[] | void {
+    if (this.ifaces.some((n) => n.startsWith('Vlan'))) return ["% Invalid input detected at '^' marker."];
+    for (const n of this.ifaces) f(this.cfg.ifs.find((x) => x.nombre === n)!);
+  }
+
+  modoDinamico(m: 'dynamic auto' | 'dynamic desirable'): string[] | void {
+    if (this.ifaces.some((n) => this.cfg.ifs.find((x) => x.nombre === n)?.nonegotiate)) return ["Command rejected: Conflict between 'nonegotiate' and 'dynamic' status."];
+    return this.enPuertos((i) => { i.modo = m; });
+  }
+
+  noNegociar(si: boolean): string[] | void {
+    if (si && this.ifaces.some((n) => { const i = this.cfg.ifs.find((x) => x.nombre === n); return !i?.modo || i.modo.startsWith('dynamic'); })) {
+      return ["Command rejected: Conflict between 'nonegotiate' and 'dynamic' status."];
+    }
+    return this.enPuertos((i) => { i.nonegotiate = si || undefined; });
+  }
+
+  private asegurarVlan(id: number, avisar: boolean): string[] {
+    if (id === 1 || this.vlans.some((v) => v.id === id)) return [];
+    this.vlans.push({ id, nombre: `VLAN${String(id).padStart(4, '0')}` });
+    this.vlans.sort((a, b) => a.id - b.id);
+    return avisar ? [`% Access VLAN does not exist. Creating vlan ${id}`] : [];
+  }
+
+  vlanAcceso(id: number): string[] | void {
+    const r = this.enPuertos((i) => { i.accesoVlan = id === 1 ? undefined : id; });
+    if (r) return r;
+    const aviso = this.asegurarVlan(id, true);
+    return aviso.length ? aviso : undefined;
+  }
+
+  vlanVoz(id: number): string[] | void {
+    const r = this.enPuertos((i) => { i.vozVlan = id; });
+    if (r) return r;
+    const aviso = this.asegurarVlan(id, true);
+    return aviso.length ? aviso.map((l) => l.replace('Access', 'Voice')) : undefined;
+  }
+
+  permitidas(texto: string): string[] | void {
+    const t = texto.trim().toLowerCase();
+    const lista = (x: string): number[] | null => {
+      const out: number[] = [];
+      for (const p of x.split(',')) {
+        const m = p.trim().match(/^(\d+)(?:-(\d+))?$/);
+        if (!m) return null;
+        const a = Number(m[1]), b = Number(m[2] ?? m[1]);
+        if (a < 1 || b > 4094 || b < a) return null;
+        for (let n = a; n <= b; n++) out.push(n);
+      }
+      return out;
+    };
+    const malo = ["% Invalid input detected at '^' marker."];
+    if (t === 'all') return this.enPuertos((i) => { i.permitidas = undefined; });
+    if (t === 'none') return this.enPuertos((i) => { i.permitidas = []; });
+    const m = t.match(/^(add|remove|except)\s+(.+)$/);
+    if (m) {
+      const l = lista(m[2]);
+      if (!l) return malo;
+      return this.enPuertos((i) => {
+        const actual = i.permitidas ?? Array.from({ length: 4094 }, (_, k) => k + 1);
+        if (m[1] === 'add') i.permitidas = [...new Set([...actual, ...l])].sort((a, b) => a - b);
+        else if (m[1] === 'remove') i.permitidas = actual.filter((v) => !l.includes(v));
+        else i.permitidas = Array.from({ length: 4094 }, (_, k) => k + 1).filter((v) => !l.includes(v));
+        if (i.permitidas.length === 4094) i.permitidas = undefined;
+      });
+    }
+    const l = lista(t);
+    if (!l) return malo;
+    return this.enPuertos((i) => { i.permitidas = [...new Set(l)].sort((a, b) => a - b); });
+  }
+
+  velocidadGiga(): string[] | void {
+    if (this.ifaces.some((n) => n.startsWith('FastEthernet'))) return ["% Invalid input detected at '^' marker."];
+    return this.enPuertos((i) => { i.speed = '1000'; });
+  }
+
+  private listaVlan(texto: string): number[] | null {
+    const out: number[] = [];
+    for (const p of texto.split(',')) {
+      const m = p.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+      if (!m) return null;
+      const a = Number(m[1]), b = Number(m[2] ?? m[1]);
+      if (a < 1 || b > 4094 || b < a) return null;
+      for (let n = a; n <= b; n++) out.push(n);
+    }
+    return out;
+  }
+
+  entrarVlan(texto: string): string[] | void {
+    const l = this.listaVlan(texto);
+    if (!l) return ["% Invalid input detected at '^' marker."];
+    if (l.some((v) => v >= 1002 && v <= 1005)) return [`Default VLAN ${l.find((v) => v >= 1002 && v <= 1005)} may not have its name changed.`];
+    for (const v of l) this.asegurarVlan(v, false);
+    this.vlanSel = l;
+    this.modo = 'vlan';
+  }
+
+  nombrarVlan(nombre: string | null): string[] | void {
+    if (this.vlanSel.includes(1)) return ['Default VLAN 1 may not have its name changed.'];
+    if (nombre && this.vlanSel.length > 1) return ['%Only one VLAN can be named at a time'];
+    for (const v of this.vlans) if (this.vlanSel.includes(v.id)) v.nombre = nombre ?? `VLAN${String(v.id).padStart(4, '0')}`;
+  }
+
+  borrarVlan(texto: string): string[] | void {
+    const l = this.listaVlan(texto);
+    if (!l) return ["% Invalid input detected at '^' marker."];
+    if (l.includes(1)) return ['%Default VLAN 1 may not be deleted.'];
+    this.vlans = this.vlans.filter((v) => !l.includes(v.id));
+  }
+
+  // ----- SSH -----
+
+  pedirRsa(): string[] | void {
+    const r = this.requisitosRsa();
+    if (r) return r;
+    this.espera = 'rsa-bits';
+    return [
+      `The name for the keys will be: ${this.cfg.hostname}.${this.cfg.dominio}`,
+      'Choose the size of the key modulus in the range of 360 to 4096 for your',
+      '  General Purpose Keys. Choosing a key modulus greater than 512 may take',
+      '  a few minutes.',
+      '',
+    ];
+  }
+
+  private requisitosRsa(): string[] | null {
+    if (this.cfg.hostname === 'Switch') return ['% Please define a hostname other than Switch.'];
+    if (!this.cfg.dominio) return ['% Please define a domain-name first.'];
+    return null;
+  }
+
+  generarRsa(bits: number, yaPreguntado = false): string[] {
+    if (!yaPreguntado) { const r = this.requisitosRsa(); if (r) return r; }
+    const habia = this.rsa !== null;
+    this.rsa = bits;
+    const l = [
+      ...(yaPreguntado ? [] : [`The name for the keys will be: ${this.cfg.hostname}.${this.cfg.dominio}`]),
+      `% The key modulus size is ${bits} bits`,
+      `% Generating ${bits} bit RSA keys, keys will be non-exportable...[OK]`,
+    ];
+    if (!habia) l.push(`%SSH-5-ENABLED: SSH 1.99 has been enabled`);
+    return l;
+  }
+
+  borrarRsa(): string[] {
+    if (this.rsa === null) return ['% No Signature RSA Keys found in configuration.'];
+    this.rsa = null;
+    return ['%SSH-5-DISABLED: SSH 1.99 has been disabled'];
+  }
+
+  versionSsh(v: number): string[] | void {
+    if (v === 2 && (this.rsa ?? 0) < 768) return ['Please create RSA keys (of atleast 768 bits size) to enable SSH v2.'];
+    this.cfg.sshVersion = v;
+  }
+
+  usuario(nombre: string, d: { secreto?: string; password?: string; privilegio?: number }): void {
+    const l = (this.cfg.usuarios ?? []).filter((u) => u.nombre !== nombre);
+    l.push({ nombre, ...d });
+    this.cfg.usuarios = l;
+  }
+
+  showIpSsh(): string[] {
+    if (this.rsa === null) return ['SSH Disabled - version 1.99', '%Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).'];
+    const v = this.cfg.sshVersion === 2 ? '2.0' : this.cfg.sshVersion === 1 ? '1.5' : '1.99';
+    return [`SSH Enabled - version ${v}`, 'Authentication timeout: 120 secs; Authentication retries: 3'];
+  }
+
+  // ----- VLAN y troncales -----
+
+  /** Modo operativo de un puerto. Sin vecino que negocie, dynamic queda en acceso. */
+  esTroncal(i: Interfaz): boolean {
+    return i.modo === 'trunk' && this.conectados.has(i.nombre) && !i.shutdown;
+  }
+
+  private corto(n: string) { return n.replace('FastEthernet', 'Fa').replace('GigabitEthernet', 'Gi'); }
+
+  showVlanBrief(): string[] {
+    const l = ['', 'VLAN Name                             Status    Ports', '---- -------------------------------- --------- -------------------------------'];
+    const fisicas = this.cfg.ifs.filter((i) => !i.nombre.startsWith('Vlan'));
+    const todas: Vlan[] = [{ id: 1, nombre: 'default' }, ...this.vlans];
+    for (const v of todas) {
+      const p = fisicas.filter((i) => !this.esTroncal(i) && i.modo !== 'trunk' && (i.accesoVlan ?? 1) === v.id).map((i) => this.corto(i.nombre));
+      const voz = fisicas.filter((i) => i.vozVlan === v.id && v.id !== (i.accesoVlan ?? 1)).map((i) => this.corto(i.nombre));
+      const puertos = [...p, ...voz];
+      const filas: string[] = [];
+      for (let k = 0; k < Math.max(1, Math.ceil(puertos.length / 4)); k++) filas.push(puertos.slice(k * 4, k * 4 + 4).join(', '));
+      l.push(`${String(v.id).padEnd(5)}${v.nombre.slice(0, 32).padEnd(33)}active    ${filas[0]}`);
+      for (const f of filas.slice(1)) l.push(`${''.padEnd(48)}${f}`);
+    }
+    l.push('1002 fddi-default                     active    ', '1003 token-ring-default               active    ', '1004 fddinet-default                  active    ', '1005 trnet-default                    active    ');
+    return l;
+  }
+
+  private rango(ids: number[]): string {
+    const s = [...ids].sort((a, b) => a - b);
+    const partes: string[] = [];
+    for (let i = 0; i < s.length; i++) {
+      let j = i;
+      while (j + 1 < s.length && s[j + 1] === s[j] + 1) j++;
+      partes.push(j > i + 1 ? `${s[i]}-${s[j]}` : j === i + 1 ? `${s[i]},${s[j]}` : `${s[i]}`);
+      i = j;
+    }
+    return partes.join(',') || 'none';
+  }
+
+  showTrunk(): string[] {
+    const t = this.cfg.ifs.filter((i) => this.esTroncal(i));
+    if (!t.length) return [];
+    const existentes = [1, ...this.vlans.map((v) => v.id)];
+    const l = ['Port        Mode         Encapsulation  Status        Native vlan'];
+    for (const i of t) l.push(`${this.corto(i.nombre).padEnd(12)}${(i.nonegotiate ? 'on' : 'on').padEnd(13)}802.1q         trunking      ${i.nativa ?? 1}`);
+    l.push('', 'Port        Vlans allowed on trunk');
+    for (const i of t) l.push(`${this.corto(i.nombre).padEnd(12)}${i.permitidas ? this.rango(i.permitidas) : '1-4094'}`);
+    l.push('', 'Port        Vlans allowed and active in management domain');
+    const activas = (i: Interfaz) => this.rango(existentes.filter((v) => !i.permitidas || i.permitidas.includes(v)));
+    for (const i of t) l.push(`${this.corto(i.nombre).padEnd(12)}${activas(i)}`);
+    l.push('', 'Port        Vlans in spanning tree forwarding state and not pruned');
+    for (const i of t) l.push(`${this.corto(i.nombre).padEnd(12)}${activas(i)}`);
+    return l;
+  }
+
+  showSwitchport(nombre: string): string[] {
+    const m = nombre.match(/^([a-zA-Z]+)(\d+\/\d+)$/);
+    const tipo = m && ('fastethernet'.startsWith(m[1].toLowerCase()) ? 'FastEthernet' : 'gigabitethernet'.startsWith(m[1].toLowerCase()) ? 'GigabitEthernet' : null);
+    const i = m && tipo ? this.cfg.ifs.find((x) => x.nombre === `${tipo}${m[2]}`) : undefined;
+    if (!i) return ["% Invalid input detected at '^' marker."];
+    const nombreVlan = (id: number) => (id === 1 ? 'default' : this.vlans.find((v) => v.id === id)?.nombre ?? 'Inactive');
+    const adm = i.modo === 'trunk' ? 'trunk' : i.modo === 'access' ? 'static access' : i.modo ?? 'dynamic auto';
+    const op = this.esTroncal(i) ? 'trunk' : this.conectados.has(i.nombre) && !i.shutdown ? 'static access' : 'down';
+    const acc = i.accesoVlan ?? 1;
+    return [
+      `Name: ${this.corto(i.nombre)}`,
+      'Switchport: Enabled',
+      `Administrative Mode: ${adm}`,
+      `Operational Mode: ${op}`,
+      'Administrative Trunking Encapsulation: dot1q',
+      `Operational Trunking Encapsulation: ${op === 'trunk' ? 'dot1q' : 'native'}`,
+      `Negotiation of Trunking: ${i.nonegotiate ? 'Off' : 'On'}`,
+      `Access Mode VLAN: ${acc} (${nombreVlan(acc)})`,
+      `Trunking Native Mode VLAN: ${i.nativa ?? 1} (${nombreVlan(i.nativa ?? 1)})`,
+      `Voice VLAN: ${i.vozVlan ? `${i.vozVlan} (${nombreVlan(i.vozVlan)})` : 'none'}`,
+      `Trunking VLANs Enabled: ${i.permitidas ? this.rango(i.permitidas) : 'ALL'}`,
+    ];
   }
 
   ifActual(): Interfaz {
@@ -532,11 +895,24 @@ export class Switch {
 
   private estado(i: Interfaz): [string, string] {
     if (i.shutdown) return ['administratively down', 'down'];
-    if (i.nombre.startsWith('Vlan')) return this.conectados.size ? ['up', 'up'] : ['down', 'down'];
+    if (i.nombre.startsWith('Vlan')) {
+      const id = Number(i.nombre.slice(4));
+      if (id !== 1 && !this.vlans.some((v) => v.id === id)) return ['down', 'down'];
+      const activo = this.cfg.ifs.some((p) => !p.nombre.startsWith('Vlan') && !p.shutdown && this.conectados.has(p.nombre)
+        && (this.esTroncal(p) ? !p.permitidas || p.permitidas.includes(id) : (p.accesoVlan ?? 1) === id));
+      return activo ? ['up', 'up'] : ['down', 'down'];
+    }
     return this.conectados.has(i.nombre) ? ['up', 'up'] : ['down', 'down'];
   }
 
   apagar(si: boolean): string[] | void {
+    if (this.ifaces.length > 1) {
+      const out: string[] = [];
+      const todas = this.ifaces;
+      for (const n of todas) { this.ifaces = [n]; this.iface = n; out.push(...(this.apagar(si) ?? [])); }
+      this.ifaces = todas; this.iface = todas[0];
+      return out;
+    }
     const i = this.ifActual();
     if (i.shutdown === si) return;
     i.shutdown = si;
@@ -578,7 +954,7 @@ export class Switch {
   }
 
   ping(destino: string): string[] {
-    const v = this.cfg.ifs.find((i) => i.nombre === 'Vlan1');
+    const v = this.cfg.ifs.find((i) => i.nombre.startsWith('Vlan') && i.ip) ?? this.cfg.ifs.find((i) => i.nombre === 'Vlan1');
     const svi = v && !v.shutdown && v.ip && v.mascara && this.estado(v)[1] === 'up' ? v : null;
     const cab = ['Type escape sequence to abort.', `Sending 5, 100-byte ICMP Echos to ${destino}, timeout is 2 seconds:`];
     if (svi && destino === svi.ip) return [...cab, '!!!!!', 'Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms'];
@@ -621,7 +997,7 @@ export class Switch {
       if (l.execTimeout) out.push(` exec-timeout ${l.execTimeout[0]} ${l.execTimeout[1]}`);
       if (l.password) out.push(` ${pw(l.password)}`);
       if (l.loggingSync) out.push(' logging synchronous');
-      if (l.login) out.push(' login');
+      if (l.login) out.push(l.loginLocal ? ' login local' : ' login');
       if (extra && l.transport) out.push(` transport input ${l.transport}`);
       return out;
     };
@@ -632,11 +1008,28 @@ export class Switch {
     if (c.enableSecret) o.push(`enable secret 5 ${hash5(c.enableSecret)}`);
     if (c.enablePassword) o.push(`enable ${pw(c.enablePassword)}`);
     o.push('!', '!', '!');
+    if (c.sshVersion) o.push(`ip ssh version ${c.sshVersion}`);
     if (!c.domainLookup) o.push('no ip domain-lookup');
-    o.push('!', '!', '!', 'spanning-tree mode pvst', 'spanning-tree extend system-id', '!');
+    if (c.dominio) o.push(`ip domain-name ${c.dominio}`);
+    o.push('!');
+    for (const u of c.usuarios ?? []) {
+      const priv = u.privilegio !== undefined ? ` privilege ${u.privilegio}` : '';
+      o.push(u.secreto ? `username ${u.nombre}${priv} secret 5 ${hash5(u.secreto)}` : `username ${u.nombre}${priv} ${pw(u.password ?? '')}`);
+    }
+    o.push('!', '!', 'spanning-tree mode pvst', 'spanning-tree extend system-id', '!');
     for (const i of c.ifs) {
       o.push(`interface ${i.nombre}`);
       if (i.descripcion) o.push(` description ${i.descripcion}`);
+      if (i.accesoVlan) o.push(` switchport access vlan ${i.accesoVlan}`);
+      if (i.nativa) o.push(` switchport trunk native vlan ${i.nativa}`);
+      if (i.permitidas) o.push(` switchport trunk allowed vlan ${this.rango(i.permitidas)}`);
+      if (i.modo && i.modo !== 'dynamic auto') o.push(` switchport mode ${i.modo}`);
+      if (i.nonegotiate) o.push(' switchport nonegotiate');
+      if (i.trustCos) o.push(' mls qos trust cos');
+      if (i.vozVlan) o.push(` switchport voice vlan ${i.vozVlan}`);
+      if (i.duplex) o.push(` duplex ${i.duplex}`);
+      if (i.speed) o.push(` speed ${i.speed}`);
+      if (i.sinMdix) o.push(' no mdix auto');
       if (i.nombre.startsWith('Vlan')) o.push(i.ip ? ` ip address ${i.ip} ${i.mascara}` : ' no ip address');
       if (i.shutdown) o.push(' shutdown');
       o.push('!');

@@ -1,0 +1,172 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.2"
+titulo: Configurar los puertos de un switch
+objetivo: Configurar los puertos de un switch según los requisitos de la red.
+duracion: 35
+examen:
+  v1.1: 1
+  v2.0: 1
+practica: [diag-interfaces]
+actividades:
+  - codigo: "1.2.9"
+    tipo: Verificador de sintaxis
+    titulo: Configurar los puertos de un switch
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.2.1 Comunicación dúplex
+
+<div class="duo">
+
+<div>
+
+**Semidúplex** (*half duplex*): se envía **o** se recibe, nunca a la vez. Es lo que pasaba con los hubs: todos
+compartían el medio y había colisiones.
+
+</div>
+
+<div>
+
+**Dúplex completo** (*full duplex*): se envía **y** se recibe al mismo tiempo. Cada puerto de switch es un enlace
+punto a punto, sin colisiones, y el ancho de banda efectivo se duplica.
+
+</div>
+
+</div>
+
+Gigabit Ethernet y las velocidades superiores **solo** funcionan en dúplex completo.
+
+## 1.2.2 Velocidad y dúplex de los puertos
+
+Por defecto los puertos están en `auto`: negocian velocidad y dúplex con el otro extremo. Puedes fijarlos a mano:
+
+```text
+S1(config)# interface FastEthernet 0/1
+S1(config-if)# duplex full
+S1(config-if)# speed 100
+S1(config-if)# end
+```
+
+<aside class="ojo">
+
+**Desajuste de dúplex**: si un extremo está fijo en `full` y el otro en `auto`, el que negocia no recibe respuesta y cae
+a **semidúplex**. El enlace "funciona", pero lento y con **colisiones tardías**. Es una falla típica de examen.
+Recomendación: deja `auto` en los dos extremos, o fija los dos igual.
+
+</aside>
+
+## 1.2.3 Auto-MDIX
+
+Antes había que elegir entre cable directo y cruzado según qué equipos unías. Con **auto-MDIX** el puerto detecta el
+tipo de cable y se ajusta solo. Viene activado en los Catalyst modernos; para que funcione, la velocidad y el dúplex
+deben estar en `auto`.
+
+```text
+S1(config-if)# duplex auto
+S1(config-if)# speed auto
+S1(config-if)# mdix auto
+S1# show controllers ethernet-controller fa0/1 phy | include MDIX
+Auto-MDIX                             :  On   [AdminState=1   Flags=0x00052248]
+```
+
+## 1.2.4 Comandos de verificación del switch
+
+| Para ver… | Comando |
+|---|---|
+| Estado y configuración de las interfaces | `show interfaces [interfaz]` |
+| La configuración de inicio | `show startup-config` |
+| La configuración en ejecución | `show running-config` |
+| El sistema de archivos de la flash | `show flash` |
+| Hardware y versión de IOS | `show version` |
+| Historial de comandos | `show history` |
+| Información IP de una interfaz | `show ip interface [interfaz]` / `show ipv6 interface [interfaz]` |
+| La tabla de direcciones MAC | `show mac address-table` |
+
+## 1.2.5 Verificar la configuración de los puertos
+
+`show interfaces` es el comando más completo. La primera línea ya dice mucho:
+
+```text
+S1# show interfaces FastEthernet0/18
+FastEthernet0/18 is up, line protocol is up (connected)
+  Hardware is Fast Ethernet, address is 0025.83e6.9092 (bia 0025.83e6.9092)
+  MTU 1500 bytes, BW 100000 Kbit/sec, DLY 100 usec,
+  reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Full-duplex, 100Mb/s, media type is 10/100BaseTX
+```
+
+El primer `up` es la **capa física** (hay señal); `line protocol is up` es la **capa de enlace de datos** (hay
+keepalives). La línea `Full-duplex, 100Mb/s` muestra lo que se negoció.
+
+## 1.2.6 Problemas de la capa de acceso a la red
+
+| Interfaz | Protocolo | Significado |
+|---|---|---|
+| up | up | Todo bien |
+| up | down | Hay señal pero falla la capa 2: desajuste de encapsulación, el otro extremo en err-disabled, falla de hardware |
+| down | down | Sin cable, cable dañado o el otro extremo está apagado |
+| administratively down | down | Alguien la apagó con `shutdown` |
+
+## 1.2.7 Errores de entrada y salida de una interfaz
+
+```text
+  5 minute input rate 0 bits/sec, 0 packets/sec
+     2295197 packets input, 305539992 bytes, 0 no buffer
+     Received 1925500 broadcasts (0 multicasts)
+     3 runts, 0 giants, 0 throttles
+     3 input errors, 3 CRC, 0 frame, 0 overrun, 0 ignored
+     3594664 packets output, 436549843 bytes, 0 underruns
+     8 output errors, 1790 collisions, 10 interface resets
+     0 unknown protocol drops
+     0 babbles, 235 late collision, 0 deferred
+```
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Runts', texto: 'Tramas de menos de 64 bytes. Suelen venir de una NIC defectuosa, aunque también de colisiones excesivas.' },
+    { titulo: 'Giants', texto: 'Tramas más grandes que el máximo permitido.' },
+    { titulo: 'Errores CRC', texto: 'La suma de verificación no coincide. Casi siempre es el medio: cable dañado, ruido eléctrico, conectores en mal estado.' },
+    { titulo: 'Input errors', texto: 'El total de errores de entrada: incluye runts, giants, CRC, sin búfer, overrun e ignorados.' },
+    { titulo: 'Output errors', texto: 'Errores que impidieron transmitir la trama por la interfaz.' },
+    { titulo: 'Colisiones tardías', texto: 'Colisiones después de transmitir 512 bits. Causas: desajuste de dúplex o cables demasiado largos.' },
+  ]}
+/>
+
+<aside class="examen">
+
+Asocia síntoma con causa: **CRC → cable o ruido**. **Colisiones tardías → desajuste de dúplex** (o cable demasiado
+largo). **Runts → NIC defectuosa**. Una interfaz en dúplex completo nunca debería tener colisiones.
+
+</aside>
+
+## 1.2.8 Resolución de problemas de la capa de acceso
+
+<Pasos
+  client:visible
+  titulo="Un método para una conexión que falla"
+  pasos={[
+    { titulo: 'show interfaces', texto: 'Empieza por el estado de la interfaz que falla.' },
+    { titulo: 'Si está down', texto: 'Revisa que el cable sea el correcto y esté bien conectado, que el otro extremo esté encendido y sin shutdown. Prueba otro cable. Si sigue down, revisa la configuración de velocidad.' },
+    { titulo: 'Si está up: ruido', texto: 'Mira los contadores de CRC, runts y giants. Si suben, hay ruido: revisa el cable, su longitud y las fuentes de interferencia.' },
+    { titulo: 'Si está up: colisiones', texto: 'Si no hay ruido pero hay colisiones o colisiones tardías, revisa que el dúplex coincida en los dos extremos.' },
+  ]}
+/>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Un extremo fijo en full, el otro en auto. ¿Qué pasa?', dorso: 'El de auto cae a semidúplex: desajuste de dúplex y colisiones tardías.' },
+    { frente: '¿Qué necesita auto-MDIX para funcionar?', dorso: 'Velocidad y dúplex en auto.' },
+    { frente: 'up / down', dorso: 'Hay señal física, pero falla la capa de enlace de datos (encapsulación, err-disabled, hardware).' },
+    { frente: 'Los errores CRC suben sin parar. ¿Qué revisas?', dorso: 'El cable y el ruido eléctrico: es un problema del medio.' },
+    { frente: '¿Qué es un runt?', dorso: 'Una trama de menos de 64 bytes.' },
+  ]}
+/>

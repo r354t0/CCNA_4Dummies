@@ -1,0 +1,65 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.6"
+titulo: Práctica y resumen del módulo
+objetivo: Implementar VLAN y troncales y repasar el módulo.
+duracion: 20
+practica: [pt-vlan, cli-vlan, difusion-vlan, dtp]
+actividades:
+  - codigo: "3.6.1"
+    tipo: Packet Tracer
+    titulo: Implementar VLAN y troncales
+    guia: "Configura primero las VLAN en todos los switches, después las troncales y al final los puertos de acceso. Verifica cada switch con show vlan brief y show interfaces trunk."
+  - codigo: "3.6.2"
+    tipo: Laboratorio
+    titulo: Implementar VLAN y troncales
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.6.1 La configuración completa de un switch
+
+```text
+vlan 10
+ name docentes
+vlan 20
+ name alumnos
+vlan 99
+ name nativa
+!
+interface range fa0/1 - 12
+ switchport mode access
+ switchport access vlan 10
+!
+interface range fa0/13 - 24
+ switchport mode access
+ switchport access vlan 20
+!
+interface gi0/1
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,99
+ switchport nonegotiate
+```
+
+## 3.6.2 Lo que aprendiste
+
+| Tema | Lo esencial |
+|---|---|
+| 3.1 Descripción de las VLAN | Cada VLAN es un dominio de difusión y una subred. Tipos: predeterminada, datos, nativa, administración, voz |
+| 3.2 Multiswitch | Troncales. Etiqueta 802.1Q de 4 bytes con VID de 12 bits. La VLAN nativa va sin etiqueta y debe coincidir. VLAN de voz y CDP |
+| 3.3 Configuración de VLAN | Rangos normal y extendido, `vlan.dat`. `vlan`, `name`, `switchport mode access`, `switchport access vlan`, `switchport voice vlan`. `show vlan brief`. Puertos inactivos al borrar una VLAN |
+| 3.4 Troncales | `switchport mode trunk`, `native vlan`, `allowed vlan` (y `add`/`remove`). `show interfaces trunk` |
+| 3.5 DTP | Modos access, dynamic auto, dynamic desirable, trunk. `nonegotiate`. auto + auto = acceso |
+
+<Repaso
+  client:visible
+  titulo="Repaso rápido del módulo"
+  fichas={[
+    { frente: 'PC1 y PC2 están en VLAN distintas del mismo switch. ¿Se hacen ping?', dorso: 'No, sin un router o switch de capa 3.' },
+    { frente: 'La VLAN nativa no coincide entre S1 y S2', dorso: 'Aviso de CDP, tráfico mezclado entre VLAN y riesgo de seguridad.' },
+    { frente: 'Comando para ver troncales', dorso: 'show interfaces trunk' },
+    { frente: 'Dejar un switch de fábrica, incluidas las VLAN', dorso: 'erase startup-config, delete vlan.dat, reload.' },
+  ]}
+/>

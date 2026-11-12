@@ -14,7 +14,7 @@ import './Topologia.css';
 // (por ejemplo 'Po1') se dibuja el óvalo de EtherChannel.
 
 export type TipoNodo =
-  | 'router' | 'router-inalambrico' | 'switch' | 'ap' | 'firewall'
+  | 'router' | 'router-inalambrico' | 'switch' | 'switch-l3' | 'hub' | 'ap' | 'firewall'
   | 'pc' | 'laptop' | 'servidor' | 'telefono' | 'impresora' | 'tablet' | 'nube';
 type Lado = 'arriba' | 'abajo' | 'derecha' | 'izquierda';
 
@@ -56,6 +56,8 @@ const TAMANO: Record<TipoNodo, { w: number; h: number; forma: 'elipse' | 'rect' 
   router: { w: 30, h: 18, forma: 'elipse' },
   'router-inalambrico': { w: 30, h: 18, forma: 'elipse' },
   switch: { w: 31, h: 14, forma: 'rect' },
+  'switch-l3': { w: 26, h: 21, forma: 'rect' },
+  hub: { w: 29, h: 12, forma: 'rect' },
   ap: { w: 24, h: 12, forma: 'rect' },
   firewall: { w: 24, h: 17, forma: 'rect' },
   pc: { w: 22, h: 20, forma: 'rect' },
@@ -80,7 +82,7 @@ function borde(n: NodoTopo, ux: number, uy: number) {
 }
 
 const LADO_POR_TIPO: Record<TipoNodo, Lado> = {
-  router: 'arriba', 'router-inalambrico': 'arriba', switch: 'derecha', ap: 'derecha', firewall: 'arriba',
+  router: 'arriba', 'router-inalambrico': 'arriba', switch: 'derecha', 'switch-l3': 'derecha', hub: 'derecha', ap: 'derecha', firewall: 'arriba',
   nube: 'derecha', pc: 'abajo', laptop: 'abajo', servidor: 'abajo', telefono: 'abajo', impresora: 'abajo', tablet: 'abajo',
 };
 
@@ -126,6 +128,32 @@ export function Icono({ tipo }: { tipo: TipoNodo }) {
           <g className="flechas">
             <path d="M-18 -10.5 H17 M18 -5.5 H-17" />
             <path d="M22 -10.5 L16.5 -13.2 L16.5 -7.8 Z M-22 -5.5 L-16.5 -8.2 L-16.5 -2.8 Z" className="punta" />
+          </g>
+        </>
+      );
+    case 'switch-l3':
+      return (
+        <>
+          <polygon points="-26,-9 -18,-21 26,-21 18,-9" className="cara-superior" />
+          <rect x="-26" y="-9" width="44" height="30" className="cara-frente" />
+          <polygon points="18,-9 26,-21 26,9 18,21" className="cara-lateral" />
+          <g className="flechas">
+            <path d="M-14 -11 L12 -19 M-8 -19 L6 -11" />
+            <path d="M15 -20 L9.5 -20.6 L11.4 -16 Z M-17 -10 L-11.5 -9.4 L-13.4 -14 Z M10 -10 L5 -14.4 L3.6 -9.6 Z M-12 -20 L-7 -15.6 L-5.6 -20.4 Z" className="punta" />
+            <path d="M-17 6 H11 M-17 12 H11" />
+            <path d="M15 6 L10 3.4 L10 8.6 Z M-21 12 L-16 9.4 L-16 14.6 Z" className="punta" />
+          </g>
+        </>
+      );
+    case 'hub':
+      return (
+        <>
+          <polygon points="-29,0 -22,-10 29,-10 22,0" className="cara-superior" />
+          <rect x="-29" y="0" width="51" height="12" className="cara-frente" />
+          <polygon points="22,0 29,-10 29,2 22,12" className="cara-lateral" />
+          <g className="flechas">
+            <path d="M-17 6 H11" />
+            <path d="M15 6 L10 3.2 L10 8.8 Z M-21 6 L-16 3.2 L-16 8.8 Z" className="punta" />
           </g>
         </>
       );

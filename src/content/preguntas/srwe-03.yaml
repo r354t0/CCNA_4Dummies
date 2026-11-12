@@ -1,0 +1,232 @@
+curso: srwe
+modulo: 3
+preguntas:
+  - id: srwe3-01
+    tema: "3.1"
+    verifique: true
+    p: "¿Qué es cada VLAN desde el punto de vista de las difusiones?"
+    opciones: ["Un dominio de colisión", "Un dominio de difusión independiente", "Una parte de un dominio de difusión mayor", "Una red sin difusiones"]
+    correcta: 1
+    explicacion: "Las difusiones de una VLAN solo llegan a los puertos de esa VLAN."
+  - id: srwe3-02
+    tema: "3.1"
+    verifique: true
+    p: "PC1 (VLAN 10) y PC2 (VLAN 20) están en el mismo switch. ¿Qué necesitan para comunicarse?"
+    opciones: ["Nada, están en el mismo switch", "Un dispositivo de capa 3 que enrute entre las VLAN", "Un hub", "Cambiar a dúplex completo"]
+    correcta: 1
+    explicacion: "Cada VLAN es una red distinta. El tráfico entre VLAN necesita enrutamiento."
+  - id: srwe3-03
+    tema: "3.1"
+    p: "¿Cuáles dos son ventajas de usar VLAN? (Elija dos)."
+    opciones: ["Dominios de difusión más pequeños", "Más dominios de difusión por switch físico sin comprar equipos", "Eliminan la necesidad de routers", "Aumentan las colisiones"]
+    correcta: [0, 1]
+    explicacion: "Las VLAN reducen el alcance de las difusiones y evitan comprar un switch por red. Para comunicarse entre sí siguen necesitando capa 3."
+  - id: srwe3-04
+    tema: "3.1"
+    verifique: true
+    p: "¿Qué VLAN es la predeterminada en un switch Cisco y no se puede borrar?"
+    opciones: ["VLAN 0", "VLAN 1", "VLAN 99", "VLAN 1005"]
+    correcta: 1
+    explicacion: "Todos los puertos empiezan en la VLAN 1, que no se puede borrar ni renombrar."
+  - id: srwe3-05
+    tema: "3.1"
+    p: "¿Qué tipo de VLAN se usa para acceder al switch por SSH?"
+    opciones: ["De voz", "De administración", "Nativa", "De datos"]
+    correcta: 1
+    explicacion: "La VLAN de administración es la de la SVI con la que se administra el switch."
+  - id: srwe3-06
+    tema: "3.1"
+    p: "¿Qué tipo de VLAN necesita prioridad, ancho de banda asegurado y una demora de menos de 150 ms?"
+    opciones: ["De datos", "Nativa", "De voz", "Predeterminada"]
+    correcta: 2
+    explicacion: "El tráfico de telefonía IP es sensible a la demora y se separa en una VLAN de voz."
+  - id: srwe3-07
+    tema: "3.1"
+    p: "¿Por qué se recomienda no usar la VLAN 1 para usuarios ni administración?"
+    opciones: ["Porque no admite IPv6", "Porque es la predeterminada y por ella viaja el tráfico de control, lo que facilita ataques", "Porque solo admite 10 puertos", "Porque es más lenta"]
+    correcta: 1
+    explicacion: "Es la VLAN que todos conocen y donde viajan CDP, STP, DTP y VTP por defecto."
+  - id: srwe3-08
+    tema: "3.2"
+    verifique: true
+    p: "¿Qué es un enlace troncal?"
+    opciones: ["Un enlace que pertenece a la VLAN 1", "Un enlace punto a punto que lleva varias VLAN", "Un enlace entre un switch y una PC", "Un enlace con dos cables"]
+    correcta: 1
+    explicacion: "Una troncal transporta el tráfico de varias VLAN entre switches, o entre un switch y un router."
+  - id: srwe3-09
+    tema: "3.2"
+    verifique: true
+    p: "¿Cuántos bits tiene el campo VID de la etiqueta 802.1Q?"
+    opciones: ["3", "8", "12", "16"]
+    correcta: 2
+    explicacion: "El VID tiene 12 bits, suficientes para 4096 valores."
+  - id: srwe3-10
+    tema: "3.2"
+    p: "¿Dónde se inserta la etiqueta 802.1Q en una trama Ethernet?"
+    opciones: ["Antes de la MAC de destino", "Después de la MAC de origen", "Después de los datos", "Dentro del encabezado IP"]
+    correcta: 1
+    explicacion: "La etiqueta de 4 bytes va después de la MAC de origen, antes del campo Tipo."
+  - id: srwe3-11
+    tema: "3.2"
+    p: "¿Cuánto mide la etiqueta 802.1Q?"
+    opciones: ["2 bytes", "4 bytes", "6 bytes", "12 bits"]
+    correcta: 1
+    explicacion: "4 bytes: TPID (2 bytes) y la información de control (prioridad, DEI y VID)."
+  - id: srwe3-12
+    tema: "3.2"
+    verifique: true
+    p: "¿Qué hace un switch con una trama sin etiqueta que llega por una troncal 802.1Q?"
+    opciones: ["La descarta", "La asigna a la VLAN nativa", "La asigna a la VLAN 1 siempre", "La reenvía por todas las VLAN"]
+    correcta: 1
+    explicacion: "Las tramas sin etiquetar de una troncal pertenecen a la VLAN nativa."
+  - id: srwe3-13
+    tema: "3.2"
+    p: "¿Qué campo de la etiqueta 802.1Q usa QoS para dar prioridad al tráfico?"
+    opciones: ["VID", "DEI", "Prioridad (PRI)", "TPID"]
+    correcta: 2
+    explicacion: "El campo de prioridad de 3 bits (802.1p) va de 0 a 7."
+  - id: srwe3-14
+    tema: "3.2"
+    p: "La VLAN nativa es 99 en S1 y 1 en S2. ¿Qué consecuencia tiene?"
+    opciones: ["Ninguna", "El tráfico sin etiquetar termina en una VLAN distinta en cada lado y CDP avisa del desajuste", "La troncal se vuelve de acceso", "S2 cambia su nativa a 99 automáticamente"]
+    correcta: 1
+    explicacion: "La VLAN nativa debe coincidir en los dos extremos de la troncal."
+  - id: srwe3-15
+    tema: "3.2"
+    p: "Un teléfono IP y una PC comparten el mismo puerto del switch. ¿Cómo viaja el tráfico de la PC?"
+    opciones: ["Etiquetado en la VLAN de voz", "Sin etiquetar, en la VLAN de datos del puerto", "Etiquetado en la VLAN nativa", "Por un cable separado"]
+    correcta: 1
+    explicacion: "La PC usa la VLAN de acceso sin etiquetar; el teléfono etiqueta su tráfico con la VLAN de voz."
+  - id: srwe3-16
+    tema: "3.2"
+    p: "¿Qué protocolo usa el switch para indicarle al teléfono IP la VLAN de voz?"
+    opciones: ["DTP", "VTP", "CDP", "DHCP"]
+    correcta: 2
+    explicacion: "El switch envía la VLAN de voz al teléfono por CDP."
+  - id: srwe3-17
+    tema: "3.3"
+    verifique: true
+    p: "¿En qué archivo se guardan las VLAN del rango normal?"
+    opciones: ["startup-config", "vlan.dat en la flash", "running-config", "En la NVRAM junto con la configuración"]
+    correcta: 1
+    explicacion: "Las VLAN 1 a 1005 se guardan en vlan.dat. Por eso erase startup-config no las borra."
+  - id: srwe3-18
+    tema: "3.3"
+    p: "¿Qué rango de VLAN es el extendido?"
+    opciones: ["1 a 1005", "1006 a 4094", "1002 a 1005", "4095 a 8191"]
+    correcta: 1
+    explicacion: "El rango extendido va de 1006 a 4094 y se guarda en la running-config."
+  - id: srwe3-19
+    tema: "3.3"
+    verifique: true
+    p: "¿Cuáles dos comandos asignan Fa0/8 como puerto de acceso de la VLAN 30? (Elija dos)."
+    opciones: ["switchport mode access", "switchport access vlan 30", "switchport trunk native vlan 30", "vlan 30 access"]
+    correcta: [0, 1]
+    explicacion: "En la interfaz: switchport mode access y switchport access vlan 30."
+  - id: srwe3-20
+    tema: "3.3"
+    p: "¿Qué pasa si asignas un puerto a la VLAN 40 y esa VLAN no existe?"
+    opciones: ["El comando se rechaza", "El switch crea la VLAN 40 y avisa", "El puerto queda en la VLAN 1", "El puerto se apaga"]
+    correcta: 1
+    explicacion: "IOS crea la VLAN automáticamente con un mensaje: «Access VLAN does not exist. Creating vlan 40»."
+  - id: srwe3-21
+    tema: "3.3"
+    verifique: true
+    p: "Borraste la VLAN 20 sin reasignar sus puertos. ¿Qué les ocurre?"
+    opciones: ["Pasan a la VLAN 1", "Quedan inactivos y no se comunican", "Pasan a la VLAN nativa", "Se vuelven troncales"]
+    correcta: 1
+    explicacion: "Los puertos de una VLAN borrada quedan inactivos hasta que los asignes a una VLAN que exista."
+  - id: srwe3-22
+    tema: "3.3"
+    p: "¿Qué comando muestra las VLAN, sus nombres y sus puertos de acceso?"
+    opciones: ["show interfaces trunk", "show vlan brief", "show mac address-table", "show dtp"]
+    correcta: 1
+    explicacion: "show vlan brief muestra cada VLAN con sus puertos de acceso (no los troncales)."
+  - id: srwe3-23
+    tema: "3.3"
+    p: "¿Qué comandos dejan un switch como de fábrica, incluidas las VLAN?"
+    opciones: ["erase startup-config y reload", "delete vlan.dat, erase startup-config y reload", "no vlan all", "reload"]
+    correcta: 1
+    explicacion: "Hay que borrar también vlan.dat, porque las VLAN no están en el startup-config."
+  - id: srwe3-24
+    tema: "3.3"
+    p: "¿Qué comando configura la VLAN 150 como VLAN de voz de un puerto?"
+    opciones: ["switchport access vlan 150 voice", "switchport voice vlan 150", "vlan 150 voice", "mls qos voice 150"]
+    correcta: 1
+    explicacion: "switchport voice vlan 150, junto con la VLAN de acceso para la PC."
+  - id: srwe3-25
+    tema: "3.4"
+    verifique: true
+    p: "¿Qué comando cambia la VLAN nativa de una troncal a la VLAN 99?"
+    opciones: ["switchport native vlan 99", "switchport trunk native vlan 99", "vlan 99 native", "switchport access vlan 99"]
+    correcta: 1
+    explicacion: "switchport trunk native vlan 99, en los dos extremos."
+  - id: srwe3-26
+    tema: "3.4"
+    verifique: true
+    p: "La troncal permite las VLAN 10 y 20. ¿Qué comando agrega la VLAN 30 sin quitar las otras?"
+    opciones: ["switchport trunk allowed vlan 30", "switchport trunk allowed vlan add 30", "switchport trunk add vlan 30", "vlan 30 trunk"]
+    correcta: 1
+    explicacion: "Con add se agrega a la lista. Sin add, la lista se reemplaza y solo pasaría la 30."
+  - id: srwe3-27
+    tema: "3.4"
+    p: "¿Qué comando muestra la VLAN nativa y las VLAN permitidas de cada troncal?"
+    opciones: ["show vlan brief", "show interfaces trunk", "show running-config vlan", "show dtp interface"]
+    correcta: 1
+    explicacion: "show interfaces trunk muestra modo, encapsulación, estado, VLAN nativa y VLAN permitidas y activas."
+  - id: srwe3-28
+    tema: "3.4"
+    p: "Un puerto dejó de aparecer en show vlan brief después de configurarlo. ¿Qué es lo más probable?"
+    opciones: ["Se dañó", "Se volvió troncal", "Pasó a la VLAN 1", "Está en shutdown"]
+    correcta: 1
+    explicacion: "show vlan brief no lista los puertos troncales."
+  - id: srwe3-29
+    tema: "3.4"
+    p: "La VLAN 30 está permitida en la troncal pero no aparece entre las VLAN activas. ¿Qué falta?"
+    opciones: ["Crear la VLAN 30 en ese switch", "Cambiar la nativa", "Configurar nonegotiate", "Reiniciar el switch"]
+    correcta: 0
+    explicacion: "Una VLAN permitida solo está activa en la troncal si existe en el switch."
+  - id: srwe3-30
+    tema: "3.4"
+    p: "¿Qué comando devuelve la lista de VLAN permitidas a su valor predeterminado?"
+    opciones: ["switchport trunk allowed vlan none", "no switchport trunk allowed vlan", "switchport trunk allowed default", "no switchport mode trunk"]
+    correcta: 1
+    explicacion: "no switchport trunk allowed vlan vuelve a permitir todas las VLAN (lo mismo que allowed vlan all)."
+  - id: srwe3-31
+    tema: "3.5"
+    verifique: true
+    p: "Ambos extremos de un enlace están en dynamic auto. ¿Cómo queda el enlace?"
+    opciones: ["Troncal", "Acceso", "Apagado", "Conectividad limitada"]
+    correcta: 1
+    explicacion: "Los dos esperan a que el otro proponga la troncal; nadie lo hace y el enlace queda en acceso."
+  - id: srwe3-32
+    tema: "3.5"
+    verifique: true
+    p: "S1 está en dynamic desirable y S2 en dynamic auto. ¿Cómo queda el enlace?"
+    opciones: ["Troncal", "Acceso", "Conectividad limitada", "Apagado"]
+    correcta: 0
+    explicacion: "Desirable propone la troncal y auto la acepta."
+  - id: srwe3-33
+    tema: "3.5"
+    p: "¿Cuál es el modo DTP predeterminado de los puertos de un Catalyst 2960?"
+    opciones: ["access", "trunk", "dynamic auto", "dynamic desirable"]
+    correcta: 2
+    explicacion: "Los 2960 y 3650 vienen en dynamic auto."
+  - id: srwe3-34
+    tema: "3.5"
+    p: "¿Qué comando deja de enviar tramas DTP en un puerto troncal?"
+    opciones: ["no dtp", "switchport nonegotiate", "switchport mode static", "no switchport trunk"]
+    correcta: 1
+    explicacion: "switchport nonegotiate desactiva DTP. Se usa con modo access o trunk."
+  - id: srwe3-35
+    tema: "3.5"
+    p: "Un extremo está en trunk y el otro en access. ¿Qué ocurre?"
+    opciones: ["Se forma una troncal", "Queda en acceso sin problemas", "Conectividad limitada: es un error de configuración", "DTP corrige el modo del puerto de acceso"]
+    correcta: 2
+    explicacion: "Los extremos no coinciden y el tráfico falla."
+  - id: srwe3-36
+    tema: "3.5"
+    p: "¿Qué comando muestra el modo DTP de una interfaz?"
+    opciones: ["show dtp interface", "show vlan dtp", "show trunk dtp", "show ip dtp"]
+    correcta: 0
+    explicacion: "show dtp interface (y show interfaces switchport) muestran el modo administrativo y el operativo."

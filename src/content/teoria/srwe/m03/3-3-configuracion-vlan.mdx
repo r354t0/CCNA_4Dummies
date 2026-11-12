@@ -1,0 +1,148 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.3"
+titulo: Configuración de VLAN
+objetivo: Configurar un puerto de switch para asignarlo a una VLAN según los requisitos.
+duracion: 40
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [cli-vlan, pt-vlan]
+actividades:
+  - codigo: "3.3.11"
+    tipo: Verificador de sintaxis
+    titulo: Configuración de VLAN
+  - codigo: "3.3.12"
+    tipo: Packet Tracer
+    titulo: Configuración de redes VLAN
+    guia: "Haz ping entre dos PC de la misma VLAN y entre dos de VLAN distintas. Explica con tus palabras por qué uno funciona y el otro no."
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.3.1 Rangos de VLAN
+
+| Rango | VLAN | Dónde se guardan | Notas |
+|---|---|---|---|
+| Normal | 1 a 1005 | `vlan.dat`, en la flash | 1 y 1002–1005 se crean solas y no se pueden borrar (1002–1005 son para Token Ring y FDDI). Las que se usan en pymes |
+| Extendido | 1006 a 4094 | En la running-config | Las usan proveedores de servicio y grandes empresas. Menos funciones que el rango normal |
+
+<aside class="ojo">
+
+Como las VLAN normales viven en **vlan.dat** y no en la configuración, `erase startup-config` **no las borra**. Para
+dejar un switch de fábrica: `erase startup-config`, `delete vlan.dat` y `reload`.
+
+</aside>
+
+## 3.3.2 Crear una VLAN
+
+```text
+S1# configure terminal
+S1(config)# vlan 20
+S1(config-vlan)# name alumnos
+S1(config-vlan)# end
+```
+
+Puedes crear varias a la vez con `vlan 100,102,105-107`.
+
+## 3.3.3 Asignar puertos a una VLAN
+
+<Pasos
+  client:visible
+  titulo="Asignar un puerto de acceso"
+  pasos={[
+    { titulo: 'Entrar al puerto', texto: 'Entra a la interfaz (o a un rango con interface range).', codigo: 'S1(config)# interface fa0/18' },
+    { titulo: 'Modo acceso', texto: 'Fija el puerto en modo acceso: pertenece a una sola VLAN y no negocia troncales.', codigo: 'S1(config-if)# switchport mode access' },
+    { titulo: 'Asignar la VLAN', texto: 'Asigna la VLAN de datos. Si la VLAN no existe, el switch la crea y te avisa.', codigo: 'S1(config-if)# switchport access vlan 20\nS1(config-if)# end' },
+  ]}
+/>
+
+Para varios puertos a la vez:
+
+```text
+S1(config)# interface range fa0/11 - 17
+S1(config-if-range)# switchport mode access
+S1(config-if-range)# switchport access vlan 10
+```
+
+## 3.3.4 VLAN de datos y de voz en el mismo puerto
+
+```text
+S1(config)# vlan 20
+S1(config-vlan)# name alumnos
+S1(config-vlan)# vlan 150
+S1(config-vlan)# name voz
+S1(config-vlan)# exit
+S1(config)# interface fa0/18
+S1(config-if)# switchport mode access
+S1(config-if)# switchport access vlan 20
+S1(config-if)# mls qos trust cos
+S1(config-if)# switchport voice vlan 150
+```
+
+`mls qos trust cos` hace que el switch confíe en la prioridad que marca el teléfono.
+
+## 3.3.5 Verificar las VLAN
+
+```text
+S1# show vlan brief
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+                                                Fa0/9, Fa0/10, Gi0/1, Gi0/2
+10   docentes                         active    Fa0/11, Fa0/12, Fa0/13, Fa0/14
+                                                Fa0/15, Fa0/16, Fa0/17
+20   alumnos                          active    Fa0/18
+150  voz                              active    Fa0/18
+1002 fddi-default                     act/unsup
+1003 token-ring-default               act/unsup
+1004 fddinet-default                  act/unsup
+1005 trnet-default                    act/unsup
+```
+
+| Comando | Qué muestra |
+|---|---|
+| `show vlan brief` | Cada VLAN con su nombre, estado y puertos de acceso |
+| `show vlan id 20` / `show vlan name alumnos` | Una sola VLAN |
+| `show vlan summary` | Cuántas VLAN hay |
+| `show interfaces vlan 20` | La SVI de esa VLAN |
+| `show interfaces fa0/18 switchport` | Modo, VLAN de acceso, VLAN de voz y nativa del puerto |
+
+<aside class="examen">
+
+`show vlan brief` **no muestra los puertos troncales**: un puerto que desaparece de esa lista probablemente se volvió
+troncal. Las troncales se ven con `show interfaces trunk`.
+
+</aside>
+
+## 3.3.6 Cambiar y quitar puertos de una VLAN
+
+- Para volver un puerto a la VLAN 1: `no switchport access vlan`.
+- Para moverlo a otra VLAN: `switchport access vlan 30`. No hace falta quitarlo antes de la anterior.
+
+## 3.3.7 Eliminar VLAN
+
+```text
+S1(config)# no vlan 20
+```
+
+<aside class="ojo">
+
+Antes de borrar una VLAN, **reasigna sus puertos**. Los puertos de una VLAN borrada quedan **inactivos**: no se
+comunican con nada hasta que los asignes a una VLAN que exista. En `show vlan brief` desaparecen de la lista.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Dónde se guardan las VLAN 1 a 1005?', dorso: 'En el archivo vlan.dat de la flash.' },
+    { frente: 'Rango extendido', dorso: 'VLAN 1006 a 4094.' },
+    { frente: 'Comandos para asignar fa0/5 a la VLAN 30', dorso: 'interface fa0/5, switchport mode access, switchport access vlan 30.' },
+    { frente: 'Borraste la VLAN 20 sin mover sus puertos. ¿Qué les pasa?', dorso: 'Quedan inactivos hasta que los asignes a otra VLAN.' },
+    { frente: '¿Qué comando no muestra los puertos troncales?', dorso: 'show vlan brief' },
+  ]}
+/>

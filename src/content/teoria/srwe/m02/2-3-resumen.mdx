@@ -1,0 +1,41 @@
+---
+curso: srwe
+modulo: 2
+tema: "2.3"
+titulo: Resumen del módulo
+objetivo: Repasar cómo reenvía tramas un switch y qué separa los dominios de colisión y de difusión.
+duracion: 10
+practica: [tabla-mac, dominios]
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 2.3.1 El switch en una sola imagen
+
+```text
+Trama entra por Fa0/3
+│
+├─ 1. MAC de origen  ──► ¿está en la tabla?   No: agregar (MAC, Fa0/3)   Sí: renovar el temporizador
+│
+└─ 2. MAC de destino ──► ¿difusión o multidifusión?  ─► inundar (todos los puertos menos Fa0/3)
+                         ¿unicast en la tabla?       ─► reenviar por ese puerto
+                         ¿unicast desconocida?       ─► inundar
+```
+
+## 2.3.2 Lo que aprendiste
+
+| Tema | Lo esencial |
+|---|---|
+| 2.1 Reenvío de tramas | Tabla MAC. Aprende con la MAC de origen, reenvía según la de destino. Inundación de difusiones y unicast desconocidas. Almacenamiento y reenvío frente a método de corte (avance rápido, libre de fragmentos) |
+| 2.2 Dominios | Cada puerto de switch es un dominio de colisión. Los switches no separan difusiones; los routers sí. Características que alivian la congestión |
+
+<Repaso
+  client:visible
+  titulo="Repaso rápido del módulo"
+  fichas={[
+    { frente: '¿Dónde guarda el switch lo que aprende?', dorso: 'En la tabla de direcciones MAC (CAM).' },
+    { frente: 'Trama de difusión', dorso: 'Se inunda por todos los puertos menos el de entrada.' },
+    { frente: 'Método que descarta tramas con errores', dorso: 'Almacenamiento y reenvío (comprueba el FCS).' },
+    { frente: 'Dos switches unidos, sin VLAN ni router', dorso: 'Un solo dominio de difusión.' },
+  ]}
+/>

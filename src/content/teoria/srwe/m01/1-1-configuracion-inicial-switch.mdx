@@ -1,0 +1,153 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.1"
+titulo: Configuración inicial de un switch
+objetivo: Configurar los parámetros iniciales en un switch Cisco.
+duracion: 30
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [cli-ssh, pt-router]
+actividades:
+  - codigo: "1.1.7"
+    tipo: Laboratorio
+    titulo: Configuración básica de un switch
+    guia: "Antes de empezar, borra la configuración del switch (erase startup-config, delete vlan.dat y reload). Así trabajas desde cero, como en el examen."
+  - codigo: "1.1.7"
+    tipo: Packet Tracer
+    titulo: Configuración básica de un switch (modo físico)
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import LedsSwitch from '../../../../components/teoria/LedsSwitch.tsx';
+import Topologia from '../../../../components/Topologia.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.1.1 Secuencia de arranque de un switch
+
+Al encender un switch Catalyst pasa por cinco etapas antes de mostrarte el prompt:
+
+<Pasos
+  client:visible
+  titulo="Del botón de encendido al prompt"
+  pasos={[
+    { titulo: 'POST', texto: 'El programa de autodiagnóstico al encender (POST), guardado en la ROM, revisa la CPU, la DRAM y la parte de la memoria flash donde está el sistema de archivos.' },
+    { titulo: 'Cargador de arranque', texto: 'El switch carga el boot loader desde la ROM. Es un pequeño programa que se ejecuta justo después del POST.' },
+    { titulo: 'Inicialización de la CPU', texto: 'El boot loader inicializa los registros de la CPU, que controlan dónde se asigna la memoria física, la cantidad de memoria y su velocidad.' },
+    { titulo: 'Sistema de archivos', texto: 'Inicializa el sistema de archivos de la flash del sistema.' },
+    { titulo: 'Cargar IOS', texto: 'Localiza y carga en la RAM una imagen de IOS predeterminada. Luego IOS lee el startup-config de la NVRAM y aparece el prompt.' },
+  ]}
+/>
+
+## 1.1.2 El comando boot system
+
+¿Qué imagen de IOS carga? La que indique la variable de entorno **BOOT**. Se configura con `boot system`:
+
+```text
+S1(config)# boot system flash:/c2960-lanbasek9-mz.150-2.SE/c2960-lanbasek9-mz.150-2.SE.bin
+```
+
+| Parte del comando | Significado |
+|---|---|
+| `boot system` | El comando |
+| `flash:` | El dispositivo de almacenamiento |
+| `c2960-lanbasek9-mz.150-2.SE/` | La ruta en el sistema de archivos (una carpeta) |
+| `c2960-lanbasek9-mz.150-2.SE.bin` | El archivo de IOS |
+
+Si la variable BOOT no está definida, el switch intenta cargar el **primer archivo ejecutable** que encuentra en la flash,
+recorriéndola carpeta por carpeta.
+
+## 1.1.3 Indicadores LED del switch
+
+Los LED del panel frontal te dicen mucho sin escribir un comando. El botón **Mode** cambia lo que significan los LED de
+cada puerto. Pruébalo:
+
+<LedsSwitch client:visible />
+
+| LED | Apagado | Verde | Ámbar |
+|---|---|---|---|
+| SYST (sistema) | Sin energía | Funciona normalmente | Recibe energía pero no funciona bien |
+| RPS (fuente redundante) | Sin RPS o mal conectada | Lista para dar respaldo (parpadea: está alimentando a otro equipo) | En espera o con falla |
+
+<aside class="examen">
+
+Lo más preguntado: en modo **STAT**, ámbar fijo es un puerto **bloqueado por STP**, y verde y ámbar alternando es
+**falla de enlace**. En modo **SPEED**, verde parpadeante es **1000 Mb/s**.
+
+</aside>
+
+## 1.1.4 Recuperarse de un bloqueo del sistema
+
+Si el IOS está dañado o perdiste la contraseña, el **boot loader** te da una línea de comandos mínima (`switch:`) para
+reparar el sistema de archivos, reinstalar IOS o saltarte la configuración.
+
+<Pasos
+  client:visible
+  titulo="Entrar al boot loader"
+  pasos={[
+    { titulo: 'Conectar', texto: 'Conecta una PC por cable de consola y abre el emulador de terminal a 9600 baudios.' },
+    { titulo: 'Desenchufar', texto: 'Desconecta el cable de alimentación del switch.' },
+    { titulo: 'Mode presionado', texto: 'Vuelve a enchufarlo y, en menos de 15 segundos, mantén presionado el botón Mode mientras el LED del sistema parpadea en verde.' },
+    { titulo: 'Soltar', texto: 'Suelta el botón cuando el LED del sistema se ponga brevemente ámbar y luego verde fijo.' },
+    { titulo: 'Prompt switch:', texto: 'Aparece el prompt del boot loader. Desde aquí, dir flash: lista los archivos y set BOOT=flash:/... define la imagen.', codigo: 'switch: dir flash:\nswitch: set BOOT=flash:/c2960-lanbasek9-mz.150-2.SE/c2960-lanbasek9-mz.150-2.SE.bin\nswitch: boot' },
+  ]}
+/>
+
+## 1.1.5 Acceso a la administración del switch
+
+Para administrar un switch a distancia necesita lo mismo que una PC: **dirección IP, máscara y gateway**. Como los
+puertos de un switch de capa 2 no llevan IP, se la das a una interfaz virtual: la **SVI** (*Switch Virtual Interface*).
+
+<Topologia
+  ancho={640}
+  alto={200}
+  titulo="Administración remota: la PC llega a la SVI de S1 a través de R1"
+  nodos={[
+    { id: 'PC1', tipo: 'pc', x: 70, y: 95, detalle: '172.17.99.21/24', lado: 'abajo' },
+    { id: 'R1', tipo: 'router', x: 250, y: 95, detalle: 'G0/0/1 172.17.99.1', lado: 'abajo' },
+    { id: 'S1', tipo: 'switch', x: 440, y: 95, detalle: 'SVI VLAN 99', detalle2: '172.17.99.11/24', lado: 'abajo' },
+    { id: 'PC2', tipo: 'pc', x: 590, y: 95, lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'PC1', b: 'R1' },
+    { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'F0/5' },
+    { a: 'S1', b: 'PC2', ia: 'F0/18' },
+  ]}
+/>
+
+Por defecto la SVI de administración es la VLAN 1. Por seguridad es mejor usar **otra VLAN** (en el ejemplo, la 99);
+las VLAN las verás en el módulo 3.
+
+## 1.1.6 Ejemplo de configuración de la SVI
+
+<Pasos
+  client:visible
+  titulo="Configurar la interfaz de administración"
+  pasos={[
+    { titulo: 'Entrar a la SVI', texto: 'Desde el modo de configuración global, entra a la interfaz virtual de la VLAN de administración.', codigo: 'S1# configure terminal\nS1(config)# interface vlan 99' },
+    { titulo: 'IPv4', texto: 'Asigna la dirección y la máscara.', codigo: 'S1(config-if)# ip address 172.17.99.11 255.255.255.0' },
+    { titulo: 'IPv6 (opcional)', texto: 'Si la red usa IPv6, asigna también una dirección IPv6 con su prefijo.', codigo: 'S1(config-if)# ipv6 address 2001:db8:acad:99::11/64' },
+    { titulo: 'Encender', texto: 'Las SVI vienen apagadas. Además, la SVI solo pasa a up cuando la VLAN existe y hay al menos un puerto activo en ella.', codigo: 'S1(config-if)# no shutdown\nS1(config-if)# exit' },
+    { titulo: 'Gateway', texto: 'Para administrar el switch desde otra red, define el gateway predeterminado (el router de esa VLAN).', codigo: 'S1(config)# ip default-gateway 172.17.99.1' },
+    { titulo: 'Verificar y guardar', texto: 'Comprueba la SVI y guarda.', codigo: 'S1# show ip interface brief\nS1# show ipv6 interface brief\nS1# copy running-config startup-config' },
+  ]}
+/>
+
+<aside class="ojo">
+
+`ip default-gateway` se configura en modo de configuración global, **no** dentro de la SVI. Y solo sirve en un switch
+de capa 2: un router o un switch multicapa usan su tabla de enrutamiento.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué prueba el POST?', dorso: 'La CPU, la DRAM y la parte de la flash que contiene el sistema de archivos.' },
+    { frente: '¿Qué variable indica qué IOS cargar?', dorso: 'La variable de entorno BOOT, que se define con boot system.' },
+    { frente: 'LED STAT ámbar fijo', dorso: 'Puerto bloqueado por STP para evitar un bucle.' },
+    { frente: '¿Para qué sirve el boot loader?', dorso: 'Para recuperar el switch: reparar la flash, reinstalar IOS o recuperar contraseñas.' },
+    { frente: '¿Qué tres datos necesita la SVI para administrar a distancia?', dorso: 'IP, máscara y gateway predeterminado (ip default-gateway).' },
+  ]}
+/>

@@ -1,0 +1,41 @@
+---
+curso: srwe
+modulo: 4
+tema: "4.0"
+titulo: Introducción
+objetivo: Solucionar problemas de enrutamiento entre VLAN en dispositivos de capa 3.
+duracion: 5
+actividades:
+  - codigo: "4.0.3"
+    tipo: Actividad de clase
+    titulo: Enrutamiento entre VLAN
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+
+Con las VLAN separaste la red en dominios aislados. Pero el área de ventas necesita imprimir en la impresora de
+administración, y todos necesitan salir a Internet. Para que dos VLAN se comuniquen hace falta un dispositivo de
+**capa 3**. Este módulo explica las tres formas de hacerlo y cómo encontrar las fallas.
+
+## 4.0.1 ¿Por qué estudiar este módulo?
+
+El *router-on-a-stick* y el switch de capa 3 aparecen en casi todas las simulaciones del examen. Y la resolución de
+problemas entre VLAN combina todo lo que viste: VLAN, troncales, interfaces y direccionamiento.
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'Heredado', icono: 'router', texto: 'Una interfaz física del router por VLAN. Ya no se usa.' },
+    { titulo: 'Router-on-a-stick', icono: 'router', texto: 'Una sola interfaz física dividida en subinterfaces, una por VLAN.' },
+    { titulo: 'Switch de capa 3', icono: 'switch-l3', texto: 'Las SVI del propio switch enrutan entre VLAN a velocidad de hardware.' },
+  ]}
+/>
+
+## 4.0.2 Qué vas a aprender
+
+| Tema | Objetivo |
+|---|---|
+| 4.1 Funcionamiento del enrutamiento entre VLAN | Describir las opciones para enrutar entre VLAN |
+| 4.2 Router-on-a-stick | Configurar el enrutamiento entre VLAN con router-on-a-stick |
+| 4.3 Enrutamiento entre VLAN con switches de capa 3 | Configurar el enrutamiento entre VLAN con switching de capa 3 |
+| 4.4 Resolución de problemas | Solucionar problemas comunes de enrutamiento entre VLAN |

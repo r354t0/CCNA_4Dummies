@@ -1,0 +1,127 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.3"
+titulo: Acceso remoto seguro
+objetivo: Configurar la administración segura de un switch Cisco con SSH.
+duracion: 30
+examen:
+  v1.1: 4
+  v2.0: 4
+practica: [cli-ssh, pt-router]
+actividades:
+  - codigo: "1.3.6"
+    tipo: Packet Tracer
+    titulo: Configurar SSH
+    guia: "Antes de configurar SSH, conéctate por Telnet y abre el modo Simulación: verás la contraseña en texto plano dentro del paquete. Después configura SSH y repite la prueba."
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.3.1 Funcionamiento de Telnet
+
+Telnet (puerto TCP 23) envía **todo en texto plano**: el usuario, la contraseña y cada comando. Cualquiera que capture
+el tráfico, con Wireshark por ejemplo, lee tus credenciales sin esfuerzo. Por eso ya no se usa para administrar equipos.
+
+## 1.3.2 Funcionamiento de SSH
+
+SSH (*Secure Shell*, puerto TCP 22) hace lo mismo que Telnet, pero **cifra** la sesión y **autentica** al usuario.
+Si alguien captura el tráfico, solo ve datos ilegibles.
+
+<div class="duo">
+
+<div>
+
+#### Telnet
+
+- TCP 23
+- Texto plano
+- Contraseña de línea (`password` + `login`)
+
+</div>
+
+<div>
+
+#### SSH
+
+- TCP 22
+- Sesión cifrada
+- Usuario y contraseña locales (`login local`) o un servidor AAA
+
+</div>
+
+</div>
+
+## 1.3.3 ¿El switch admite SSH?
+
+Solo las imágenes de IOS **criptográficas** (con `k9` en el nombre) incluyen SSH. Compruébalo:
+
+```text
+S1# show version
+Cisco IOS Software, C2960 Software (C2960-LANBASEK9-M), Version 15.0(2)SE7
+S1# show ip ssh
+SSH Disabled - version 1.99
+%Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).
+```
+
+## 1.3.4 Configuración de SSH
+
+<Pasos
+  client:visible
+  titulo="Seis pasos para habilitar SSH"
+  pasos={[
+    { titulo: 'Verificar soporte', texto: 'show ip ssh. Si el comando no existe, la imagen no es criptográfica.', codigo: 'S1# show ip ssh' },
+    { titulo: 'Dominio IP', texto: 'El nombre de dominio, junto con el nombre de host, forma el nombre de la clave RSA. Sin hostname distinto de Switch y sin dominio, no se pueden generar las claves.', codigo: 'S1(config)# ip domain-name ccna4dummies.lab' },
+    { titulo: 'Claves RSA', texto: 'Genera el par de claves. Al crearlas, SSH se habilita solo. Para SSH versión 2 el módulo debe ser de al menos 768 bits; usa 1024 o más.', codigo: 'S1(config)# crypto key generate rsa\nHow many bits in the modulus [512]: 1024\n%SSH-5-ENABLED: SSH 1.99 has been enabled' },
+    { titulo: 'Usuario local', texto: 'Crea un usuario en la base de datos local del switch.', codigo: 'S1(config)# username admin secret Adm1n!2026' },
+    { titulo: 'Líneas VTY', texto: 'login local hace que las VTY pidan usuario y contraseña de la base local. transport input ssh rechaza Telnet.', codigo: 'S1(config)# line vty 0 15\nS1(config-line)# transport input ssh\nS1(config-line)# login local\nS1(config-line)# exit' },
+    { titulo: 'SSH versión 2', texto: 'La versión 1 tiene vulnerabilidades conocidas: deja solo la 2.', codigo: 'S1(config)# ip ssh version 2' },
+  ]}
+/>
+
+<aside class="ojo">
+
+Para borrar las claves: `crypto key zeroize rsa`. SSH se deshabilita automáticamente.
+
+</aside>
+
+## 1.3.5 Verificar que SSH funciona
+
+Desde una PC (con PuTTY o, en Packet Tracer, el *Command Prompt*):
+
+```text
+C:\> ssh -l admin 172.17.99.11
+Password:
+S1>
+```
+
+En el switch:
+
+```text
+S1# show ip ssh
+SSH Enabled - version 2.0
+Authentication timeout: 120 secs; Authentication retries: 3
+S1# show ssh
+Connection Version Mode Encryption  Hmac         State           Username
+0          2.0     IN   aes256-cbc  hmac-sha1    Session started admin
+0          2.0     OUT  aes256-cbc  hmac-sha1    Session started admin
+```
+
+<aside class="examen">
+
+La lista que hay que saber de memoria: **hostname**, **ip domain-name**, **crypto key generate rsa**, **username … secret**,
+**line vty** con **transport input ssh** y **login local**, **ip ssh version 2**.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Por qué no usar Telnet?', dorso: 'Envía usuario, contraseña y comandos en texto plano.' },
+    { frente: '¿Qué indica k9 en el nombre de la imagen de IOS?', dorso: 'Que es una imagen criptográfica: admite SSH.' },
+    { frente: '¿Qué dos datos forman el nombre de la clave RSA?', dorso: 'El nombre de host y el nombre de dominio IP.' },
+    { frente: '¿Qué hace login local?', dorso: 'Pide usuario y contraseña de la base de datos local (username).' },
+    { frente: 'Tamaño mínimo de clave para SSH v2', dorso: '768 bits (se recomienda 1024 o más).' },
+  ]}
+/>

@@ -18,7 +18,7 @@ const banco = await preguntas(cursoId, [numero]);
 const { anterior, siguiente } = await vecinos(cursoId, urlPrueba(cursoId, numero));
 const titulo = `Prueba del módulo ${numero}: ${modulo.titulo}`;
 ---
-<Teoria titulo={titulo} curso={cursoId} ubicacion={`Módulo ${numero}: ${modulo.titulo} › Prueba del módulo`} anterior={anterior} siguiente={siguiente}>
+<Teoria titulo={titulo} curso={cursoId} ubicacion={`Módulo ${numero}: ${modulo.titulo} › Prueba del módulo`} anterior={anterior} siguiente={siguiente} modulo={numero}>
   <header class="cab">
     <p class="sup">{c.sigla} · Módulo {numero}</p>
     <h1>Prueba del módulo</h1>

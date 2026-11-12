@@ -1,0 +1,141 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.2"
+titulo: VLAN en un entorno multiswitch
+objetivo: Explicar cómo reenvía un switch las tramas según la configuración de VLAN en un entorno con varios switches.
+duracion: 30
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [difusion-vlan, pt-vlan]
+actividades:
+  - codigo: "3.2.8"
+    tipo: Packet Tracer
+    titulo: Investigar una implementación de VLAN
+    guia: "Abre una trama que cruza la troncal en modo Simulación y busca la etiqueta 802.1Q. Luego busca una de la VLAN nativa: no la tendrá."
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Trama from '../../../../components/teoria/Trama.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.2.1 Troncales de VLAN
+
+Si la VLAN 10 existe en dos switches, ¿cómo pasan sus tramas de uno a otro? Una opción sería un cable por VLAN, pero
+no escala. La solución es un **enlace troncal**: un enlace punto a punto que lleva **varias VLAN** a la vez.
+
+<Topologia
+  ancho={720}
+  alto={270}
+  titulo="Un solo enlace troncal lleva las VLAN 10, 20 y 30 entre S1 y S2"
+  nodos={[
+    { id: 'S1', tipo: 'switch', x: 200, y: 70, lado: 'arriba' },
+    { id: 'S2', tipo: 'switch', x: 520, y: 70, lado: 'arriba' },
+    { id: 'PC1', tipo: 'pc', x: 80, y: 200, detalle: 'VLAN 10', lado: 'abajo' },
+    { id: 'PC2', tipo: 'pc', x: 200, y: 200, detalle: 'VLAN 20', lado: 'abajo' },
+    { id: 'PC3', tipo: 'pc', x: 320, y: 200, detalle: 'VLAN 30', lado: 'abajo' },
+    { id: 'PC4', tipo: 'pc', x: 400, y: 200, detalle: 'VLAN 10', lado: 'abajo' },
+    { id: 'PC5', tipo: 'pc', x: 520, y: 200, detalle: 'VLAN 20', lado: 'abajo' },
+    { id: 'PC6', tipo: 'pc', x: 640, y: 200, detalle: 'VLAN 30', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'S1', b: 'S2', ia: 'G0/1', ib: 'G0/1', marca: 'Troncal 802.1Q', resaltado: true },
+    { a: 'S1', b: 'PC1' }, { a: 'S1', b: 'PC2' }, { a: 'S1', b: 'PC3' },
+    { a: 'S2', b: 'PC4' }, { a: 'S2', b: 'PC5' }, { a: 'S2', b: 'PC6' },
+  ]}
+/>
+
+Una troncal **no pertenece a ninguna VLAN**: es un conducto para todas. Por defecto, una troncal Cisco lleva todas las
+VLAN.
+
+## 3.2.2 Sin VLAN y con VLAN
+
+<div class="duo">
+
+<div>
+
+#### Sin VLAN
+
+Una difusión de PC1 llega a **todas** las PC de los dos switches. Toda la red es un solo dominio de difusión.
+
+</div>
+
+<div>
+
+#### Con VLAN
+
+Una difusión de PC1 (VLAN 10) llega solo a **PC4**, la otra PC de la VLAN 10, aunque esté en el otro switch. Las demás
+VLAN no la ven.
+
+</div>
+
+</div>
+
+## 3.2.3 Identificar la VLAN: la etiqueta 802.1Q
+
+Cuando una trama sale por una troncal, el switch le inserta una **etiqueta 802.1Q** de 4 bytes después de la MAC de
+origen para que el switch del otro lado sepa a qué VLAN pertenece. Toca cada campo:
+
+<Trama
+  client:visible
+  titulo="Trama Ethernet con etiqueta 802.1Q"
+  campos={[
+    { nombre: 'MAC destino', tam: '6 B', texto: 'Sin cambios.' },
+    { nombre: 'MAC origen', tam: '6 B', texto: 'Sin cambios. La etiqueta se inserta justo después.' },
+    { nombre: 'Tipo', tam: '2 B', grupo: 'Etiqueta 802.1Q (4 bytes)', texto: 'TPID: vale 0x8100 e indica que la trama lleva una etiqueta 802.1Q.' },
+    { nombre: 'Prioridad', tam: '3 bits', grupo: 'Etiqueta 802.1Q (4 bytes)', texto: 'Prioridad de usuario 802.1p, de 0 a 7. La usa QoS, por ejemplo para dar preferencia a la voz.' },
+    { nombre: 'DEI', tam: '1 bit', grupo: 'Etiqueta 802.1Q (4 bytes)', texto: 'Indicador de elegibilidad de descarte (antes CFI): marca qué tramas se pueden descartar primero si hay congestión.' },
+    { nombre: 'VID', tam: '12 bits', grupo: 'Etiqueta 802.1Q (4 bytes)', destacado: true, texto: 'El número de VLAN. 12 bits permiten hasta 4096 valores (en la práctica, VLAN 1 a 4094).' },
+    { nombre: 'Tipo/long.', tam: '2 B', texto: 'El tipo original de la trama (por ejemplo, 0x0800 para IPv4).' },
+    { nombre: 'Datos', tam: '46–1500 B', peso: 2, texto: 'El paquete, sin cambios.' },
+    { nombre: 'FCS', tam: '4 B', texto: 'Se recalcula, porque la trama cambió al insertar la etiqueta.' },
+  ]}
+/>
+
+El switch que recibe la trama por la troncal **lee el VID, quita la etiqueta** y la entrega solo por los puertos de
+esa VLAN. Los equipos finales nunca ven etiquetas.
+
+## 3.2.4 VLAN nativa y tráfico sin etiquetar
+
+¿Qué pasa con una trama **sin etiqueta** que llega a una troncal? El switch la asigna a la **VLAN nativa**. Del mismo
+modo, el tráfico de la VLAN nativa sale por la troncal **sin etiquetar**.
+
+<aside class="ojo">
+
+La VLAN nativa debe ser **la misma en los dos extremos** de la troncal. Si no coincide, CDP muestra un aviso
+(`%CDP-4-NATIVE_VLAN_MISMATCH`), el tráfico de una VLAN termina en otra y se abre un hueco de seguridad. Además, la
+buena práctica es usar como nativa una VLAN **sin equipos**, distinta de la VLAN 1.
+
+</aside>
+
+## 3.2.5 VLAN de voz
+
+Un teléfono IP suele tener un switch interno de tres puertos: uno hacia el switch, uno para la PC y uno interno para
+el teléfono. Por el mismo cable viajan dos VLAN:
+
+- el tráfico de la **PC**, sin etiqueta, en la VLAN de datos (de acceso);
+- el tráfico del **teléfono**, etiquetado con la **VLAN de voz** y con prioridad de capa 2 (CoS).
+
+El switch le comunica al teléfono qué VLAN de voz usar mediante **CDP**.
+
+```text
+S1# show interfaces fa0/18 switchport
+Name: Fa0/18
+Switchport: Enabled
+Administrative Mode: static access
+Operational Mode: static access
+Access Mode VLAN: 20 (alumnos)
+Voice VLAN: 150 (voz)
+```
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Cuánto mide la etiqueta 802.1Q?', dorso: '4 bytes.' },
+    { frente: '¿Cuántos bits tiene el VID?', dorso: '12 bits.' },
+    { frente: 'Valor del campo Tipo (TPID) de la etiqueta', dorso: '0x8100' },
+    { frente: '¿Qué pasa con una trama sin etiqueta que llega a una troncal?', dorso: 'Se asigna a la VLAN nativa.' },
+    { frente: '¿Cómo sabe el teléfono IP qué VLAN de voz usar?', dorso: 'Se lo informa el switch por CDP.' },
+  ]}
+/>

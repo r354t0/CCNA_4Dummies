@@ -4,6 +4,7 @@
 import Base from './Base.astro';
 import IndiceCurso from '../components/teoria/IndiceCurso.astro';
 import { curso as datosCurso, type IdCurso } from '../data/cursos';
+import { ejerciciosDeModulo, urlPracticaModulo } from '../lib/navegacion';
 
 interface Enlace { href: string; titulo: string }
 interface Props {
@@ -13,8 +14,10 @@ interface Props {
   ubicacion: string; // texto de la barra superior, p. ej. «1.2 Componentes de la red»
   anterior?: Enlace;
   siguiente?: Enlace;
+  modulo?: number; // para el botón «Práctica del módulo»
 }
-const { titulo, descripcion, curso, ubicacion, anterior, siguiente } = Astro.props;
+const { titulo, descripcion, curso, ubicacion, anterior, siguiente, modulo } = Astro.props;
+const practica = modulo ? ejerciciosDeModulo(curso, modulo) : [];
 const c = datosCurso(curso);
 const actual = Astro.url.pathname;
 ---
@@ -31,6 +34,13 @@ const actual = Astro.url.pathname;
           <span class="visually-hidden">Mostrar u ocultar el esquema del curso</span>
         </button>
         <span class="ubicacion">{ubicacion}</span>
+        {practica.length > 0 && (
+          <a class="ir-practica" href={urlPracticaModulo(curso, modulo!)} title={`Ejercicios del módulo ${modulo}`}>
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M5.5 7.5l2.5 2-2.5 2M10 11.5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M7 17.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            <span>Práctica del módulo {modulo}</span>
+            <span class="ir-n">{practica.length}</span>
+          </a>
+        )}
       </div>
 
       {anterior && (
@@ -121,7 +131,14 @@ const actual = Astro.url.pathname;
     border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); color: var(--ink);
   }
   .alternar:hover { border-color: var(--ink); }
-  .ubicacion { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ubicacion { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .ir-practica {
+    flex: none; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.4rem 0.3rem 0.65rem;
+    border-radius: 999px; background: var(--n2); color: #fff; font-weight: 600; font-size: 0.9rem; text-decoration: none;
+  }
+  .ir-practica:hover { filter: brightness(1.1); color: #fff; }
+  .ir-n { display: inline-grid; place-items: center; min-width: 1.4rem; height: 1.4rem; padding: 0 0.3rem; border-radius: 999px; background: rgba(255,255,255,0.25); font-size: 0.8rem; }
+  @media (max-width: 560px) { .ir-practica span:not(.ir-n) { display: none; } }
 
   .flecha {
     position: fixed; top: 50%; z-index: 2; transform: translateY(-50%);

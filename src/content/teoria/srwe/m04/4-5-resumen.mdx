@@ -1,0 +1,85 @@
+---
+curso: srwe
+modulo: 4
+tema: "4.5"
+titulo: Práctica y resumen del módulo
+objetivo: Implementar el enrutamiento entre VLAN y repasar el módulo.
+duracion: 20
+practica: [pt-roas, diag-intervlan]
+actividades:
+  - codigo: "4.5.1"
+    tipo: Packet Tracer
+    titulo: Desafío de enrutamiento entre VLAN
+    guia: "Trabaja con una tabla: VLAN, red, gateway, subinterfaz y puertos. Verifica cada fila antes de pasar a la siguiente."
+  - codigo: "4.5.2"
+    tipo: Laboratorio
+    titulo: Implementar el enrutamiento entre VLAN
+---
+
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 4.5.1 Las dos configuraciones, lado a lado
+
+<div class="duo">
+
+<div>
+
+#### Router-on-a-stick
+
+```text
+! Switch
+interface gi0/1
+ switchport mode trunk
+! Router
+interface g0/0/1.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+interface g0/0/1.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+interface g0/0/1
+ no shutdown
+```
+
+</div>
+
+<div>
+
+#### Switch de capa 3
+
+```text
+ip routing
+interface vlan 10
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+interface vlan 20
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+interface g1/0/1
+ no switchport
+ ip address 10.10.10.2 255.255.255.0
+```
+
+</div>
+
+</div>
+
+## 4.5.2 Lo que aprendiste
+
+| Tema | Lo esencial |
+|---|---|
+| 4.1 Funcionamiento | Heredado, router-on-a-stick y switch de capa 3. Ventajas y límites de cada uno |
+| 4.2 Router-on-a-stick | Troncal en el switch. Subinterfaces con `encapsulation dot1Q` e IP. La física con `no shutdown`. `show vlans` |
+| 4.3 Switch de capa 3 | SVI por VLAN, `ip routing`, puertos enrutados con `no switchport` |
+| 4.4 Resolución de problemas | VLAN faltante, troncal, puerto de acceso, subinterfaz, gateway de la PC |
+
+<Repaso
+  client:visible
+  titulo="Repaso rápido del módulo"
+  fichas={[
+    { frente: 'Método de enrutamiento entre VLAN más rápido', dorso: 'Switch de capa 3.' },
+    { frente: 'Comando que se olvida en el switch de capa 3', dorso: 'ip routing' },
+    { frente: 'Comando que se olvida en router-on-a-stick', dorso: 'no shutdown en la interfaz física (o switchport mode trunk en el switch).' },
+    { frente: 'Gateway de una PC en router-on-a-stick', dorso: 'La IP de la subinterfaz de su VLAN.' },
+  ]}
+/>

@@ -2,13 +2,21 @@
 import Base from '../../layouts/Base.astro';
 import { CURSOS } from '../../data/cursos';
 import { EJERCICIOS, type TipoEjercicio } from '../../data/practica';
+import { temas, urlModulo } from '../../lib/teoria';
+import { anclaModulo } from '../../lib/navegacion';
 import { url } from '../../lib/url';
 
-const itn = CURSOS[0];
-const porModulo = itn.modulos
-  .map((m) => ({ ...m, ejercicios: EJERCICIOS.filter((e) => e.curso === 'itn' && e.modulos.includes(m.numero) && m.numero <= 3) }))
-  .filter((m) => m.ejercicios.length);
-const extra = EJERCICIOS.filter((e) => e.modulos.every((m) => m > 3));
+// Un bloque por curso y, dentro, uno por módulo que tenga teoría publicada.
+const cursos = await Promise.all(CURSOS.map(async (c) => {
+  const conTeoria = new Set((await temas(c.id)).map((t) => t.data.modulo));
+  const modulos = c.modulos
+    .filter((m) => conTeoria.has(m.numero))
+    .map((m) => ({ ...m, ejercicios: EJERCICIOS.filter((e) => e.curso === c.id && e.modulos[0] === m.numero) }))
+    .filter((m) => m.ejercicios.length);
+  return { ...c, modulos, conTeoria };
+}));
+const conModulos = cursos.filter((c) => c.modulos.length);
+const extra = EJERCICIOS.filter((e) => !cursos.find((c) => c.id === e.curso)!.conTeoria.has(e.modulos[0]));
 
 const TIPOS: Record<TipoEjercicio, string> = {
   Interactivo: 'Ordena, relaciona y clasifica con escenarios nuevos en cada ronda.',
@@ -31,43 +39,61 @@ const TIPOS: Record<TipoEjercicio, string> = {
           <li><strong>{t}</strong><span>{TIPOS[t]}</span></li>
         ))}
       </ul>
+      <nav class="saltos" aria-label="Ir a un curso">
+        {conModulos.map((c) => (
+          <a href={`#${c.id}`} style={`--cc:${c.color}`}><strong>{c.sigla}</strong> {c.titulo}</a>
+        ))}
+      </nav>
     </header>
 
-    {porModulo.map((m) => (
-      <section class="modulo" aria-labelledby={`m-${m.numero}`}>
-        <h2 id={`m-${m.numero}`}><span class="sigla">ITN {m.numero}</span> {m.titulo}</h2>
+    {conModulos.map((c) => (
+      <section class="curso" id={c.id} style={`--cc:${c.color}`} aria-labelledby={`t-${c.id}`}>
+        <h2 id={`t-${c.id}`} class="curso-titulo"><span class="sigla">{c.sigla}</span> {c.titulo}</h2>
+        {c.modulos.map((m) => (
+          <section class="modulo" id={anclaModulo(c.id, m.numero)} aria-labelledby={`m-${c.id}-${m.numero}`}>
+            <div class="modulo-cab">
+              <h3 id={`m-${c.id}-${m.numero}`}>Módulo {m.numero}: {m.titulo}</h3>
+              <a class="a-teoria" href={urlModulo(c.id, m.numero)}>
+                <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><path d="M3 4.5c2.5-1 4.8-1 7 .5 2.2-1.5 4.5-1.5 7-.5v11c-2.5-1-4.8-1-7 .5-2.2-1.5-4.5-1.5-7-.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M10 5v11" stroke="currentColor" stroke-width="1.7" /></svg>
+                Teoría del módulo {m.numero}
+              </a>
+            </div>
+            <ul class="ejercicios">
+              {m.ejercicios.map((e) => (
+                <li data-progreso={`e:${e.id}`}>
+                  <a href={url(`practica/${e.ruta}`)}>
+                    <span class="fila">
+                      <span class="tipo">{e.tipo}</span>
+                      <span class="led" aria-hidden="true"></span>
+                    </span>
+                    <span class="titulo">{e.titulo}</span>
+                    <span class="desc">{e.descripcion}</span>
+                    <span class="min">{e.minutos} min por escenario</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </section>
+    ))}
+
+    {extra.length > 0 && (
+      <section class="curso" aria-labelledby="m-extra">
+        <h2 id="m-extra" class="curso-titulo">Herramientas para más adelante</h2>
         <ul class="ejercicios">
-          {m.ejercicios.map((e) => (
+          {extra.map((e) => (
             <li data-progreso={`e:${e.id}`}>
               <a href={url(`practica/${e.ruta}`)}>
-                <span class="fila">
-                  <span class="tipo">{e.tipo}</span>
-                  <span class="led" aria-hidden="true"></span>
-                </span>
+                <span class="fila"><span class="tipo">{e.tipo}</span><span class="led" aria-hidden="true"></span></span>
                 <span class="titulo">{e.titulo}</span>
                 <span class="desc">{e.descripcion}</span>
-                <span class="min">{e.minutos} min por escenario</span>
               </a>
             </li>
           ))}
         </ul>
       </section>
-    ))}
-
-    <section class="modulo" aria-labelledby="m-extra">
-      <h2 id="m-extra">Herramientas para más adelante</h2>
-      <ul class="ejercicios">
-        {extra.map((e) => (
-          <li>
-            <a href={url(`practica/${e.ruta}`)}>
-              <span class="fila"><span class="tipo">{e.tipo}</span></span>
-              <span class="titulo">{e.titulo}</span>
-              <span class="desc">{e.descripcion}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
+    )}
   </div>
 </Base>
 
@@ -77,9 +103,20 @@ const TIPOS: Record<TipoEjercicio, string> = {
   .tipos { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; gap: 0.6rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
   .tipos li { margin: 0; display: grid; gap: 0.1rem; border-left: 3px solid var(--c); padding-left: 0.7rem; }
   .tipos span { color: var(--muted); font-size: 0.95rem; }
-  .modulo { margin-top: 2.5rem; }
-  .modulo h2 { display: flex; align-items: center; gap: 0.6rem; }
-  .sigla { font-size: 0.85rem; background: var(--n1); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; }
+  .saltos { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .saltos a { padding: 0.45rem 0.9rem; border-radius: 999px; border: 1.5px solid var(--cc); color: var(--ink); text-decoration: none; background: var(--surface); }
+  .saltos a strong { color: var(--cc); }
+  .saltos a:hover { background: var(--cc); color: #fff; }
+  .saltos a:hover strong { color: #fff; }
+  .curso { margin-top: 3rem; scroll-margin-top: 1rem; }
+  .curso-titulo { display: flex; align-items: center; gap: 0.6rem; border-bottom: 3px solid var(--cc, var(--line)); padding-bottom: 0.4rem; }
+  .sigla { font-size: 0.85rem; background: var(--cc, var(--n1)); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; }
+  .modulo { margin-top: 1.75rem; scroll-margin-top: 1rem; border-radius: 12px; }
+  .modulo:target { outline: 3px solid var(--cc); outline-offset: 10px; }
+  .modulo-cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1rem; margin-bottom: 0.8rem; }
+  .modulo-cab h3 { margin: 0; font-size: 1.3rem; }
+  .a-teoria { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--n3); text-decoration: none; padding: 0.3rem 0.75rem; border: 1.5px solid var(--n3); border-radius: 999px; }
+  .a-teoria:hover { background: var(--n3); color: #fff; }
   .ejercicios { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
   .ejercicios li { margin: 0; }
   .ejercicios a {

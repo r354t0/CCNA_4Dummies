@@ -1,0 +1,234 @@
+curso: srwe
+modulo: 1
+preguntas:
+  - id: srwe1-01
+    tema: "1.1"
+    verifique: true
+    p: "¿Qué hace un switch Catalyst inmediatamente después de encenderse?"
+    opciones: ["Carga IOS desde la flash", "Ejecuta el POST desde la ROM", "Lee el startup-config de la NVRAM", "Inicializa el sistema de archivos de la flash"]
+    correcta: 1
+    explicacion: "Lo primero es el POST, que está en la ROM y revisa CPU, DRAM y la parte de la flash con el sistema de archivos. Después vienen el boot loader, la CPU, el sistema de archivos y la carga de IOS."
+  - id: srwe1-02
+    tema: "1.1"
+    p: "Ordena la secuencia de arranque. ¿Cuál es la etapa que va justo después del POST?"
+    opciones: ["Cargar IOS en la RAM", "Cargar el boot loader desde la ROM", "Inicializar el sistema de archivos", "Ejecutar la configuración de inicio"]
+    correcta: 1
+    explicacion: "POST, boot loader, inicialización de la CPU, sistema de archivos de la flash y carga de IOS."
+  - id: srwe1-03
+    tema: "1.1"
+    verifique: true
+    p: "Si la variable de entorno BOOT no está definida, ¿qué imagen carga el switch?"
+    opciones: ["Ninguna: se queda en el boot loader", "La imagen que esté en la NVRAM", "El primer archivo ejecutable que encuentra en la flash", "La imagen más reciente según la fecha"]
+    correcta: 2
+    explicacion: "Sin BOOT, el switch recorre la flash y carga el primer archivo ejecutable que encuentra."
+  - id: srwe1-04
+    tema: "1.1"
+    p: "¿Qué comando define qué imagen de IOS cargará el switch en el próximo arranque?"
+    opciones: ["boot system", "copy flash: running-config", "reload image", "set ios"]
+    correcta: 0
+    explicacion: "boot system define la variable de entorno BOOT con la ruta del archivo de IOS."
+  - id: srwe1-05
+    tema: "1.1"
+    verifique: true
+    p: "Con el modo STAT seleccionado, el LED de un puerto está en ámbar fijo. ¿Qué indica?"
+    opciones: ["Hay actividad en el puerto", "El puerto está bloqueado por STP para evitar un bucle", "Hay una falla en el enlace", "El puerto trabaja a 1000 Mb/s"]
+    correcta: 1
+    explicacion: "Ámbar fijo en modo STAT es un puerto bloqueado por STP. La falla de enlace se ve como verde y ámbar alternando."
+  - id: srwe1-06
+    tema: "1.1"
+    p: "En modo SPEED, ¿qué indica un LED de puerto verde parpadeante?"
+    opciones: ["10 Mb/s", "100 Mb/s", "1000 Mb/s", "Semidúplex"]
+    correcta: 2
+    explicacion: "Apagado es 10 Mb/s, verde es 100 Mb/s y verde parpadeante es 1000 Mb/s."
+  - id: srwe1-07
+    tema: "1.1"
+    p: "El LED del sistema (SYST) está en ámbar. ¿Qué significa?"
+    opciones: ["El sistema está apagado", "Funciona con la fuente redundante", "Recibe energía pero no funciona correctamente", "Está cargando IOS"]
+    correcta: 2
+    explicacion: "SYST apagado: sin energía. Verde: funciona normalmente. Ámbar: recibe energía pero hay un problema."
+  - id: srwe1-08
+    tema: "1.1"
+    verifique: true
+    p: "¿Para qué sirve el boot loader de un switch?"
+    opciones: ["Para asignar la dirección IP de administración", "Para recuperar el sistema cuando IOS falla o se perdió la contraseña", "Para negociar el dúplex de los puertos", "Para cifrar las contraseñas"]
+    correcta: 1
+    explicacion: "El boot loader ofrece una línea de comandos mínima para reparar la flash, reinstalar IOS o recuperar contraseñas."
+  - id: srwe1-09
+    tema: "1.1"
+    verifique: true
+    p: "Un administrador quiere gestionar un switch de capa 2 desde otra red. ¿Qué debe configurar además de la IP de la SVI?"
+    opciones: ["ip default-gateway", "ip route 0.0.0.0", "ipv6 unicast-routing", "ip routing"]
+    correcta: 0
+    explicacion: "Un switch de capa 2 necesita ip default-gateway, en configuración global, para responder a equipos de otras redes."
+  - id: srwe1-10
+    tema: "1.1"
+    p: "¿Por qué los puertos físicos de un switch de capa 2 no llevan dirección IP para su administración?"
+    opciones: ["Porque el switch no usa IP", "Porque operan en capa 2; la IP de administración va en una SVI", "Porque solo se administran por consola", "Porque la IP la asigna el router"]
+    correcta: 1
+    explicacion: "Los puertos de un switch de capa 2 no son interfaces de capa 3. La IP de administración se asigna a una interfaz virtual: la SVI."
+  - id: srwe1-11
+    tema: "1.2"
+    verifique: true
+    p: "Un puerto está fijo en duplex full y el del otro extremo en auto. ¿Qué es lo más probable?"
+    opciones: ["El enlace no se levanta", "El puerto en auto cae a semidúplex y aparecen colisiones tardías", "Ambos negocian dúplex completo", "Ambos funcionan a 10 Mb/s"]
+    correcta: 1
+    explicacion: "El extremo fijo no participa de la negociación; el que está en auto cae a semidúplex. Es un desajuste de dúplex."
+  - id: srwe1-12
+    tema: "1.2"
+    p: "¿Qué debe cumplirse para que funcione auto-MDIX en un puerto?"
+    opciones: ["Velocidad y dúplex en auto", "El puerto en modo troncal", "Un cable cruzado", "Dúplex completo fijo"]
+    correcta: 0
+    explicacion: "Auto-MDIX necesita que la velocidad y el dúplex estén en auto."
+  - id: srwe1-13
+    tema: "1.2"
+    verifique: true
+    p: "Los contadores de errores CRC de una interfaz no paran de subir. ¿Cuál es la causa más probable?"
+    opciones: ["Desajuste de VLAN", "Un problema del medio: cable dañado o ruido eléctrico", "La interfaz está en shutdown", "Falta el gateway"]
+    correcta: 1
+    explicacion: "Los errores CRC suelen indicar un problema en el medio: un cable dañado, conectores en mal estado o interferencia."
+  - id: srwe1-14
+    tema: "1.2"
+    verifique: true
+    p: "¿Qué indican las colisiones tardías en una interfaz?"
+    opciones: ["Un cable cruzado", "Un desajuste de dúplex o un cable demasiado largo", "Una NIC defectuosa", "Una VLAN nativa distinta"]
+    correcta: 1
+    explicacion: "Las colisiones tardías ocurren después de los primeros 512 bits. Sus causas típicas son un desajuste de dúplex y cables más largos de lo permitido."
+  - id: srwe1-15
+    tema: "1.2"
+    p: "¿Cómo se llama una trama Ethernet de menos de 64 bytes?"
+    opciones: ["Giant", "Runt", "CRC", "Jumbo"]
+    correcta: 1
+    explicacion: "Las tramas de menos de 64 bytes son runts. Las que superan el máximo son giants."
+  - id: srwe1-16
+    tema: "1.2"
+    p: "En show interfaces aparece «FastEthernet0/1 is up, line protocol is down». ¿Qué indica?"
+    opciones: ["No hay cable conectado", "La interfaz se apagó con shutdown", "Hay señal física pero falla la capa de enlace de datos", "Todo funciona correctamente"]
+    correcta: 2
+    explicacion: "up/down significa que la capa física está bien pero la capa 2 no: por ejemplo, un desajuste de encapsulación o el otro extremo en err-disabled."
+  - id: srwe1-17
+    tema: "1.2"
+    p: "¿Qué estado muestra una interfaz apagada con el comando shutdown?"
+    opciones: ["down / down", "up / down", "administratively down / down", "err-disabled"]
+    correcta: 2
+    explicacion: "shutdown deja la interfaz en administratively down."
+  - id: srwe1-18
+    tema: "1.2"
+    p: "¿Cuáles dos datos de una interfaz muestra la línea «Full-duplex, 100Mb/s» de show interfaces? (Elija dos)."
+    opciones: ["El dúplex negociado", "La VLAN del puerto", "La velocidad", "El número de errores"]
+    correcta: [0, 2]
+    explicacion: "Esa línea muestra el dúplex y la velocidad con que funciona el puerto."
+  - id: srwe1-19
+    tema: "1.2"
+    p: "Una interfaz está down/down. ¿Qué revisas primero?"
+    opciones: ["La configuración de SSH", "El cable, la conexión y que el otro extremo esté encendido", "La tabla de enrutamiento", "Los contadores de runts"]
+    correcta: 1
+    explicacion: "down/down es un problema físico: sin cable, cable dañado o el otro extremo apagado."
+  - id: srwe1-20
+    tema: "1.3"
+    verifique: true
+    p: "¿Por qué se reemplaza Telnet por SSH?"
+    opciones: ["SSH usa UDP, que es más rápido", "Telnet envía usuario, contraseña y comandos en texto plano", "Telnet no funciona en switches", "SSH no necesita contraseña"]
+    correcta: 1
+    explicacion: "Telnet no cifra nada. SSH cifra la sesión completa."
+  - id: srwe1-21
+    tema: "1.3"
+    p: "¿Qué puerto TCP usa SSH?"
+    opciones: ["21", "22", "23", "443"]
+    correcta: 1
+    explicacion: "SSH usa el puerto TCP 22; Telnet, el 23."
+  - id: srwe1-22
+    tema: "1.3"
+    verifique: true
+    p: "¿Qué indica «k9» en el nombre de una imagen de IOS?"
+    opciones: ["Que admite 9 VLAN", "Que es una imagen criptográfica que admite SSH", "Que es para switches de capa 3", "Que es una versión de prueba"]
+    correcta: 1
+    explicacion: "Las imágenes con k9 incluyen funciones criptográficas, entre ellas SSH."
+  - id: srwe1-23
+    tema: "1.3"
+    verifique: true
+    p: "Un administrador ejecuta crypto key generate rsa y recibe un error. ¿Qué falta probablemente?"
+    opciones: ["El comando ip domain-name", "El comando login local", "Una ruta predeterminada", "El comando transport input ssh"]
+    correcta: 0
+    explicacion: "Para generar las claves RSA el equipo necesita un nombre de host distinto del predeterminado y un nombre de dominio IP."
+  - id: srwe1-24
+    tema: "1.3"
+    p: "¿Qué hace el comando login local en las líneas VTY?"
+    opciones: ["Permite entrar sin contraseña", "Pide usuario y contraseña de la base de datos local", "Habilita Telnet", "Bloquea la consola"]
+    correcta: 1
+    explicacion: "login local usa los usuarios creados con username. Sin un usuario configurado, nadie puede entrar."
+  - id: srwe1-25
+    tema: "1.3"
+    p: "¿Qué comando hace que las líneas VTY acepten solo SSH?"
+    opciones: ["ip ssh version 2", "transport input ssh", "login ssh", "crypto ssh only"]
+    correcta: 1
+    explicacion: "transport input ssh rechaza Telnet en las líneas VTY."
+  - id: srwe1-26
+    tema: "1.3"
+    p: "¿Cuál es el tamaño mínimo de clave RSA para usar SSH versión 2?"
+    opciones: ["512 bits", "768 bits", "2048 bits", "4096 bits"]
+    correcta: 1
+    explicacion: "SSH v2 requiere al menos 768 bits. Se recomienda 1024 o más."
+  - id: srwe1-27
+    tema: "1.3"
+    p: "¿Cuáles dos comandos muestran si SSH está habilitado y quién está conectado? (Elija dos)."
+    opciones: ["show ip ssh", "show ssh", "show running-config ssh", "show users ssh"]
+    correcta: [0, 1]
+    explicacion: "show ip ssh muestra la versión y si está habilitado; show ssh muestra las sesiones abiertas."
+  - id: srwe1-28
+    tema: "1.4"
+    verifique: true
+    p: "¿Qué comando hace que un router reenvíe paquetes IPv6?"
+    opciones: ["ipv6 enable", "ipv6 unicast-routing", "ip routing", "ipv6 address autoconfig"]
+    correcta: 1
+    explicacion: "ipv6 unicast-routing activa el reenvío IPv6 y los anuncios RA."
+  - id: srwe1-29
+    tema: "1.4"
+    verifique: true
+    p: "Configuraste la IP de G0/0/0 en un router nuevo, pero la interfaz sigue down. ¿Qué falta?"
+    opciones: ["description", "no shutdown", "ip default-gateway", "switchport mode access"]
+    correcta: 1
+    explicacion: "Las interfaces de un router vienen apagadas. Hay que encenderlas con no shutdown."
+  - id: srwe1-30
+    tema: "1.4"
+    p: "¿Qué es una red de doble pila?"
+    opciones: ["Una red con dos routers", "Una red donde IPv4 e IPv6 conviven en las mismas interfaces", "Una red con dos VLAN", "Un enlace con dos cables"]
+    correcta: 1
+    explicacion: "Doble pila (dual stack) es configurar IPv4 e IPv6 a la vez."
+  - id: srwe1-31
+    tema: "1.4"
+    p: "¿Qué característica tiene una interfaz loopback?"
+    opciones: ["Necesita un cable para estar up", "Es lógica y está siempre up mientras el router funcione", "Solo admite IPv6", "Se usa para conectar switches"]
+    correcta: 1
+    explicacion: "La loopback es una interfaz interna: no depende de ningún medio físico."
+  - id: srwe1-32
+    tema: "1.5"
+    verifique: true
+    p: "Al encender una interfaz con IP 192.168.10.1/24, ¿qué dos entradas agrega el router a su tabla? (Elija dos)."
+    opciones: ["C 192.168.10.0/24", "S 192.168.10.0/24", "L 192.168.10.1/32", "L 192.168.10.0/24"]
+    correcta: [0, 2]
+    explicacion: "Una ruta conectada (C) para la red y una local (L) para la propia dirección con máscara /32."
+  - id: srwe1-33
+    tema: "1.5"
+    p: "¿Qué grupo multicast IPv6 aparece en una interfaz solo cuando el router tiene ipv6 unicast-routing?"
+    opciones: ["FF02::1", "FF02::2", "FF02::1:FF00:1", "FE80::1"]
+    correcta: 1
+    explicacion: "FF02::2 es el grupo de todos los routers IPv6. FF02::1 (todos los nodos) aparece siempre."
+  - id: srwe1-34
+    tema: "1.5"
+    verifique: true
+    p: "¿Qué filtro muestra solo el bloque de configuración de las líneas VTY?"
+    opciones: ["show running-config | include vty", "show running-config | section line vty", "show running-config | begin vty", "show running-config | exclude vty"]
+    correcta: 1
+    explicacion: "section muestra la sección completa: la línea que coincide y las que dependen de ella."
+  - id: srwe1-35
+    tema: "1.5"
+    p: "¿Cuántos comandos guarda el historial de IOS por defecto?"
+    opciones: ["5", "10", "20", "256"]
+    correcta: 1
+    explicacion: "El historial guarda 10 comandos. Se amplía con terminal history size."
+  - id: srwe1-36
+    tema: "1.5"
+    p: "Una red configurada en un router no aparece en show ip route. ¿Cuál es la causa más probable?"
+    opciones: ["La interfaz no está up/up", "Falta ip default-gateway", "Falta service password-encryption", "La red es privada"]
+    correcta: 0
+    explicacion: "Las redes conectadas solo se instalan en la tabla cuando su interfaz está up/up."

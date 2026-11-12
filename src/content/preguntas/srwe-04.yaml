@@ -1,0 +1,181 @@
+curso: srwe
+modulo: 4
+preguntas:
+  - id: srwe4-01
+    tema: "4.1"
+    verifique: true
+    p: "¿Qué es el enrutamiento entre VLAN?"
+    opciones: ["Reenviar tramas dentro de una VLAN", "Reenviar tráfico de una VLAN a otra con un dispositivo de capa 3", "Etiquetar tramas con 802.1Q", "Negociar troncales con DTP"]
+    correcta: 1
+    explicacion: "Las VLAN son redes distintas; para pasar de una a otra hace falta enrutar."
+  - id: srwe4-02
+    tema: "4.1"
+    verifique: true
+    p: "¿Cuál es la principal desventaja del enrutamiento entre VLAN heredado?"
+    opciones: ["Necesita un switch de capa 3", "Necesita una interfaz física del router y un cable por cada VLAN", "No funciona con IPv4", "Requiere subinterfaces"]
+    correcta: 1
+    explicacion: "No escala: cada VLAN consume una interfaz del router y un puerto del switch."
+  - id: srwe4-03
+    tema: "4.1"
+    p: "En router-on-a-stick, ¿cómo está configurado el puerto del switch conectado al router?"
+    opciones: ["Como acceso de la VLAN 1", "Como troncal", "Como puerto enrutado", "Apagado"]
+    correcta: 1
+    explicacion: "Por ese enlace viajan todas las VLAN etiquetadas: debe ser troncal."
+  - id: srwe4-04
+    tema: "4.1"
+    verifique: true
+    p: "¿Cuál es una limitación de router-on-a-stick?"
+    opciones: ["Solo admite dos VLAN", "Todo el tráfico entre VLAN comparte un único enlace físico", "No admite 802.1Q", "Necesita ip routing"]
+    correcta: 1
+    explicacion: "El enlace troncal hacia el router puede convertirse en un cuello de botella. Es adecuado para unas 50 VLAN."
+  - id: srwe4-05
+    tema: "4.1"
+    p: "¿Cuáles dos son ventajas de un switch de capa 3 para enrutar entre VLAN? (Elija dos)."
+    opciones: ["Es más rápido porque enruta en hardware", "Es más barato que un switch de capa 2", "No necesita enlaces externos hacia un router para enrutar entre sus VLAN", "No necesita VLAN"]
+    correcta: [0, 2]
+    explicacion: "Enruta a velocidad de hardware dentro del propio equipo. Su desventaja es el costo."
+  - id: srwe4-06
+    tema: "4.1"
+    p: "¿Qué interfaces usa un switch de capa 3 como gateway de cada VLAN?"
+    opciones: ["Subinterfaces", "SVI", "Loopback", "Interfaces seriales"]
+    correcta: 1
+    explicacion: "Cada VLAN tiene su SVI con la IP del gateway."
+  - id: srwe4-07
+    tema: "4.1"
+    p: "En router-on-a-stick, ¿cuál es el gateway predeterminado de una PC de la VLAN 20?"
+    opciones: ["La IP de la interfaz física del router", "La IP de la subinterfaz de la VLAN 20", "La IP de la SVI de administración del switch", "La IP de la PC de otra VLAN"]
+    correcta: 1
+    explicacion: "Cada subinterfaz es el gateway de su VLAN."
+  - id: srwe4-08
+    tema: "4.2"
+    verifique: true
+    p: "¿Qué comando indica que la subinterfaz G0/0/1.20 atiende la VLAN 20?"
+    opciones: ["switchport access vlan 20", "encapsulation dot1Q 20", "vlan 20", "ip vlan 20"]
+    correcta: 1
+    explicacion: "encapsulation dot1Q 20 asocia la subinterfaz con la VLAN 20."
+  - id: srwe4-09
+    tema: "4.2"
+    verifique: true
+    p: "Al configurar una subinterfaz, ¿qué debe ir primero?"
+    opciones: ["La dirección IP", "El comando encapsulation dot1Q", "no shutdown", "La descripción"]
+    correcta: 1
+    explicacion: "IOS no acepta la IP en una subinterfaz hasta que se define la encapsulación."
+  - id: srwe4-10
+    tema: "4.2"
+    p: "La interfaz física G0/0/1 está en shutdown, pero sus subinterfaces están configuradas. ¿Qué ocurre?"
+    opciones: ["Las subinterfaces funcionan igual", "Ninguna subinterfaz funciona", "Solo funciona la VLAN nativa", "El router enciende la física automáticamente"]
+    correcta: 1
+    explicacion: "Las subinterfaces dependen de la física. Hay que hacer no shutdown en G0/0/1."
+  - id: srwe4-11
+    tema: "4.2"
+    p: "¿Qué comando configura una subinterfaz para la VLAN nativa 99?"
+    opciones: ["encapsulation dot1Q 99 native", "switchport trunk native vlan 99", "encapsulation native 99", "vlan 99 native"]
+    correcta: 0
+    explicacion: "La palabra clave native indica que esa VLAN viaja sin etiquetar."
+  - id: srwe4-12
+    tema: "4.2"
+    p: "¿Qué comando del router muestra cada subinterfaz con su VLAN y su dirección?"
+    opciones: ["show vlan brief", "show vlans", "show interfaces trunk", "show ip vlan"]
+    correcta: 1
+    explicacion: "En el router, show vlans lista las subinterfaces por VLAN. show vlan brief es un comando del switch."
+  - id: srwe4-13
+    tema: "4.2"
+    p: "¿Por qué el puerto del switch hacia el router debe estar en switchport mode trunk y no en dynamic auto?"
+    opciones: ["Porque el router no negocia DTP", "Porque dynamic auto no existe", "Porque el router usa ISL", "Porque el puerto debe estar apagado"]
+    correcta: 0
+    explicacion: "El router no envía tramas DTP; un puerto en dynamic auto quedaría en acceso."
+  - id: srwe4-14
+    tema: "4.2"
+    p: "¿Cuántas entradas de tipo C aparecen en la tabla del router con tres subinterfaces activas en redes distintas?"
+    opciones: ["1", "3", "6", "Ninguna"]
+    correcta: 1
+    explicacion: "Una ruta conectada (C) por subinterfaz activa, más una local (L) por cada una."
+  - id: srwe4-15
+    tema: "4.2"
+    verifique: true
+    p: "¿Qué muestra el primer salto de un tracert desde una PC de la VLAN 10 hacia una PC de la VLAN 20 en router-on-a-stick?"
+    opciones: ["La IP de la PC de destino", "La IP de la subinterfaz de la VLAN 10", "La IP de la SVI del switch", "La IP de la subinterfaz de la VLAN 20"]
+    correcta: 1
+    explicacion: "El primer salto es el gateway de la PC de origen: la subinterfaz de su VLAN."
+  - id: srwe4-16
+    tema: "4.3"
+    verifique: true
+    p: "Un switch de capa 3 tiene las SVI configuradas y up, pero no enruta entre VLAN. ¿Qué falta?"
+    opciones: ["ip routing", "ipv6 unicast-routing", "switchport mode trunk", "ip default-gateway"]
+    correcta: 0
+    explicacion: "ip routing activa el enrutamiento IPv4 en el switch de capa 3."
+  - id: srwe4-17
+    tema: "4.3"
+    verifique: true
+    p: "¿Qué comando convierte un puerto de un switch de capa 3 en un puerto enrutado?"
+    opciones: ["switchport mode routed", "no switchport", "ip routing", "switchport mode trunk"]
+    correcta: 1
+    explicacion: "no switchport deja el puerto como una interfaz de capa 3, a la que se le asigna una IP."
+  - id: srwe4-18
+    tema: "4.3"
+    p: "¿Cuáles dos condiciones necesita una SVI para pasar a up? (Elija dos)."
+    opciones: ["Que la VLAN exista y tenga al menos un puerto activo", "Que la SVI no esté en shutdown", "Que el switch tenga ip default-gateway", "Que haya una troncal configurada"]
+    correcta: [0, 1]
+    explicacion: "La SVI necesita una VLAN existente con un puerto activo, y no estar apagada."
+  - id: srwe4-19
+    tema: "4.3"
+    p: "¿En qué capa del diseño jerárquico suele estar el switch de capa 3 que enruta entre VLAN?"
+    opciones: ["Acceso", "Distribución", "Física", "Aplicación"]
+    correcta: 1
+    explicacion: "Los switches de acceso llevan las VLAN por troncales hasta el de distribución, que enruta."
+  - id: srwe4-20
+    tema: "4.3"
+    p: "¿Qué ventaja tiene el switch de capa 3 frente al router-on-a-stick?"
+    opciones: ["Es más barato", "Enruta a velocidad de hardware sin depender de un único enlace hacia un router", "No necesita VLAN", "No necesita direcciones IP"]
+    correcta: 1
+    explicacion: "La conmutación de capa 3 se hace en hardware dentro del switch."
+  - id: srwe4-21
+    tema: "4.4"
+    verifique: true
+    p: "PC1 está en Fa0/6, que debería estar en la VLAN 10, pero show vlan brief muestra Fa0/6 en la VLAN 1. ¿Qué comando lo corrige?"
+    opciones: ["switchport mode trunk", "switchport access vlan 10", "encapsulation dot1Q 10", "vlan 10"]
+    correcta: 1
+    explicacion: "El puerto de acceso está en la VLAN equivocada."
+  - id: srwe4-22
+    tema: "4.4"
+    verifique: true
+    p: "La subinterfaz G0/0/1.10 tiene encapsulation dot1Q 100, pero los equipos están en la VLAN 10. ¿Qué síntoma aparece?"
+    opciones: ["Los equipos de la VLAN 10 no llegan a su gateway", "Todo funciona", "Solo falla la VLAN 100", "El enlace físico cae"]
+    correcta: 0
+    explicacion: "La subinterfaz espera tramas etiquetadas con la VLAN 100; las de la VLAN 10 no le llegan."
+  - id: srwe4-23
+    tema: "4.4"
+    p: "show interfaces trunk no muestra el puerto que va hacia el router. ¿Qué es lo más probable?"
+    opciones: ["El puerto no está configurado como troncal", "La VLAN nativa es la 1", "El router está apagado", "Falta ip routing"]
+    correcta: 0
+    explicacion: "Si el puerto no es troncal, no aparece en ese comando."
+  - id: srwe4-24
+    tema: "4.4"
+    p: "PC2 puede hacer ping a su gateway, pero no a PC1 en otra VLAN. El gateway de PC1 es 192.168.20.1 y PC1 está en la VLAN 10 (192.168.10.0/24). ¿Cuál es la falla?"
+    opciones: ["El gateway de PC1 es incorrecto", "La troncal está caída", "Falta la VLAN 20", "El router no tiene subinterfaces"]
+    correcta: 0
+    explicacion: "El gateway de una PC debe estar en su propia subred: aquí debería ser 192.168.10.1."
+  - id: srwe4-25
+    tema: "4.4"
+    p: "La VLAN 30 está permitida en la troncal pero no aparece en show vlan brief del switch. ¿Qué falta?"
+    opciones: ["Crear la VLAN 30 en el switch", "Una subinterfaz .30", "ip routing", "Cambiar la VLAN nativa"]
+    correcta: 0
+    explicacion: "Si la VLAN no existe en el switch, su tráfico no se reenvía."
+  - id: srwe4-26
+    tema: "4.4"
+    p: "¿Qué tres valores conviene comparar al diagnosticar un problema entre VLAN?"
+    opciones: ["La VLAN del puerto de la PC, la VLAN de la subinterfaz y la red del gateway", "La MAC de la PC, el número de serie del router y la versión de IOS", "La velocidad, el dúplex y el MTU", "El hostname, el banner y el dominio"]
+    correcta: 0
+    explicacion: "Si esos tres coinciden, el problema está en otra parte (troncal, VLAN faltante o interfaz física)."
+  - id: srwe4-27
+    tema: "4.4"
+    p: "Todas las subinterfaces de R1 aparecen down en show ip interface brief. ¿Qué revisas primero?"
+    opciones: ["La interfaz física: shutdown o el cable", "La VLAN nativa", "El gateway de las PC", "El banner"]
+    correcta: 0
+    explicacion: "Si la física está caída, todas sus subinterfaces lo están."
+  - id: srwe4-28
+    tema: "4.4"
+    p: "¿Qué comando muestra, en una sola salida, el modo administrativo y la VLAN de acceso de un puerto?"
+    opciones: ["show interfaces fa0/6 switchport", "show ip interface brief", "show vlans", "show cdp neighbors"]
+    correcta: 0
+    explicacion: "show interfaces … switchport muestra modo, VLAN de acceso, VLAN nativa y VLAN de voz."

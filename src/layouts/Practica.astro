@@ -4,14 +4,18 @@ import Base from './Base.astro';
 import { ejercicio } from '../data/practica';
 import { curso as datosCurso, slugTema } from '../data/cursos';
 import { url } from '../lib/url';
+import { temas, urlModulo } from '../lib/teoria';
+import { anclaModulo } from '../lib/navegacion';
 
 interface Props { id: string }
 const e = ejercicio(Astro.props.id)!;
 const c = datosCurso(e.curso);
+const conTeoria = new Set((await temas(e.curso)).map((t) => t.data.modulo));
+const modulosTeoria = e.modulos.filter((m) => conTeoria.has(m)).map((m) => ({ numero: m, titulo: c.modulos.find((x) => x.numero === m)!.titulo }));
 ---
 <Base titulo={e.titulo} descripcion={e.descripcion}>
   <div class="wrap pr-pagina" style={`--c:var(--n2)`}>
-    <p class="miga"><a href={url('practica/')}>Práctica</a> › {c.sigla} módulo {e.modulos.join(', ')}</p>
+    <p class="miga"><a href={url('practica/')}>Práctica</a> › <a href={url(`practica/#${anclaModulo(e.curso, e.modulos[0])}`)}>{c.sigla} módulo {e.modulos.join(', ')}</a></p>
     <header class="cab">
       <span class="tipo">{e.tipo}</span>
       <h1>{e.titulo}</h1>
@@ -23,6 +27,16 @@ const c = datosCurso(e.curso);
             <>{i > 0 && (i === e.temas.length - 1 ? ' y ' : ', ')}<a href={url(`teorica/${e.curso}/${t.split('.')[0]}/${slugTema(t)}/`)}>{t}</a></>
           ))}.
         </p>
+      )}
+      {modulosTeoria.length > 0 && (
+        <div class="a-teoria">
+          {modulosTeoria.map((m) => (
+            <a href={urlModulo(e.curso, m.numero)} class="boton-teoria">
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 4.5c2.5-1 4.8-1 7 .5 2.2-1.5 4.5-1.5 7-.5v11c-2.5-1-4.8-1-7 .5-2.2-1.5-4.5-1.5-7-.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M10 5v11" stroke="currentColor" stroke-width="1.7" /></svg>
+              <span>Teoría · {c.sigla} módulo {m.numero}: {m.titulo}</span>
+            </a>
+          ))}
+        </div>
       )}
       {e.archivo && (
         <p class="archivo"><a href={url(`labs/${e.archivo}`)} download>Descargar el archivo de inicio (.pkt)</a> · ábrelo con Packet Tracer 8.2 o superior.</p>
@@ -41,4 +55,10 @@ const c = datosCurso(e.curso);
   .bajada { font-size: 1.12rem; max-width: 66ch; }
   .temas { color: var(--muted); }
   .archivo { font-weight: 600; }
+  .a-teoria { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; }
+  .boton-teoria {
+    display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.4rem 0.85rem; border-radius: 999px;
+    border: 1.5px solid var(--n3); color: var(--n3); font-weight: 600; text-decoration: none; background: var(--surface);
+  }
+  .boton-teoria:hover { background: var(--n3); color: #fff; }
 </style>

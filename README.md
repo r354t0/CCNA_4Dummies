@@ -20,15 +20,18 @@ preguntas propios:
 
 ## Práctica
 
+Desde cada módulo de la Teórica hay un botón **Práctica del módulo**, y cada ejercicio de la Práctica lleva de vuelta a
+la teoría de su módulo.
+
 Cada ejercicio genera un escenario al azar con un código (por ejemplo `K7Q2-M4XA`). El mismo código reproduce el
 mismo escenario, así que alumno e instructor pueden ver exactamente el mismo ejercicio.
 
 | Tipo | Ejercicios |
 |---|---|
-| Interactivo | Clasificar componentes y tipos de red, leer topologías, encapsular, capas OSI/TCP-IP, direcciones salto a salto, subnetting |
-| Consola IOS | Switch Catalyst 2960 simulado en el navegador: modos, abreviaturas, `?`, Tab, contraseñas, banner, SVI, guardado |
-| Diagnóstico | Una red con una falla al azar: el alumno lee `ipconfig`, `ping`, `show ip interface brief` y `show running-config` y encuentra la causa |
-| Packet Tracer | El alumno implementa el escenario en Packet Tracer, pega `show startup-config`, `ipconfig` y `ping`, y la app corrige cada requisito |
+| Interactivo | Clasificar componentes y tipos de red, leer topologías, encapsular, capas OSI/TCP-IP, direcciones salto a salto, tabla MAC, dominios de colisión y difusión, difusiones con VLAN, DTP, subnetting |
+| Consola IOS | Switch Catalyst 2960 simulado en el navegador: modos, abreviaturas, `?`, Tab, contraseñas, banner, SVI, SSH, VLAN, troncales, velocidad y dúplex, guardado |
+| Diagnóstico | Una red con una falla al azar (conectividad básica, errores de interfaz, enrutamiento entre VLAN): el alumno lee las salidas de los comandos y encuentra la causa |
+| Packet Tracer | Switch inicial, dos switches, router en doble pila con SSH, VLAN con troncal y router-on-a-stick. El alumno pega las salidas (`show startup-config`, `show vlan brief`, `show interfaces trunk`, `show ip ssh`, `ipconfig`, `ping`) y la app corrige cada requisito |
 
 ### Ejercicios de Packet Tracer: entrega y revisión
 
@@ -53,7 +56,7 @@ y la v2.0 desde el 3 de febrero de 2027.
 | Curso | Módulos con contenido |
 |---|---|
 | ITN · Introducción a las redes | 1 a 3, con pruebas y el examen de punto de control 1–3 |
-| SRWE · Switching, enrutamiento y redes inalámbricas | En preparación |
+| SRWE · Switching, enrutamiento y redes inalámbricas | 1 a 4, con pruebas y el examen de punto de control 1–4 |
 | ENSA · Redes empresariales, seguridad y automatización | En preparación |
 
 Las lecciones y laboratorios escritos antes de la reorganización están en `contenido-reserva/` y se integrarán en su

@@ -1,0 +1,98 @@
+---
+curso: srwe
+modulo: 4
+tema: "4.4"
+titulo: Resolución de problemas de enrutamiento entre VLAN
+objetivo: Solucionar problemas comunes de configuración del enrutamiento entre VLAN.
+duracion: 35
+examen:
+  v1.1: 3
+  v2.0: 3
+practica: [diag-intervlan]
+actividades:
+  - codigo: "4.4.8"
+    tipo: Packet Tracer
+    titulo: Resolución de problemas de enrutamiento entre VLAN
+    guia: "No cambies nada antes de documentar. Anota cada síntoma, el comando que lo muestra y tu hipótesis. Corrige de a una falla y vuelve a probar."
+  - codigo: "4.4.9"
+    tipo: Laboratorio
+    titulo: Resolución de problemas de enrutamiento entre VLAN
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 4.4.1 Problemas comunes
+
+| Problema | Causa | Cómo se ve |
+|---|---|---|
+| **VLAN faltante** | La VLAN no se creó, se borró o no está permitida en la troncal | `show vlan brief`: la VLAN no aparece o sus puertos no están. `show interfaces trunk`: la VLAN no está entre las activas |
+| **Troncal del switch** | El puerto hacia el router no es troncal, o está apagado | `show interfaces trunk` no lista el puerto. `show running-config` muestra `switchport mode access` |
+| **Puerto de acceso** | El puerto del PC está en la VLAN equivocada o en otro modo | `show vlan brief` / `show interfaces fa0/x switchport` |
+| **Router** | Subinterfaz con la VLAN equivocada en `encapsulation dot1Q`, IP equivocada, física en shutdown | `show ip interface brief`, `show interfaces g0/0/1.10`, `show running-config` |
+| **Equipo final** | Gateway equivocado o IP fuera de la subred de su VLAN | `ipconfig` |
+
+## 4.4.2 Un método
+
+<Pasos
+  client:visible
+  titulo="De la PC al router"
+  pasos={[
+    { titulo: 'La PC', texto: 'ipconfig: ¿la IP está en la subred de su VLAN? ¿El gateway es la subinterfaz o SVI de esa VLAN? Luego, ping al gateway.', codigo: 'C:\\> ipconfig\nC:\\> ping 192.168.10.1' },
+    { titulo: 'El puerto de acceso', texto: '¿El puerto de la PC está en la VLAN correcta y en modo acceso?', codigo: 'S1# show vlan brief\nS1# show interfaces fa0/6 switchport' },
+    { titulo: 'La troncal', texto: '¿El puerto hacia el router es troncal? ¿Permite la VLAN y la VLAN está activa? ¿La nativa coincide?', codigo: 'S1# show interfaces trunk' },
+    { titulo: 'El router', texto: '¿La física está up? ¿Cada subinterfaz tiene la VLAN y la IP correctas?', codigo: 'R1# show ip interface brief\nR1# show running-config | section interface\nR1# show vlans' },
+  ]}
+/>
+
+## 4.4.3 Ejemplos de cada falla
+
+#### Subinterfaz con la VLAN equivocada
+
+```text
+R1# show running-config | section interface GigabitEthernet0/0/1.10
+interface GigabitEthernet0/0/1.10
+ encapsulation dot1Q 100
+ ip address 192.168.10.1 255.255.255.0
+```
+
+La subinterfaz espera tramas de la VLAN **100**, pero PC1 está en la 10. Solución: `encapsulation dot1Q 10`.
+
+#### El puerto hacia el router no es troncal
+
+```text
+S1# show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      1
+```
+
+Solo aparece Fa0/1 (hacia S2); falta Gi0/1, el puerto hacia R1. Solución: `switchport mode trunk` en Gi0/1.
+
+#### Puerto de acceso en la VLAN equivocada
+
+```text
+S1# show vlan brief
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- ------------------------------
+1    default                          active    Fa0/2, Fa0/3, Fa0/4, Fa0/5, Fa0/6
+10   alumnos                          active
+```
+
+Fa0/6 (PC1) sigue en la VLAN 1. Solución: `switchport access vlan 10` en Fa0/6.
+
+<aside class="examen">
+
+En las preguntas de diagnóstico, compara **tres números**: la VLAN del puerto de la PC, la VLAN de la subinterfaz
+(`dot1Q`) y la red del gateway. Si alguno no coincide, encontraste la falla.
+
+</aside>
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'PC1 no llega a su gateway y su puerto aparece en la VLAN 1', dorso: 'Puerto de acceso mal asignado: switchport access vlan correcta.' },
+    { frente: 'El puerto hacia el router no aparece en show interfaces trunk', dorso: 'No es troncal: switchport mode trunk.' },
+    { frente: 'encapsulation dot1Q 100 en la subinterfaz .10', dorso: 'La subinterfaz atiende la VLAN equivocada.' },
+    { frente: 'Todas las subinterfaces están down', dorso: 'La interfaz física está en shutdown o desconectada.' },
+  ]}
+/>

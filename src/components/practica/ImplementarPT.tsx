@@ -27,7 +27,7 @@ function descargar(nombre: string, texto: string) {
 }
 
 const slug = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-const RUTAS: Record<IdPT, string> = { 'pt-switch': 'switch-inicial', 'pt-conectividad': 'conectividad' };
+const RUTAS: Record<IdPT, string> = { 'pt-switch': 'switch-inicial', 'pt-conectividad': 'conectividad', 'pt-router': 'router-basico', 'pt-vlan': 'vlan-troncal', 'pt-roas': 'router-on-a-stick' };
 
 function Resultados({ caso, res }: { caso: CasoPT; res: Resultado[] }) {
   const p = puntaje(res);
@@ -70,8 +70,8 @@ function Enunciado({ caso }: { caso: CasoPT }) {
         <table className="pr-tabla pt-tabla">
           <thead><tr><th>Dispositivo</th><th>Interfaz</th><th>Dirección IP</th><th>Máscara</th><th>Gateway</th></tr></thead>
           <tbody>
-            {caso.direcciones.map((d) => (
-              <tr key={d.dispositivo}><td>{d.dispositivo}</td><td>{d.interfaz}</td><td><code>{d.ip}</code></td><td><code>{d.mascara}</code></td><td>{d.gateway.includes('.') ? <code>{d.gateway}</code> : d.gateway}</td></tr>
+            {caso.direcciones.map((d, i) => (
+              <tr key={i}><td>{d.dispositivo}</td><td>{d.interfaz}</td><td><code>{d.ip}</code></td><td><code>{d.mascara}</code></td><td>{d.gateway.includes('.') ? <code>{d.gateway}</code> : d.gateway}</td></tr>
             ))}
           </tbody>
         </table>
@@ -219,7 +219,8 @@ export default function ImplementarPT({ id }: { id: IdPT }) {
         <summary>Cómo copiar las salidas desde Packet Tracer</summary>
         <div className="pt-plegable-cuerpo">
           <ul>
-            <li><strong>Switch:</strong> en la pestaña CLI, escribe <code>show startup-config</code> y pulsa la barra espaciadora hasta el final (<code>--More--</code>). Selecciona todo el texto desde <code>show startup-config</code> hasta <code>end</code> y usa el botón <kbd>Copy</kbd> de la ventana o <kbd>Ctrl</kbd>+<kbd>C</kbd>.</li>
+            <li><strong>Switch o router:</strong> en la pestaña CLI, escribe <code>show startup-config</code> y pulsa la barra espaciadora hasta el final (<code>--More--</code>). Selecciona todo el texto desde <code>show startup-config</code> hasta <code>end</code> y usa el botón <kbd>Copy</kbd> de la ventana o <kbd>Ctrl</kbd>+<kbd>C</kbd>.</li>
+            <li>Si se piden varios comandos para el mismo equipo (por ejemplo, <code>show startup-config</code>, <code>show vlan brief</code> y <code>show interfaces trunk</code>), ejecútalos uno detrás de otro y pega todo en el mismo cuadro.</li>
             <li><strong>PC:</strong> en Desktop › Command Prompt ejecuta los comandos que se piden, uno detrás de otro, y copia toda la ventana.</li>
             <li>Se pide <code>show startup-config</code> y no <code>show running-config</code> porque así también se comprueba que guardaste.</li>
             <li>Si prefieres, guarda cada salida en un archivo <code>.txt</code> y súbelo con «Subir .txt».</li>
@@ -242,9 +243,9 @@ export default function ImplementarPT({ id }: { id: IdPT }) {
                 <input type="file" accept=".txt,text/plain" onChange={async (ev) => { const f = ev.target.files?.[0]; if (f) cambiarTexto(e.dispositivo, await leerArchivo(f)); ev.target.value = ''; }} />
               </label>
             </div>
-            <textarea id={`ev-${e.dispositivo}`} className="pt-area" rows={e.tipo === 'switch' ? 8 : 6} spellCheck={false}
+            <textarea id={`ev-${e.dispositivo}`} className="pt-area" rows={e.tipo !== 'pc' ? 8 : 6} spellCheck={false}
               value={textos[e.dispositivo] ?? ''} onChange={(ev) => cambiarTexto(e.dispositivo, ev.target.value)}
-              placeholder={e.tipo === 'switch' ? `${e.dispositivo}#show startup-config\nUsing 1182 bytes\n!\nversion 15.0\n…` : 'C:\\>ipconfig\n…\nC:\\>ping …'} />
+              placeholder={e.tipo !== 'pc' ? `${e.dispositivo}#show startup-config\nUsing 1182 bytes\n!\nversion 15.0\n…` : 'C:\\>ipconfig\n…\nC:\\>ping …'} />
           </div>
         ))}
       </div>

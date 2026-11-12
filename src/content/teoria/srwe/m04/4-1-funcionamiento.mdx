@@ -1,0 +1,126 @@
+---
+curso: srwe
+modulo: 4
+tema: "4.1"
+titulo: Funcionamiento del enrutamiento entre VLAN
+objetivo: Describir las opciones para configurar el enrutamiento entre VLAN.
+duracion: 25
+examen:
+  v1.1: 3
+  v2.0: 3
+practica: [pt-roas, diag-intervlan]
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 4.1.1 ¿Qué es el enrutamiento entre VLAN?
+
+Las VLAN segmentan una red conmutada en dominios de difusión aislados. El **enrutamiento entre VLAN** (*inter-VLAN
+routing*) es el proceso de reenviar tráfico de una VLAN a otra mediante un dispositivo de capa 3. Cada VLAN tiene su
+subred, y cada PC usa como **gateway** la dirección del router (o del switch de capa 3) en su VLAN.
+
+## 4.1.2 Método heredado
+
+<Topologia
+  ancho={640}
+  alto={250}
+  titulo="Heredado: una interfaz física del router y un cable por VLAN"
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 200, y: 55, lado: 'arriba' },
+    { id: 'S1', tipo: 'switch', x: 420, y: 150, lado: 'derecha' },
+    { id: 'PC1', tipo: 'pc', x: 300, y: 215, detalle: 'VLAN 10', lado: 'abajo' },
+    { id: 'PC2', tipo: 'pc', x: 540, y: 215, detalle: 'VLAN 20', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/0', ib: 'F0/4 · VLAN 10' },
+    { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'F0/5 · VLAN 20' },
+    { a: 'S1', b: 'PC1', ia: 'F0/11' },
+    { a: 'S1', b: 'PC2', ia: 'F0/12' },
+  ]}
+/>
+
+Cada interfaz del router se conecta a un puerto de **acceso** de una VLAN distinta. Funciona, pero **no escala**: con
+50 VLAN harían falta 50 interfaces físicas en el router. Ya no se usa.
+
+## 4.1.3 Router-on-a-stick
+
+<Topologia
+  ancho={640}
+  alto={250}
+  titulo="Router-on-a-stick: una interfaz física, una subinterfaz por VLAN, una troncal"
+  nodos={[
+    { id: 'R1', tipo: 'router', x: 320, y: 50, detalle: 'G0/0/1.10  G0/0/1.20', lado: 'derecha' },
+    { id: 'S1', tipo: 'switch', x: 320, y: 150, lado: 'derecha' },
+    { id: 'PC1', tipo: 'pc', x: 150, y: 210, detalle: 'VLAN 10', lado: 'abajo' },
+    { id: 'PC2', tipo: 'pc', x: 490, y: 210, detalle: 'VLAN 20', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'S1', ia: 'G0/0/1', ib: 'G0/1', marca: 'Troncal 802.1Q', resaltado: true },
+    { a: 'S1', b: 'PC1', ia: 'F0/11' },
+    { a: 'S1', b: 'PC2', ia: 'F0/12' },
+  ]}
+/>
+
+Una sola interfaz física del router se conecta a un puerto **troncal** del switch y se divide en **subinterfaces**
+(interfaces lógicas), una por VLAN. Cada subinterfaz tiene la IP del gateway de su VLAN y entiende las etiquetas
+802.1Q de esa VLAN.
+
+El recorrido de un paquete de PC1 (VLAN 10) a PC2 (VLAN 20):
+
+1. PC1 envía la trama a su gateway, la subinterfaz `G0/0/1.10`. S1 la etiqueta con la VLAN 10 y la sube por la troncal.
+2. R1 la recibe por la subinterfaz `.10`, consulta su tabla de enrutamiento y ve que la red de PC2 está conectada a la
+   `.20`.
+3. R1 la reenvía por la subinterfaz `.20`, etiquetada con la VLAN 20. Baja por la misma troncal.
+4. S1 quita la etiqueta y la entrega a PC2.
+
+<aside class="ojo">
+
+La limitación: todo el tráfico entre VLAN sube y baja por **el mismo enlace físico**. Sirve para unas 50 VLAN y redes
+pequeñas o medianas; con mucho tráfico, ese enlace es un cuello de botella.
+
+</aside>
+
+## 4.1.4 Switch de capa 3
+
+<Topologia
+  ancho={640}
+  alto={250}
+  titulo="Switch de capa 3: las SVI enrutan dentro del propio switch"
+  nodos={[
+    { id: 'D1', tipo: 'switch-l3', x: 320, y: 70, detalle: 'SVI VLAN 10 y VLAN 20', lado: 'derecha' },
+    { id: 'PC1', tipo: 'pc', x: 150, y: 185, detalle: 'VLAN 10', lado: 'abajo' },
+    { id: 'PC2', tipo: 'pc', x: 490, y: 185, detalle: 'VLAN 20', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'D1', b: 'PC1', ia: 'G1/0/11' },
+    { a: 'D1', b: 'PC2', ia: 'G1/0/12' },
+  ]}
+/>
+
+Un **switch de capa 3** (multicapa) enruta entre VLAN con sus **SVI**: una interfaz `vlan` con IP por cada VLAN, que
+sirve de gateway a sus equipos. Es el método de las redes empresariales:
+
+- es mucho **más rápido**, porque se hace en hardware;
+- no necesita enlaces externos hacia un router;
+- no está limitado a un solo enlace, y se pueden agrupar enlaces con EtherChannel;
+- la latencia es menor, porque el tráfico no sale del switch.
+
+Su desventaja es el **costo**: un switch de capa 3 es más caro.
+
+| Método | Interfaces del router | Enlace al switch | Escala |
+|---|---|---|---|
+| Heredado | Una física por VLAN | Un puerto de acceso por VLAN | Mal |
+| Router-on-a-stick | Una física, una subinterfaz por VLAN | Una troncal | Hasta unas 50 VLAN |
+| Switch de capa 3 | No hay router: SVI | Interno | Muy bien |
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Por qué el método heredado no escala?', dorso: 'Necesita una interfaz física del router y un cable por cada VLAN.' },
+    { frente: 'En router-on-a-stick, ¿qué tipo de puerto es el del switch hacia el router?', dorso: 'Troncal.' },
+    { frente: '¿Qué es una subinterfaz?', dorso: 'Una interfaz lógica dentro de una física; en router-on-a-stick, una por VLAN.' },
+    { frente: 'Limitación de router-on-a-stick', dorso: 'Todo el tráfico entre VLAN comparte un solo enlace físico.' },
+    { frente: '¿Con qué enruta un switch de capa 3 entre VLAN?', dorso: 'Con sus SVI.' },
+  ]}
+/>

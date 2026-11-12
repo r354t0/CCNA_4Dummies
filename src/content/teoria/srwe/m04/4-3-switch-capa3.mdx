@@ -1,0 +1,101 @@
+---
+curso: srwe
+modulo: 4
+tema: "4.3"
+titulo: Enrutamiento entre VLAN con switches de capa 3
+objetivo: Configurar el enrutamiento entre VLAN con switching de capa 3.
+duracion: 35
+examen:
+  v1.1: 3
+  v2.0: 3
+practica: [diag-intervlan]
+actividades:
+  - codigo: "4.3.8"
+    tipo: Packet Tracer
+    titulo: Configurar el switching de capa 3 y el enrutamiento entre VLAN
+    guia: "Después de ip routing, revisa show ip route en el switch: deberías ver una ruta conectada por cada SVI activa."
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 4.3.1 Switches de capa 3
+
+Un switch de capa 3, como el Catalyst 3650 o el 9300, conmuta en capa 2 **y** enruta en capa 3 en el mismo hardware.
+En una red empresarial suele estar en la capa de **distribución**: los switches de acceso le llevan las VLAN por
+troncales y él enruta entre ellas con sus SVI.
+
+## 4.3.2 Escenario y configuración
+
+<Topologia
+  ancho={640}
+  alto={260}
+  titulo="D1 es el gateway de las dos VLAN"
+  nodos={[
+    { id: 'D1', tipo: 'switch-l3', x: 320, y: 70, detalle: 'Vlan10 192.168.10.1', detalle2: 'Vlan20 192.168.20.1', lado: 'derecha' },
+    { id: 'PC1', tipo: 'pc', x: 150, y: 185, detalle: 'VLAN 10 · 192.168.10.10', lado: 'abajo' },
+    { id: 'PC2', tipo: 'pc', x: 490, y: 185, detalle: 'VLAN 20 · 192.168.20.10', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'D1', b: 'PC1', ia: 'G1/0/6' },
+    { a: 'D1', b: 'PC2', ia: 'G1/0/18' },
+  ]}
+/>
+
+<Pasos
+  client:visible
+  titulo="Enrutamiento entre VLAN en D1"
+  pasos={[
+    { titulo: 'Crear las VLAN', texto: 'Igual que en cualquier switch.', codigo: 'D1(config)# vlan 10\nD1(config-vlan)# name alumnos\nD1(config-vlan)# vlan 20\nD1(config-vlan)# name docentes\nD1(config-vlan)# exit' },
+    { titulo: 'SVI por VLAN', texto: 'Cada SVI lleva la IP del gateway de su VLAN.', codigo: 'D1(config)# interface vlan 10\nD1(config-if)# description Gateway alumnos\nD1(config-if)# ip address 192.168.10.1 255.255.255.0\nD1(config-if)# no shutdown\nD1(config-if)# interface vlan 20\nD1(config-if)# ip address 192.168.20.1 255.255.255.0\nD1(config-if)# no shutdown' },
+    { titulo: 'Puertos de acceso', texto: 'Asigna los puertos de los equipos a sus VLAN.', codigo: 'D1(config)# interface g1/0/6\nD1(config-if)# switchport mode access\nD1(config-if)# switchport access vlan 10\nD1(config-if)# interface g1/0/18\nD1(config-if)# switchport mode access\nD1(config-if)# switchport access vlan 20' },
+    { titulo: 'ip routing', texto: 'Sin este comando, el switch tiene las SVI pero no enruta entre ellas. Es el paso que más se olvida.', codigo: 'D1(config)# ip routing' },
+  ]}
+/>
+
+<aside class="examen">
+
+`ip routing` es al switch de capa 3 lo que `ipv6 unicast-routing` es al router para IPv6: sin él, no hay enrutamiento.
+Recuerda también que una SVI solo pasa a **up** si la VLAN existe y tiene al menos un puerto activo.
+
+</aside>
+
+## 4.3.3 Verificar
+
+```text
+D1# show ip route | begin Gateway
+Gateway of last resort is not set
+      192.168.10.0/24 is variably subnetted, 2 subnets, 2 masks
+C        192.168.10.0/24 is directly connected, Vlan10
+L        192.168.10.1/32 is directly connected, Vlan10
+      192.168.20.0/24 is variably subnetted, 2 subnets, 2 masks
+C        192.168.20.0/24 is directly connected, Vlan20
+L        192.168.20.1/32 is directly connected, Vlan20
+```
+
+## 4.3.4 Un puerto enrutado hacia el router
+
+Para salir de la LAN, el switch de capa 3 se conecta a un router. Ese puerto no pertenece a ninguna VLAN: se convierte
+en un **puerto enrutado**, igual que la interfaz de un router.
+
+```text
+D1(config)# interface gigabitEthernet 1/0/1
+D1(config-if)# description Enlace a R1
+D1(config-if)# no switchport
+D1(config-if)# ip address 10.10.10.2 255.255.255.0
+D1(config-if)# no shutdown
+```
+
+`no switchport` es la clave. Después, D1 y R1 intercambian rutas con un protocolo de enrutamiento (por ejemplo, OSPF,
+que verás en ENSA) o con rutas estáticas.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué comando activa el enrutamiento en un switch de capa 3?', dorso: 'ip routing' },
+    { frente: '¿Qué hace no switchport?', dorso: 'Convierte un puerto del switch en un puerto enrutado de capa 3.' },
+    { frente: '¿Cuándo pasa a up una SVI?', dorso: 'Cuando la VLAN existe, tiene un puerto activo y la SVI no está en shutdown.' },
+    { frente: 'Gateway de los equipos de la VLAN 10 en este escenario', dorso: 'La SVI Vlan10 de D1: 192.168.10.1.' },
+  ]}
+/>

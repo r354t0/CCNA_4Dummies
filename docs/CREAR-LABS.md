@@ -67,12 +67,20 @@ cuando todos sus módulos tienen temas y banco.
    ejercicio. Llama a `registrarLogro(id)` cuando el alumno lo complete.
 3. Crea la página en `src/pages/practica/` con el layout `Practica`.
 
+El primer número de `modulos` decide en qué módulo aparece el ejercicio en la página Práctica, y de ahí salen los
+botones «Práctica del módulo» (en la Teórica) y «Teoría del módulo» (en el ejercicio). Para que un tema recomiende el
+ejercicio, agrega su id en `practica:` del encabezado del tema.
+
+Hay marcos reutilizables: `MarcoDiagnostico` (ticket, evidencia en pestañas y causas posibles) y `MarcoCLI` (consola con
+tareas que se marcan solas).
+
 ### Escenarios de Packet Tracer
 
-Las plantillas están en `src/lib/pt/escenarios.ts`. Cada una define topología, tabla de direccionamiento, pasos,
+Las plantillas están en `src/lib/pt/escenarios.ts` (ITN) y `src/lib/pt/escenariosSrwe.ts` (SRWE). Cada una define topología, tabla de direccionamiento, pasos,
 qué salidas pedir (`evidencias`), los requisitos con su corrección y la solución. El lector de configuraciones
-(`src/lib/ios/analizador.ts`) entiende `show startup-config` y `show running-config` de un 2960, `ipconfig` y
-`ping` de una PC de Packet Tracer.
+(`src/lib/ios/analizador.ts`) entiende `show startup-config` y `show running-config` de switches y routers (incluidas
+subinterfaces, IPv6 y SSH), `show vlan brief`, `show interfaces trunk`, `show ip ssh`, `ipconfig` y `ping` de una PC de
+Packet Tracer.
 
 ### Archivo de inicio (.pkt) opcional
 

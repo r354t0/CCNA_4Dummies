@@ -1,0 +1,131 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.4"
+titulo: Configuración básica de un router
+objetivo: Configurar los parámetros básicos de un router usando la CLI de IOS.
+duracion: 30
+examen:
+  v1.1: 3
+  v2.0: 3
+practica: [pt-router]
+actividades:
+  - codigo: "1.4.2"
+    tipo: Verificador de sintaxis
+    titulo: Configurar los ajustes básicos del router
+  - codigo: "1.4.5"
+    tipo: Verificador de sintaxis
+    titulo: Configurar las interfaces del router
+  - codigo: "1.4.7"
+    tipo: Packet Tracer
+    titulo: Configurar las interfaces del router
+    guia: "Después de configurar cada interfaz, ejecuta show ip interface brief. Si una interfaz sigue en down, revisa el cable antes de tocar la configuración."
+---
+
+import Topologia from '../../../../components/Topologia.tsx';
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.4.1 Parámetros básicos del router
+
+La configuración básica de un router es la misma que ya conoces del switch:
+
+```text
+Router# configure terminal
+Router(config)# hostname R1
+R1(config)# enable secret Cl4ss!2026
+R1(config)# line console 0
+R1(config-line)# password C0ns0la!26
+R1(config-line)# login
+R1(config-line)# line vty 0 4
+R1(config-line)# password Rem0t0!26
+R1(config-line)# login
+R1(config-line)# transport input ssh telnet
+R1(config-line)# exit
+R1(config)# service password-encryption
+R1(config)# banner motd #Acceso solo para personal autorizado#
+R1(config)# end
+R1# copy running-config startup-config
+```
+
+Un detalle: los routers ISR suelen tener **cinco** líneas VTY (0 a 4), no dieciséis como el switch.
+
+## 1.4.2 Para IPv6, un comando más
+
+Un router reenvía IPv4 desde el primer momento. Para que reenvíe **IPv6** hay que activarlo:
+
+```text
+R1(config)# ipv6 unicast-routing
+```
+
+Sin este comando el router puede tener direcciones IPv6 en sus interfaces, pero no enruta paquetes IPv6 ni envía
+mensajes de anuncio de router (RA), así que los hosts no pueden configurarse con SLAAC.
+
+## 1.4.3 Topología de doble pila
+
+<Topologia
+  ancho={720}
+  alto={250}
+  titulo="Doble pila: cada interfaz tiene una dirección IPv4 y una IPv6"
+  nodos={[
+    { id: 'PC1', tipo: 'pc', x: 70, y: 175, detalle: '192.168.10.10', detalle2: '2001:db8:acad:10::10', lado: 'abajo' },
+    { id: 'R1', tipo: 'router', x: 300, y: 110, detalle: 'Lo0 10.0.0.1', lado: 'arriba' },
+    { id: 'PC2', tipo: 'pc', x: 530, y: 175, detalle: '192.168.11.10', detalle2: '2001:db8:acad:11::10', lado: 'abajo' },
+    { id: 'ISP', tipo: 'nube', x: 640, y: 60, detalle: '209.165.200.226', lado: 'abajo' },
+  ]}
+  enlaces={[
+    { a: 'R1', b: 'PC1', ia: 'G0/0/0', marca: '192.168.10.0/24' },
+    { a: 'R1', b: 'PC2', ia: 'G0/0/1', marca: '192.168.11.0/24' },
+    { a: 'R1', b: 'ISP', ia: 'S0/1/1', tipo: 'serial' },
+  ]}
+/>
+
+En **doble pila** (*dual stack*), IPv4 e IPv6 conviven en las mismas interfaces. Es la estrategia de transición más
+usada.
+
+## 1.4.4 Configurar las interfaces
+
+<Pasos
+  client:visible
+  titulo="Configurar una interfaz de router"
+  pasos={[
+    { titulo: 'Entrar', texto: 'Entra a la interfaz por su nombre completo o abreviado.', codigo: 'R1(config)# interface gigabitEthernet 0/0/0' },
+    { titulo: 'Describir', texto: 'La descripción no cambia nada del funcionamiento, pero ayuda a quien soluciona problemas (hasta 240 caracteres).', codigo: 'R1(config-if)# description Enlace a la LAN de la PC1' },
+    { titulo: 'Direcciones', texto: 'IPv4 con máscara; IPv6 con prefijo. Puedes agregar una dirección link-local estática fácil de recordar.', codigo: 'R1(config-if)# ip address 192.168.10.1 255.255.255.0\nR1(config-if)# ipv6 address 2001:db8:acad:10::1/64\nR1(config-if)# ipv6 address fe80::1:a link-local' },
+    { titulo: 'Encender', texto: 'Las interfaces de un router vienen apagadas. Este paso es el que más se olvida.', codigo: 'R1(config-if)# no shutdown\n%LINK-5-CHANGED: Interface GigabitEthernet0/0/0, changed state to up\n%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up' },
+  ]}
+/>
+
+<aside class="examen">
+
+La diferencia clave con el switch: en un **router** cada interfaz física es de capa 3 y lleva su propia IP, y **todas
+vienen en shutdown**. En un switch de capa 2 los puertos vienen encendidos y la IP va en la SVI.
+
+</aside>
+
+## 1.4.5 Interfaces loopback
+
+Una **loopback** es una interfaz lógica, interna del router. No depende de ningún cable, así que **siempre está up**
+mientras el router funcione. Se usa para pruebas, como identificador del router (por ejemplo, en OSPF) y para
+administración.
+
+```text
+R1(config)# interface loopback 0
+R1(config-if)# ip address 10.0.0.1 255.255.255.0
+R1(config-if)# exit
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Loopback0, changed state to up
+```
+
+No necesita `no shutdown`. Puedes crear varias, cada una con un número distinto y en una red que no se solape con las
+demás interfaces.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué comando hace que un router reenvíe IPv6?', dorso: 'ipv6 unicast-routing' },
+    { frente: '¿En qué estado vienen las interfaces de un router?', dorso: 'Apagadas (administratively down): hay que hacer no shutdown.' },
+    { frente: '¿Qué es la doble pila?', dorso: 'IPv4 e IPv6 configurados a la vez en las mismas interfaces.' },
+    { frente: '¿Por qué una loopback siempre está up?', dorso: 'Es lógica: no depende de un cable ni de otro equipo.' },
+    { frente: '¿Qué hace description?', dorso: 'Documenta la interfaz. No afecta el funcionamiento.' },
+  ]}
+/>

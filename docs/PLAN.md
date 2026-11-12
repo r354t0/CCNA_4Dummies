@@ -23,13 +23,15 @@ Tracer). Cubre las dos versiones del examen: v1.1 hasta el 2 de febrero de 2027 
 2. **Reorganización en Teórica y Práctica** (hecha): ITN módulos 1 a 3 con pruebas, punto de control y simulacro;
    ejercicios interactivos, consola IOS, diagnóstico y Packet Tracer con corrección.
 3. **Contenido por partes**, a medida que llega el material de cada parte del curso:
+   - SRWE 1 a 4 (hecho): configuración básica, switching, VLAN y enrutamiento entre VLAN, con consola de SSH y VLAN,
+     diagnósticos y tres laboratorios de Packet Tracer con corrección.
    - ITN 4 a 17 (capa física a red pequeña), con sus ejercicios.
-   - SRWE y ENSA.
+   - SRWE 5 a 16 y ENSA.
    - Integrar `contenido-reserva/` en los módulos que corresponda.
 4. **Más Práctica**: consola de router, plantillas de Packet Tracer para VLANs, enrutamiento, OSPF, ACL y NAT.
 5. **Opcional**: cuentas y panel del instructor para seguir a un grupo.
 
 ## Pendiente del instructor
 
-- Enviar la siguiente parte del curso (ITN 4 en adelante).
+- Enviar la siguiente parte de cada curso (ITN 4 en adelante, SRWE 5 en adelante).
 - Opcional: subir archivos `.pkt` de inicio para los ejercicios de Packet Tracer (ver `docs/CREAR-LABS.md`).

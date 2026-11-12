@@ -1,0 +1,106 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.4"
+titulo: Troncales de VLAN
+objetivo: Configurar un puerto troncal en un switch LAN.
+duracion: 30
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [cli-vlan, pt-vlan, difusion-vlan]
+actividades:
+  - codigo: "3.4.5"
+    tipo: Packet Tracer
+    titulo: Configurar enlaces troncales
+  - codigo: "3.4.6"
+    tipo: Laboratorio
+    titulo: Configurar VLAN y enlaces troncales
+    guia: "Verifica la troncal desde los dos switches con show interfaces trunk. La VLAN nativa y las VLAN permitidas deben coincidir en ambos lados."
+---
+
+import Pasos from '../../../../components/teoria/Pasos.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.4.1 Comandos de configuración de la troncal
+
+<Pasos
+  client:visible
+  titulo="Configurar una troncal 802.1Q"
+  pasos={[
+    { titulo: 'Modo troncal', texto: 'Fija el puerto en modo troncal de forma permanente.', codigo: 'S1(config)# interface gigabitEthernet 0/1\nS1(config-if)# switchport mode trunk' },
+    { titulo: 'VLAN nativa', texto: 'Cambia la VLAN nativa a una VLAN sin uso. Haz lo mismo en el otro extremo.', codigo: 'S1(config-if)# switchport trunk native vlan 99' },
+    { titulo: 'VLAN permitidas', texto: 'Limita la troncal a las VLAN que necesitas. Sin este comando, pasan todas.', codigo: 'S1(config-if)# switchport trunk allowed vlan 10,20,30,99' },
+    { titulo: 'Verificar', texto: 'Comprueba el modo, la encapsulación, la VLAN nativa y las VLAN permitidas.', codigo: 'S1# show interfaces trunk' },
+  ]}
+/>
+
+<aside class="dato">
+
+En switches que admiten ISL y 802.1Q (como los Catalyst 3560), antes de `switchport mode trunk` hay que elegir la
+encapsulación con `switchport trunk encapsulation dot1q`. El 2960 solo admite 802.1Q, así que no lo necesita.
+
+</aside>
+
+Para cambiar las VLAN permitidas sin reescribir la lista entera:
+
+| Comando | Efecto |
+|---|---|
+| `switchport trunk allowed vlan 10,20` | Reemplaza la lista: solo pasan 10 y 20 |
+| `switchport trunk allowed vlan add 30` | Agrega la 30 a la lista |
+| `switchport trunk allowed vlan remove 20` | Quita la 20 |
+| `switchport trunk allowed vlan all` | Vuelve a permitir todas |
+
+<aside class="ojo">
+
+Un error clásico: escribir `switchport trunk allowed vlan 30` queriendo **agregar** la VLAN 30. Ese comando
+**reemplaza** la lista, y las demás VLAN dejan de pasar.
+
+</aside>
+
+## 3.4.2 Verificar la troncal
+
+```text
+S1# show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Gi0/1       on           802.1q         trunking      99
+
+Port        Vlans allowed on trunk
+Gi0/1       10,20,30,99
+
+Port        Vlans allowed and active in management domain
+Gi0/1       10,20,30,99
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gi0/1       10,20,30,99
+```
+
+| Bloque | Qué leer |
+|---|---|
+| Primero | Modo (`on` = troncal fija), encapsulación, estado `trunking` y VLAN nativa |
+| Allowed on trunk | Las VLAN que la configuración permite |
+| Allowed and active | Las permitidas que además **existen** en el switch |
+| Forwarding state | Las que STP deja reenviar |
+
+Una VLAN que falta en el tercer bloque suele ser una VLAN **que no creaste** en ese switch.
+
+## 3.4.3 Volver la troncal a su estado predeterminado
+
+```text
+S1(config)# interface gigabitEthernet 0/1
+S1(config-if)# no switchport trunk allowed vlan
+S1(config-if)# no switchport trunk native vlan
+```
+
+Y para convertirla de nuevo en un puerto de acceso: `switchport mode access`.
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Comando para hacer troncal un puerto', dorso: 'switchport mode trunk' },
+    { frente: 'Cambiar la VLAN nativa a 99', dorso: 'switchport trunk native vlan 99' },
+    { frente: 'Agregar la VLAN 40 a la lista permitida sin borrar las demás', dorso: 'switchport trunk allowed vlan add 40' },
+    { frente: '¿Qué comando muestra la VLAN nativa de una troncal?', dorso: 'show interfaces trunk' },
+    { frente: 'Una VLAN permitida no aparece como activa en la troncal', dorso: 'Probablemente no existe en ese switch: créala.' },
+  ]}
+/>

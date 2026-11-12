@@ -1,0 +1,82 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.5"
+titulo: Protocolo de enlace troncal dinámico (DTP)
+objetivo: Configurar el protocolo de enlace troncal dinámico.
+duracion: 25
+examen:
+  v1.1: 2
+  v2.0: 2
+practica: [dtp]
+actividades:
+  - codigo: "3.5.5"
+    tipo: Packet Tracer
+    titulo: Configurar DTP
+    guia: "Antes de cambiar cada modo, usa la matriz de este tema para predecir el resultado y compruébalo con show dtp interface."
+---
+
+import MatrizDTP from '../../../../components/teoria/MatrizDTP.tsx';
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 3.5.1 Introducción a DTP
+
+**DTP** (*Dynamic Trunking Protocol*) es un protocolo de Cisco que negocia de forma automática si un enlace entre dos
+switches debe ser troncal. Viene activado. En los Catalyst 2960 y 3650 el modo predeterminado de los puertos es
+`dynamic auto`.
+
+Desactívalo en los puertos troncales que conectan con equipos de otros fabricantes (que no hablan DTP) y, en general,
+fija los modos a mano: un atacante podría negociar una troncal desde un puerto de usuario.
+
+```text
+S1(config-if)# switchport mode trunk
+S1(config-if)# switchport nonegotiate
+```
+
+## 3.5.2 Modos de la interfaz
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'switchport mode access', texto: 'Acceso permanente. No forma troncal aunque el vecino lo pida.' },
+    { titulo: 'switchport mode dynamic auto', texto: 'Pasivo: acepta ser troncal si el vecino lo propone. Es el modo predeterminado.' },
+    { titulo: 'switchport mode dynamic desirable', texto: 'Activo: propone ser troncal. Lo será si el vecino está en trunk, desirable o auto.' },
+    { titulo: 'switchport mode trunk', texto: 'Troncal permanente. Sigue enviando tramas DTP salvo que agregues nonegotiate.' },
+    { titulo: 'switchport nonegotiate', texto: 'Deja de enviar tramas DTP. Solo con modo access o trunk.' },
+  ]}
+/>
+
+## 3.5.3 Resultado de cada combinación
+
+<MatrizDTP client:visible />
+
+<aside class="examen">
+
+Las dos combinaciones que más se preguntan: **auto + auto = acceso** (nadie propone la troncal) y **trunk + access =
+conectividad limitada**. Si al menos uno es `desirable` o `trunk` y el otro no es `access`, el enlace es troncal.
+
+</aside>
+
+## 3.5.4 Verificar DTP
+
+```text
+S1# show dtp interface gigabitEthernet 0/1
+DTP information for GigabitEthernet0/1:
+  TOS/TAS/TNS:                              ACCESS/AUTO/ACCESS
+  TOT/TAT/TNT:                              NATIVE/NEGOTIATE/NATIVE
+```
+
+También `show interfaces gi0/1 switchport` muestra el modo administrativo (`dynamic auto`) y el operativo
+(`static access` o `trunk`).
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: 'Modo DTP predeterminado en un 2960', dorso: 'dynamic auto' },
+    { frente: 'auto + auto', dorso: 'Acceso.' },
+    { frente: 'desirable + auto', dorso: 'Troncal.' },
+    { frente: 'trunk + access', dorso: 'Conectividad limitada (error de configuración).' },
+    { frente: '¿Qué hace switchport nonegotiate?', dorso: 'Deja de enviar tramas DTP en ese puerto.' },
+  ]}
+/>

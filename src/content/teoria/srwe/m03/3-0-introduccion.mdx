@@ -1,0 +1,42 @@
+---
+curso: srwe
+modulo: 3
+tema: "3.0"
+titulo: Introducción
+objetivo: Implementar VLAN y enlaces troncales en una red conmutada.
+duracion: 5
+actividades:
+  - codigo: "3.0.3"
+    tipo: Actividad de clase
+    titulo: Visualizar las VLAN
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+
+En el módulo anterior viste que un switch no separa dominios de difusión. Las **VLAN** lo cambian: con un solo switch
+físico puedes tener varias redes lógicas aisladas, como si fueran switches distintos.
+
+## 3.0.1 ¿Por qué estudiar este módulo?
+
+Las VLAN están en todas las redes empresariales y en todas las versiones del CCNA. Las verás en simulaciones de
+configuración y en preguntas de diagnóstico: un puerto en la VLAN equivocada, una troncal que no deja pasar una VLAN,
+una VLAN nativa que no coincide.
+
+<Tarjetas
+  columnas={3}
+  items={[
+    { titulo: 'VLAN', icono: 'switch', texto: 'Redes lógicas dentro del mismo switch. Cada una es su propio dominio de difusión.' },
+    { titulo: 'Troncal', icono: 'switch', texto: 'Un enlace que lleva varias VLAN, etiquetando las tramas con 802.1Q.' },
+    { titulo: 'DTP', icono: 'switch', texto: 'El protocolo que negocia si un enlace es troncal. Mejor desactivarlo.' },
+  ]}
+/>
+
+## 3.0.2 Qué vas a aprender
+
+| Tema | Objetivo |
+|---|---|
+| 3.1 Descripción general de las VLAN | Explicar el propósito de las VLAN en una red conmutada |
+| 3.2 VLAN en un entorno multiswitch | Explicar cómo reenvía un switch las tramas según la VLAN |
+| 3.3 Configuración de VLAN | Configurar un puerto de switch en una VLAN |
+| 3.4 Troncales de VLAN | Configurar un enlace troncal en un switch LAN |
+| 3.5 Protocolo de enlace troncal dinámico | Configurar DTP |

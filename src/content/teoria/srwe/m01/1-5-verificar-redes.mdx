@@ -1,0 +1,159 @@
+---
+curso: srwe
+modulo: 1
+tema: "1.5"
+titulo: Verificar redes conectadas directamente
+objetivo: Verificar la conectividad de las redes conectadas directamente a un router.
+duracion: 35
+examen:
+  v1.1: 3
+  v2.0: 3
+practica: [diag-interfaces, pt-router]
+actividades:
+  - codigo: "1.5.7"
+    tipo: Verificador de sintaxis
+    titulo: Salida de los comandos show
+  - codigo: "1.5.9"
+    tipo: Verificador de sintaxis
+    titulo: Características del historial de comandos
+  - codigo: "1.5.10"
+    tipo: Packet Tracer
+    titulo: Verificar redes conectadas directamente
+    guia: "Antes de hacer ping, predice con show ip route qué redes conoce cada router. Luego comprueba tu predicción."
+---
+
+import Tarjetas from '../../../../components/teoria/Tarjetas.tsx';
+import Repaso from '../../../../components/teoria/Repaso.tsx';
+
+## 1.5.1 Comandos de verificación de interfaces
+
+<Tarjetas
+  columnas={2}
+  items={[
+    { titulo: 'show ip interface brief', texto: 'Resumen de todas las interfaces: dirección IPv4 y estado. El primer comando que escribes.', ejemplo: 'También: show ipv6 interface brief' },
+    { titulo: 'show ip route', texto: 'La tabla de enrutamiento IPv4: qué redes conoce el router y por qué interfaz llega a ellas.', ejemplo: 'También: show ipv6 route' },
+    { titulo: 'show interfaces', texto: 'Estadísticas completas de cada interfaz: estado, dúplex, velocidad, errores.' },
+    { titulo: 'show ip interface', texto: 'Detalle IPv4 de una interfaz: dirección, broadcast, ACL aplicadas…', ejemplo: 'También: show ipv6 interface' },
+  ]}
+/>
+
+## 1.5.2 Verificar el estado de las interfaces
+
+```text
+R1# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0/0   192.168.10.1    YES manual up                    up
+GigabitEthernet0/0/1   192.168.11.1    YES manual up                    up
+Serial0/1/0            unassigned      YES unset  administratively down down
+Serial0/1/1            209.165.200.225 YES manual up                    up
+Loopback0              10.0.0.1        YES manual up                    up
+```
+
+Lo que buscas: la dirección correcta y **up / up**. Para IPv6:
+
+```text
+R1# show ipv6 interface brief
+GigabitEthernet0/0/0   [up/up]
+    FE80::1:A
+    2001:DB8:ACAD:10::1
+GigabitEthernet0/0/1   [up/up]
+    FE80::1:B
+    2001:DB8:ACAD:11::1
+```
+
+## 1.5.3 Link-local y grupos multicast IPv6
+
+`show ipv6 interface` muestra más que la dirección global. Cada interfaz IPv6 tiene una **link-local** (empieza con
+`FE80`) y se une a varios grupos **multicast**:
+
+```text
+R1# show ipv6 interface gigabitEthernet 0/0/0
+GigabitEthernet0/0/0 is up, line protocol is up
+  IPv6 is enabled, link-local address is FE80::1:A
+  Global unicast address(es):
+    2001:DB8:ACAD:10::1, subnet is 2001:DB8:ACAD:10::/64
+  Joined group address(es):
+    FF02::1
+    FF02::2
+    FF02::1:FF00:1
+    FF02::1:FF01:A
+```
+
+| Grupo | Quiénes |
+|---|---|
+| `FF02::1` | Todos los nodos IPv6 |
+| `FF02::2` | Todos los routers IPv6 (aparece gracias a `ipv6 unicast-routing`) |
+| `FF02::1:FFxx:xxxx` | Nodo solicitado: uno por cada dirección unicast de la interfaz |
+
+## 1.5.4 Verificar la configuración de una interfaz
+
+```text
+R1# show interfaces gigabitEthernet 0/0/0
+GigabitEthernet0/0/0 is up, line protocol is up
+  Hardware is ISR4321-2x1GE, address is a0e0.af0d.e140 (bia a0e0.af0d.e140)
+  Description: Enlace a la LAN de la PC1
+  Internet address is 192.168.10.1/24
+```
+
+## 1.5.5 Verificar las rutas
+
+Al configurar una interfaz y encenderla, el router agrega **dos** entradas a su tabla:
+
+```text
+R1# show ip route
+Codes: L - local, C - connected, S - static, R - RIP, O - OSPF ...
+
+Gateway of last resort is not set
+
+      10.0.0.0/8 is variably subnetted, 2 subnets, 2 masks
+C        10.0.0.0/24 is directly connected, Loopback0
+L        10.0.0.1/32 is directly connected, Loopback0
+      192.168.10.0/24 is variably subnetted, 2 subnets, 2 masks
+C        192.168.10.0/24 is directly connected, GigabitEthernet0/0/0
+L        192.168.10.1/32 is directly connected, GigabitEthernet0/0/0
+```
+
+- **C** (conectada): la red completa de la interfaz.
+- **L** (local): la propia dirección de la interfaz, con máscara /32 (o /128 en IPv6).
+
+<aside class="ojo">
+
+Una red solo aparece en la tabla si la interfaz está **up/up**. Si configuraste la IP pero falta `no shutdown`, la ruta
+no estará: es una buena pista para encontrar el problema.
+
+</aside>
+
+## 1.5.6 Filtrar la salida de los comandos show
+
+Con una tubería (`|`) y un filtro te quedas solo con lo que importa:
+
+| Filtro | Muestra | Ejemplo |
+|---|---|---|
+| `section` | La sección completa que empieza con la expresión | `show running-config \| section line vty` |
+| `include` | Solo las líneas que contienen la expresión | `show ip interface brief \| include up` |
+| `exclude` | Todas las líneas menos las que la contienen | `show ip interface brief \| exclude unassigned` |
+| `begin` | Todo a partir de la primera línea que la contiene | `show ip route \| begin Gateway` |
+
+Los filtros distinguen mayúsculas y minúsculas.
+
+## 1.5.7 El historial de comandos
+
+IOS recuerda los últimos **10** comandos de la sesión.
+
+| Acción | Cómo |
+|---|---|
+| Comando anterior | <kbd>Ctrl</kbd>+<kbd>P</kbd> o <kbd>↑</kbd> |
+| Comando siguiente | <kbd>Ctrl</kbd>+<kbd>N</kbd> o <kbd>↓</kbd> |
+| Ver el historial | `show history` |
+| Ampliar el historial de la sesión | `terminal history size 200` |
+
+<Repaso
+  client:visible
+  fichas={[
+    { frente: '¿Qué dos entradas agrega una interfaz activa a la tabla de rutas?', dorso: 'Una C (la red conectada) y una L (la dirección local con /32 o /128).' },
+    { frente: 'FF02::2', dorso: 'El grupo multicast de todos los routers IPv6.' },
+    { frente: 'Filtro para ver solo el bloque line vty de la configuración', dorso: 'show running-config | section line vty' },
+    { frente: '¿Cuántos comandos guarda el historial por defecto?', dorso: '10. Se amplía con terminal history size.' },
+    { frente: 'Configuraste la IP pero la red no aparece en show ip route. ¿Qué miras?', dorso: 'Que la interfaz esté up/up: probablemente falta no shutdown o el cable.' },
+  ]}
+/>

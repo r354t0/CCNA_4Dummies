@@ -1,0 +1,161 @@
+curso: srwe
+modulo: 2
+preguntas:
+  - id: srwe2-01
+    tema: "2.1"
+    verifique: true
+    p: "¿Qué dirección usa un switch para llenar su tabla de direcciones MAC?"
+    opciones: ["La MAC de destino", "La MAC de origen", "La IP de origen", "La IP de destino"]
+    correcta: 1
+    explicacion: "El switch aprende la MAC de origen de cada trama y la asocia al puerto por el que entró."
+  - id: srwe2-02
+    tema: "2.1"
+    verifique: true
+    p: "Llega una trama unicast cuya MAC de destino no está en la tabla. ¿Qué hace el switch?"
+    opciones: ["La descarta", "La envía por todos los puertos menos por el que entró", "La devuelve al origen", "La envía solo al router"]
+    correcta: 1
+    explicacion: "Una unicast desconocida se inunda por todos los puertos salvo el de entrada."
+  - id: srwe2-03
+    tema: "2.1"
+    verifique: true
+    p: "¿Qué hace un switch con una trama de difusión (FF-FF-FF-FF-FF-FF)?"
+    opciones: ["La envía solo al puerto del router", "La inunda por todos los puertos menos el de entrada", "La descarta", "La envía por el puerto con menor número"]
+    correcta: 1
+    explicacion: "Las difusiones siempre se inundan dentro del dominio de difusión."
+  - id: srwe2-04
+    tema: "2.1"
+    p: "La MAC de destino de una trama está en la tabla, asociada a Fa0/7. ¿Por dónde sale la trama?"
+    opciones: ["Por todos los puertos", "Solo por Fa0/7", "Por todos menos Fa0/7", "Por ninguno"]
+    correcta: 1
+    explicacion: "Con una unicast conocida, el switch reenvía la trama solo por el puerto que indica la tabla."
+  - id: srwe2-05
+    tema: "2.1"
+    p: "Una MAC ya está en la tabla y llega otra trama con esa MAC de origen por el mismo puerto. ¿Qué hace el switch con la entrada?"
+    opciones: ["La borra", "Renueva su temporizador de vencimiento", "Crea una entrada duplicada", "La marca como estática"]
+    correcta: 1
+    explicacion: "Si la entrada existe, el switch renueva su temporizador (5 minutos por defecto en Catalyst)."
+  - id: srwe2-06
+    tema: "2.1"
+    p: "Un equipo se movió de Fa0/2 a Fa0/9. ¿Qué hace el switch cuando recibe su primera trama por Fa0/9?"
+    opciones: ["Mantiene Fa0/2", "Actualiza la entrada con el puerto Fa0/9", "Bloquea Fa0/9", "Descarta la trama"]
+    correcta: 1
+    explicacion: "Si la MAC de origen aparece por otro puerto, el switch actualiza la entrada."
+  - id: srwe2-07
+    tema: "2.1"
+    p: "¿Cuánto tiempo conserva por defecto un switch Catalyst una entrada dinámica que no se usa?"
+    opciones: ["30 segundos", "5 minutos", "1 hora", "Hasta que se reinicie"]
+    correcta: 1
+    explicacion: "El temporizador de vencimiento predeterminado es de 300 segundos (5 minutos)."
+  - id: srwe2-08
+    tema: "2.1"
+    p: "¿Qué comando muestra la tabla de direcciones MAC de un switch?"
+    opciones: ["show mac address-table", "show arp", "show ip route", "show cam"]
+    correcta: 0
+    explicacion: "show mac address-table muestra cada MAC con su VLAN, su tipo y su puerto."
+  - id: srwe2-09
+    tema: "2.1"
+    verifique: true
+    p: "¿Qué método de reenvío comprueba el FCS y descarta las tramas con errores?"
+    opciones: ["Avance rápido", "Libre de fragmentos", "Almacenamiento y reenvío", "Corte"]
+    correcta: 2
+    explicacion: "Solo el almacenamiento y reenvío recibe la trama completa y verifica el CRC antes de reenviar."
+  - id: srwe2-10
+    tema: "2.1"
+    verifique: true
+    p: "¿Qué método de corte espera los primeros 64 bytes de la trama antes de reenviarla?"
+    opciones: ["Avance rápido", "Libre de fragmentos", "Almacenamiento y reenvío", "Inundación"]
+    correcta: 1
+    explicacion: "El libre de fragmentos espera 64 bytes, donde ocurren la mayoría de los errores y colisiones."
+  - id: srwe2-11
+    tema: "2.1"
+    p: "¿Qué método de reenvío ofrece la menor latencia?"
+    opciones: ["Almacenamiento y reenvío", "Libre de fragmentos", "Avance rápido", "Todos tienen la misma"]
+    correcta: 2
+    explicacion: "El avance rápido reenvía en cuanto lee la MAC de destino."
+  - id: srwe2-12
+    tema: "2.1"
+    p: "¿Cuál es una desventaja del método de corte?"
+    opciones: ["No puede reenviar difusiones", "Puede reenviar tramas dañadas", "Necesita más memoria", "No aprende direcciones MAC"]
+    correcta: 1
+    explicacion: "Como reenvía antes de recibir el FCS, no puede descartar las tramas con errores."
+  - id: srwe2-13
+    tema: "2.1"
+    p: "¿Cuáles dos características permite el almacenamiento y reenvío? (Elija dos)."
+    opciones: ["Verificación de errores con el CRC", "Latencia más baja que el método de corte", "Almacenamiento en búfer entre puertos de distinta velocidad", "Reenvío antes de leer la MAC de destino"]
+    correcta: [0, 2]
+    explicacion: "Al recibir la trama completa, el switch puede verificar el CRC y guardar la trama para entregarla al ritmo del puerto de salida."
+  - id: srwe2-14
+    tema: "2.1"
+    p: "¿Qué tabla usa un switch de capa 2 para decidir el reenvío?"
+    opciones: ["La tabla de enrutamiento", "La tabla ARP", "La tabla de direcciones MAC", "La tabla de vecinos"]
+    correcta: 2
+    explicacion: "Un switch de capa 2 decide solo con la tabla de direcciones MAC (CAM)."
+  - id: srwe2-15
+    tema: "2.1"
+    p: "PC-A (Fa0/1) envía una trama a PC-B, que también está en Fa0/1 a través de un hub. La tabla ya conoce a PC-B en Fa0/1. ¿Qué hace el switch?"
+    opciones: ["La reenvía por Fa0/1", "La filtra (la descarta)", "La inunda", "La envía al router"]
+    correcta: 1
+    explicacion: "Si el destino está en el mismo puerto por el que entró la trama, el switch no la reenvía."
+  - id: srwe2-16
+    tema: "2.2"
+    verifique: true
+    p: "¿Cuántos dominios de colisión tiene un switch de 24 puertos con un equipo en cada puerto?"
+    opciones: ["1", "2", "12", "24"]
+    correcta: 3
+    explicacion: "Cada puerto de switch es un dominio de colisión independiente."
+  - id: srwe2-17
+    tema: "2.2"
+    verifique: true
+    p: "¿Cuántos dominios de difusión tiene ese mismo switch, sin VLAN configuradas?"
+    opciones: ["1", "2", "24", "Ninguno"]
+    correcta: 0
+    explicacion: "Un switch reenvía las difusiones por todos sus puertos: sin VLAN, todo es un solo dominio de difusión."
+  - id: srwe2-18
+    tema: "2.2"
+    verifique: true
+    p: "¿Qué dispositivo separa dominios de difusión?"
+    opciones: ["Hub", "Switch de capa 2 sin VLAN", "Router", "Repetidor"]
+    correcta: 2
+    explicacion: "Un router no reenvía difusiones de capa 2: cada interfaz es el borde de un dominio de difusión."
+  - id: srwe2-19
+    tema: "2.2"
+    p: "Un router tiene dos interfaces activas, cada una conectada a un switch con 5 PC. ¿Cuántos dominios de difusión hay?"
+    opciones: ["1", "2", "10", "12"]
+    correcta: 1
+    explicacion: "Uno por cada interfaz del router con una red detrás."
+  - id: srwe2-20
+    tema: "2.2"
+    p: "Un hub con 4 PC está conectado a un puerto de un switch. ¿Cuántos dominios de colisión forman el hub y sus PC?"
+    opciones: ["1", "4", "5", "Ninguno"]
+    correcta: 0
+    explicacion: "El hub no separa colisiones: todo lo que cuelga de él comparte un dominio."
+  - id: srwe2-21
+    tema: "2.2"
+    p: "¿Por qué no hay colisiones en un puerto de switch en dúplex completo?"
+    opciones: ["Porque el switch descarta las tramas repetidas", "Porque se puede enviar y recibir a la vez por pares separados en un enlace punto a punto", "Porque usa CSMA/CA", "Porque el switch reduce la velocidad"]
+    correcta: 1
+    explicacion: "En dúplex completo cada dirección tiene su propio canal y el enlace no se comparte."
+  - id: srwe2-22
+    tema: "2.2"
+    p: "¿Cuáles dos características de un switch ayudan a aliviar la congestión? (Elija dos)."
+    opciones: ["Búferes de trama grandes", "Funcionamiento en semidúplex", "Alta densidad de puertos", "Un solo dominio de colisión"]
+    correcta: [0, 2]
+    explicacion: "Los búferes evitan descartes y la densidad de puertos da a cada usuario su propio puerto. El semidúplex y compartir el dominio de colisión empeoran la congestión."
+  - id: srwe2-23
+    tema: "2.2"
+    p: "¿Qué ocurre con una difusión enviada por un equipo conectado a S1, si S1 y S2 están unidos por un cable y no hay VLAN?"
+    opciones: ["Solo la reciben los equipos de S1", "La reciben los equipos de S1 y de S2", "S2 la descarta", "Se convierte en unicast"]
+    correcta: 1
+    explicacion: "Los switches unidos forman un único dominio de difusión."
+  - id: srwe2-24
+    tema: "2.2"
+    p: "Cuenta los dominios: un router con dos interfaces; en una, un switch con 3 PC; en la otra, un switch con un hub que tiene 2 PC. ¿Cuántos dominios de colisión hay?"
+    opciones: ["4", "6", "7", "9"]
+    correcta: 1
+    explicacion: "Router-S1, router-S2, 3 puertos de S1 hacia las PC y el puerto de S2 hacia el hub (que comparte con sus 2 PC): 1 + 1 + 3 + 1 = 6."
+  - id: srwe2-25
+    tema: "2.2"
+    p: "¿Qué separa los dominios de difusión dentro de un mismo switch?"
+    opciones: ["El dúplex completo", "Las VLAN", "El método de corte", "La tabla MAC"]
+    correcta: 1
+    explicacion: "Cada VLAN es un dominio de difusión propio. Lo verás en el módulo 3."
